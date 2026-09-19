@@ -179,16 +179,18 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
           </p>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-          <Link href="/products">
-            <Button className="font-bold text-xs gap-1.5">
-              <Search className="w-3.5 h-3.5" />
-              <span>Browse All Deals & Products</span>
-            </Button>
+          <Link
+            href="/products"
+            className="inline-flex items-center justify-center font-bold text-xs gap-1.5 bg-blue-600 hover:bg-blue-700 text-white h-9 px-4 rounded-none transition-colors cursor-pointer"
+          >
+            <Search className="w-3.5 h-3.5" />
+            <span>Browse All Deals & Products</span>
           </Link>
-          <Link href="/">
-            <Button variant="outline" className="font-bold text-xs">
-              Go to Homepage
-            </Button>
+          <Link
+            href="/"
+            className="inline-flex items-center justify-center font-bold text-xs border border-border bg-background hover:bg-muted text-foreground h-9 px-4 rounded-none transition-colors cursor-pointer"
+          >
+            Go to Homepage
           </Link>
         </div>
       </div>
@@ -726,18 +728,14 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
                             href={offer.productUrl || offer.internalGoUrl}
                             target="_blank"
                             rel="nofollow sponsored noopener"
+                            className={`inline-flex items-center justify-center text-xs font-bold h-8 px-3 sm:px-4 rounded-none transition-colors cursor-pointer select-none ${
+                              offer.isLowestPrice
+                                ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                                : 'bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 text-white'
+                            }`}
                           >
-                            <Button
-                              size="sm"
-                              className={`text-xs font-bold h-8 px-3 sm:px-4 ${
-                                offer.isLowestPrice
-                                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                                  : 'bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 text-white'
-                              }`}
-                            >
-                              <span>Buy Now</span>
-                              <ExternalLink className="w-3 h-3 ml-1" />
-                            </Button>
+                            <span>Buy Now</span>
+                            <ExternalLink className="w-3 h-3 ml-1" />
                           </a>
                         </td>
                       </tr>

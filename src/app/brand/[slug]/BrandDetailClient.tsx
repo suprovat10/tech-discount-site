@@ -329,10 +329,11 @@ export function BrandDetailClient({
                 We couldn&apos;t find any active deals under this brand. Check back soon or explore our featured deals!
               </p>
             </div>
-            <Link href="/products">
-              <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs">
-                Browse All Deals
-              </Button>
+            <Link
+              href="/products"
+              className="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-9 px-4 rounded-none transition-colors cursor-pointer"
+            >
+              Browse All Deals
             </Link>
           </div>
         )}

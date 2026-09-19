@@ -93,17 +93,19 @@ export function HeroSection({ initialSettings }: HeroSectionProps) {
           </p>
 
           <div className="flex flex-wrap items-center gap-3 pt-2">
-            <Link href={primaryUrl}>
-              <Button className="bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 text-white font-bold text-xs h-10 px-5 flex items-center gap-2">
-                <span>{primaryText}</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Button>
+            <Link
+              href={primaryUrl}
+              className="bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 text-white font-bold text-xs h-10 px-5 inline-flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            >
+              <span>{primaryText}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
-            <Link href={secondaryUrl}>
-              <Button variant="outline" className="font-bold text-xs h-10 px-5 flex items-center gap-1.5">
-                <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                <span>{secondaryText}</span>
-              </Button>
+            <Link
+              href={secondaryUrl}
+              className="border border-border bg-background hover:bg-muted font-bold text-xs h-10 px-5 inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer text-foreground"
+            >
+              <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+              <span>{secondaryText}</span>
             </Link>
           </div>
         </div>

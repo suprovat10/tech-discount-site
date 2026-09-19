@@ -83,16 +83,18 @@ export function BlogDetailClient({
           </p>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-          <Link href="/blog">
-            <Button className="font-bold text-xs gap-1.5">
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Back to Tech Guides & Blog</span>
-            </Button>
+          <Link
+            href="/blog"
+            className="inline-flex items-center justify-center font-bold text-xs gap-1.5 bg-blue-600 hover:bg-blue-700 text-white h-9 px-4 rounded-none transition-colors cursor-pointer"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to Tech Guides & Blog</span>
           </Link>
-          <Link href="/">
-            <Button variant="outline" className="font-bold text-xs">
-              Go to Homepage
-            </Button>
+          <Link
+            href="/"
+            className="inline-flex items-center justify-center font-bold text-xs border border-border bg-background hover:bg-muted text-foreground h-9 px-4 rounded-none transition-colors cursor-pointer"
+          >
+            Go to Homepage
           </Link>
         </div>
       </div>

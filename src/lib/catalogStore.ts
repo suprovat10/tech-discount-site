@@ -1,5 +1,7 @@
 import { PRODUCTS_CATALOG, CatalogItem } from '@/data/catalog';
 
+export type { CatalogItem };
+
 const STORAGE_KEY = 'smarttech_products_catalog';
 
 /**
