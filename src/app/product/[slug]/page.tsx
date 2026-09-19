@@ -1,7 +1,8 @@
 import React from 'react';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { adapterRegistry } from '@/lib/adapters';
+import { getDatabaseProductBySlug, getDatabaseProducts } from '@/lib/catalogDb';
+import { transformCatalogItemToUnified } from '@/lib/adapters';
 import { getServerSettings } from '@/lib/settingsServer';
 import { generateProductJsonLd, generateBreadcrumbJsonLd } from '@/lib/seo/jsonld';
 import { ProductDetailClient } from './ProductDetailClient';
@@ -22,8 +23,8 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
   const brand = settings.siteBrandName || 'suprodesign';
 
-  const allProducts = await adapterRegistry.searchAllRetailers({ query: '' });
-  const product = allProducts.find((p) => p.slug === slug || p.id === slug);
+  const rawProduct = await getDatabaseProductBySlug(slug);
+  const product = rawProduct ? transformCatalogItemToUnified(rawProduct) : null;
 
   if (!product) {
     const formattedTitle = slug
@@ -78,19 +79,14 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   const settings = getServerSettings();
   const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
 
-  const cleanQuery = slug.replace(/-/g, ' ');
+  const rawProduct = await getDatabaseProductBySlug(slug);
+  const product = rawProduct ? transformCatalogItemToUnified(rawProduct) : null;
 
-  const allProducts = await adapterRegistry.searchAllRetailers({ query: '' });
-  let product = allProducts.find((p) => p.slug === slug || p.id === slug);
-
-  if (!product) {
-    const searchMatches = await adapterRegistry.searchAllRetailers({ query: cleanQuery });
-    product = searchMatches.find((p) => p.slug === slug || p.id === slug);
-  }
+  const allCatalog = await getDatabaseProducts();
 
   // Related products strictly from the same category
-  let relatedProducts = product
-    ? allProducts.filter(
+  let relatedRaw = product
+    ? allCatalog.filter(
         (p) =>
           p.slug !== product.slug &&
           p.id !== product.id &&
@@ -98,14 +94,13 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           product.category &&
           p.category.toLowerCase().trim() === product.category.toLowerCase().trim()
       )
-    : allProducts.slice(0, 4);
+    : [];
 
-  // If no products in the exact category, fallback to others
-  if (relatedProducts.length === 0) {
-    relatedProducts = allProducts.filter((p) => !product || (p.slug !== product.slug && p.id !== product.id));
+  if (relatedRaw.length === 0) {
+    relatedRaw = allCatalog.filter((p) => !product || (p.slug !== product.slug && p.id !== product.id));
   }
 
-  relatedProducts = relatedProducts.slice(0, 4);
+  const relatedProducts = relatedRaw.slice(0, 4).map(transformCatalogItemToUnified);
 
   const productJsonLd = product ? generateProductJsonLd(product, siteUrl) : null;
   const breadcrumbJsonLd = generateBreadcrumbJsonLd(

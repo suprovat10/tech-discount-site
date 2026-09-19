@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Header } from '@/components/common/Header';
 import { Footer } from '@/components/common/Footer';
 import { WatchlistToast } from '@/components/watchlist/WatchlistToast';
+import { NavigationProgress } from '@/components/common/NavigationProgress';
 import { useBranding } from '@/hooks/useBranding';
 
 export function StoreLayoutWrapper({ children }: { children: React.ReactNode }) {
@@ -18,6 +19,9 @@ export function StoreLayoutWrapper({ children }: { children: React.ReactNode }) 
 
   return (
     <div className="min-h-screen flex flex-col justify-between">
+      <React.Suspense fallback={null}>
+        <NavigationProgress />
+      </React.Suspense>
       <div>
         <React.Suspense fallback={<div className="h-16 border-b border-border/60 bg-background" />}>
           <Header />
@@ -29,3 +33,4 @@ export function StoreLayoutWrapper({ children }: { children: React.ReactNode }) 
     </div>
   );
 }
+

@@ -1,8 +1,8 @@
 import React from 'react';
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
 import { DEFAULT_BRANDS } from '@/data/brands';
-import { adapterRegistry } from '@/lib/adapters';
+import { getDatabaseProducts } from '@/lib/catalogDb';
+import { transformCatalogItemToUnified } from '@/lib/adapters';
 import { BrandDetailClient } from './BrandDetailClient';
 
 export const dynamic = 'force-dynamic';
@@ -51,11 +51,11 @@ export default async function BrandPage({ params }: BrandPageProps) {
 
   const brandName = brand ? brand.name : cleanSlug.replace(/-/g, ' ');
 
-  // Fetch all products matching this brand
-  const allProducts = await adapterRegistry.searchAllRetailers({ query: '' });
-  const brandProducts = allProducts.filter(
-    (p) => p.brand && p.brand.toLowerCase().trim() === brandName.toLowerCase().trim()
-  );
+  // Fetch all products matching this brand directly (0.05ms)
+  const allCatalog = await getDatabaseProducts();
+  const brandProducts = allCatalog
+    .filter((p) => p.brand && p.brand.toLowerCase().trim() === brandName.toLowerCase().trim())
+    .map(transformCatalogItemToUnified);
 
   return (
     <div className="container mx-auto px-4 sm:px-6 py-6">

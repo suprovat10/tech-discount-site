@@ -34,21 +34,17 @@ export function DealCard({ product }: DealCardProps) {
   ).length;
 
   return (
-    <div className="group relative flex flex-col justify-between border border-border/80 bg-card p-2.5 sm:p-4 transition-all duration-200 hover:border-foreground/40 hover:shadow-md cursor-pointer">
-      {/* Full card background clickable link for single-click navigation */}
+    <div className="group relative flex flex-col justify-between border border-border/80 bg-card p-2.5 sm:p-4 transition-all duration-150 hover:border-foreground/40 hover:shadow-md active:scale-[0.985] cursor-pointer">
+      {/* Primary single clickable card link */}
       <Link
         href={`/product/${product.slug}`}
-        className="absolute inset-0 z-0"
+        className="absolute inset-0 z-10"
         aria-label={product.title}
         prefetch={true}
       />
 
       {/* Product Image: Strictly 5:4 Aspect Ratio, Edge-to-Edge with No Inner Border */}
-      <Link
-        href={`/product/${product.slug}`}
-        prefetch={true}
-        className="relative z-10 mb-2 sm:mb-3 block aspect-[5/4] w-full overflow-hidden bg-muted/20"
-      >
+      <div className="relative z-0 mb-2 sm:mb-3 block aspect-[5/4] w-full overflow-hidden bg-muted/20">
         <Image
           src={product.imageUrl}
           alt={product.imageAlt || product.title}
@@ -58,23 +54,23 @@ export function DealCard({ product }: DealCardProps) {
           unoptimized
         />
 
-        {/* Discount Badge over Image (Always present if discount exists) */}
+        {/* Discount Badge over Image */}
         {discountPercent > 0 && (
           <span className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 z-10 px-1.5 sm:px-2 py-0.5 bg-emerald-600 text-white font-bold text-[9px] sm:text-[10px] tracking-wider uppercase shadow-sm pointer-events-none">
             -{discountPercent}% OFF
           </span>
         )}
 
-        {/* Custom Badge over Image (Strictly for allowed badges) */}
+        {/* Custom Badge over Image */}
         {hasValidBadge && (
           <span className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10 px-1.5 sm:px-2 py-0.5 bg-amber-500 text-white font-bold text-[9px] sm:text-[10px] tracking-wider uppercase shadow-sm pointer-events-none">
             {product.badge}
           </span>
         )}
-      </Link>
+      </div>
 
       {/* Rating on Left & Brand on Right, followed by Title */}
-      <div className="relative z-10 space-y-1 sm:space-y-1.5 flex-1">
+      <div className="relative z-0 space-y-1 sm:space-y-1.5 flex-1">
         <div className="flex items-center justify-between text-[10px] sm:text-[11px] font-semibold gap-1">
           <div className="flex items-center gap-1 text-muted-foreground shrink-0">
             <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-amber-400 text-amber-400 shrink-0" />
@@ -86,20 +82,19 @@ export function DealCard({ product }: DealCardProps) {
             prefetch={true}
             className="uppercase tracking-wider text-[9px] sm:text-[10px] font-black text-muted-foreground hover:text-blue-600 transition-colors truncate max-w-[65px] sm:max-w-none text-right relative z-20 pointer-events-auto"
             title={`View all ${product.brand} deals`}
+            onClick={(e) => e.stopPropagation()}
           >
             {product.brand}
           </Link>
         </div>
 
-        <Link href={`/product/${product.slug}`} prefetch={true} className="block">
-          <h3 className="font-bold text-xs sm:text-sm text-foreground line-clamp-2 hover:text-blue-600 transition-colors leading-snug min-h-[32px] sm:min-h-[40px]">
-            {product.title}
-          </h3>
-        </Link>
+        <h3 className="font-bold text-xs sm:text-sm text-foreground line-clamp-2 group-hover:text-blue-600 transition-colors leading-snug min-h-[32px] sm:min-h-[40px]">
+          {product.title}
+        </h3>
       </div>
 
       {/* Pricing Display: Lowest Price & Discounted/Regular Price */}
-      <div className="relative z-10 mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-border/60 space-y-1.5 sm:space-y-2 pointer-events-none">
+      <div className="relative z-0 mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-border/60 space-y-1.5 sm:space-y-2 pointer-events-none">
         <div className="space-y-0.5">
           <div className="flex items-baseline justify-between gap-1">
             <span className="text-[10px] sm:text-[11px] font-medium text-muted-foreground truncate">Lowest:</span>
@@ -123,19 +118,19 @@ export function DealCard({ product }: DealCardProps) {
           )}
         </div>
 
-        {/* Action Row: Check Price Button + Love (Favourite) Icon on the Right */}
-        <div className="flex items-center gap-1.5 sm:gap-2 pt-1 pointer-events-auto">
-          <Link href={`/product/${product.slug}`} prefetch={true} className="flex-1 min-w-0">
+        {/* Action Row: Check Price Button + Watchlist Icon */}
+        <div className="flex items-center gap-1.5 sm:gap-2 pt-1">
+          <div className="flex-1 min-w-0">
             <Button
               variant="outline"
               size="sm"
-              className="w-full text-[11px] sm:text-xs font-bold h-8 sm:h-9 px-1.5 sm:px-3 border-border hover:bg-foreground hover:text-background transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+              className="w-full text-[11px] sm:text-xs font-bold h-8 sm:h-9 px-1.5 sm:px-3 border-border group-hover:bg-foreground group-hover:text-background transition-colors flex items-center justify-center gap-1.5 pointer-events-none"
             >
               <span>Check Price</span>
               <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
             </Button>
-          </Link>
-          <div className="relative z-20">
+          </div>
+          <div className="relative z-20 pointer-events-auto" onClick={(e) => e.stopPropagation()}>
             <WatchlistButton product={product} className="w-8 h-8 sm:w-9 sm:h-9" />
           </div>
         </div>
