@@ -1,0 +1,51 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_AUTH_COOKIE, generateAdminToken } from '@/lib/auth';
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { username, password } = body;
+
+    const cleanUser = (username || '').trim();
+    const cleanPass = (password || '').trim();
+
+    if (!cleanUser) {
+      return NextResponse.json({ success: false, error: 'Username / Email is required' }, { status: 400 });
+    }
+
+    if (!cleanPass) {
+      return NextResponse.json({ success: false, error: 'Password is required' }, { status: 400 });
+    }
+
+    const isValidUsername =
+      cleanUser.toLowerCase() === ADMIN_USERNAME.toLowerCase() ||
+      cleanUser.toLowerCase() === 'suprovat29roy';
+    const isValidPassword = cleanPass === ADMIN_PASSWORD;
+
+    if (!isValidUsername || !isValidPassword) {
+      return NextResponse.json({ success: false, error: 'Invalid admin username or password' }, { status: 401 });
+    }
+
+    const token = generateAdminToken(ADMIN_USERNAME);
+
+    const response = NextResponse.json({
+      success: true,
+      message: 'Authentication successful',
+    });
+
+    // 7 days cookie
+    response.cookies.set({
+      name: ADMIN_AUTH_COOKIE,
+      value: token,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60,
+    });
+
+    return response;
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error?.message || 'Server error during login' }, { status: 500 });
+  }
+}
