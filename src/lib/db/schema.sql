@@ -152,4 +152,5 @@ DROP POLICY IF EXISTS "Public read site_kv" ON site_kv;
 CREATE POLICY "Public read site_kv" ON site_kv FOR SELECT USING (true);
 
 DROP POLICY IF EXISTS "Service write site_kv" ON site_kv;
-CREATE POLICY "Service write site_kv" ON site_kv FOR ALL USING (true);
+DROP POLICY IF EXISTS "Public write site_kv" ON site_kv;
+CREATE POLICY "Public write site_kv" ON site_kv FOR ALL USING (true) WITH CHECK (true);
