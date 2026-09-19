@@ -37,25 +37,13 @@ export class AdapterRegistry {
     const q = (options.query || '').trim().toLowerCase();
     const cat = (options.category || '').trim().toLowerCase();
 
-    // 1. Merge baseline PRODUCTS_CATALOG with any Supabase custom products (persistent database)
-    let allCatalogItems = PRODUCTS_CATALOG;
+    // 1. Fetch live products from Supabase cloud database (authoritative source)
+    let allCatalogItems: CatalogItem[] = [];
     try {
-      const { getSiteKV } = await import('@/lib/db/kv');
-      const cloudProducts = await getSiteKV<CatalogItem[]>('custom_products');
-      if (cloudProducts && Array.isArray(cloudProducts) && cloudProducts.length > 0) {
-        const productMap = new Map<string, CatalogItem>();
-        allCatalogItems.forEach((p) => productMap.set(p.id, p));
-        cloudProducts.forEach((p) => productMap.set(p.id, p));
-        allCatalogItems = Array.from(productMap.values());
-      }
-
-      const deletedIds = await getSiteKV<string[]>('deleted_product_ids');
-      if (deletedIds && Array.isArray(deletedIds) && deletedIds.length > 0) {
-        const delSet = new Set(deletedIds);
-        allCatalogItems = allCatalogItems.filter((p) => !delSet.has(p.id) && !delSet.has(p.slug));
-      }
+      const { getDatabaseProducts } = await import('@/lib/catalogDb');
+      allCatalogItems = await getDatabaseProducts();
     } catch {
-      // fallback to baseline PRODUCTS_CATALOG
+      allCatalogItems = PRODUCTS_CATALOG;
     }
 
     const catalogMatches = allCatalogItems.filter((item) => {

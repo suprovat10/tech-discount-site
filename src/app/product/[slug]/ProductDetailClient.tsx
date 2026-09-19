@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { UnifiedProduct } from '@/types/product';
-import { CATEGORIES, PRODUCTS_CATALOG, CatalogItem } from '@/data/catalog';
+import { CATEGORIES, CatalogItem } from '@/data/catalog';
 import { getCatalogProductByIdOrSlug, getCatalogProducts } from '@/lib/catalogStore';
 import { getCategories, getCategorySlug, getSubcategorySlug } from '@/lib/categoryStore';
 import { DealCard } from '@/components/deals/DealCard';
@@ -43,7 +43,7 @@ interface ProductDetailClientProps {
 export function ProductDetailClient({ product, slug = '', relatedProducts }: ProductDetailClientProps) {
   const [activeProduct, setActiveProduct] = useState<UnifiedProduct | null>(product || null);
   const [categories, setCategories] = useState(CATEGORIES);
-  const [catalogProducts, setCatalogProducts] = useState<CatalogItem[]>(PRODUCTS_CATALOG);
+  const [catalogProducts, setCatalogProducts] = useState<CatalogItem[]>([]);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({
     [product?.category || '']: true,
   });

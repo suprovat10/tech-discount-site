@@ -1,11 +1,12 @@
 import { MetadataRoute } from 'next';
 import { getServerSettings } from '@/lib/settingsServer';
-import { PRODUCTS_CATALOG, CATEGORIES } from '@/data/catalog';
+import { CATEGORIES } from '@/data/catalog';
+import { getDatabaseProducts } from '@/lib/catalogDb';
 import { BLOG_POSTS } from '@/data/blogs';
 import { DEFAULT_BRANDS } from '@/data/brands';
 import { DEFAULT_PAGES } from '@/data/defaultPages';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const settings = getServerSettings();
   const baseUrl = settings.canonicalUrl?.replace(/\/$/, '') || 'https://suprodesign.com';
 
@@ -44,8 +45,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     });
   });
 
-  // 3. Dynamic Products
-  const productRoutes = PRODUCTS_CATALOG.map((p) => ({
+  // 3. Dynamic Products from Database
+  const products = await getDatabaseProducts();
+  const productRoutes = products.map((p) => ({
     url: `${baseUrl}/product/${p.slug}`,
     lastModified: p.updatedAt || now,
     changeFrequency: 'daily' as const,

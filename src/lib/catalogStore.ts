@@ -34,33 +34,26 @@ export function unmarkProductDeleted(id: string) {
 }
 
 /**
- * Get all catalog products from localStorage if available, otherwise from PRODUCTS_CATALOG
+ * Get all catalog products from localStorage if available, otherwise fallback to empty/baseline
  */
 export function getCatalogProducts(): CatalogItem[] {
   if (typeof window === 'undefined') {
     return PRODUCTS_CATALOG;
   }
-  const deletedSet = getDeletedProductIds();
 
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        return parsed.filter((p: any) => !deletedSet.has(p.id) && !deletedSet.has(p.slug));
+        return parsed;
       }
     }
   } catch (e) {
     console.error('Error reading catalog from localStorage:', e);
   }
 
-  const baseline = PRODUCTS_CATALOG.filter((p) => !deletedSet.has(p.id) && !deletedSet.has(p.slug));
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(baseline));
-  } catch (e) {
-    console.error('Error initializing catalog in localStorage:', e);
-  }
-  return baseline;
+  return PRODUCTS_CATALOG;
 }
 
 /**
@@ -73,7 +66,8 @@ export async function fetchAndSyncCatalogFromServer(): Promise<CatalogItem[]> {
     if (res.ok) {
       const json = await res.json();
       if (json.success && Array.isArray(json.data)) {
-        saveCatalogProducts(json.data);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(json.data));
+        window.dispatchEvent(new Event('smarttech_catalog_updated'));
         return json.data;
       }
     }
@@ -81,22 +75,6 @@ export async function fetchAndSyncCatalogFromServer(): Promise<CatalogItem[]> {
     console.warn('Could not sync catalog from server:', e);
   }
   return getCatalogProducts();
-}
-
-/**
- * Reset localStorage catalog back to full default PRODUCTS_CATALOG
- */
-export function resetCatalogToDefault(): CatalogItem[] {
-  if (typeof window !== 'undefined') {
-    try {
-      localStorage.removeItem(DELETED_KEY);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS_CATALOG));
-      window.dispatchEvent(new Event('smarttech_catalog_updated'));
-    } catch (e) {
-      console.error('Error resetting catalog in localStorage:', e);
-    }
-  }
-  return PRODUCTS_CATALOG;
 }
 
 /**

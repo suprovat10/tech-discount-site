@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { UnifiedProduct, RetailerId } from '@/types/product';
-import { CategoryDefinition, PRODUCTS_CATALOG } from '@/data/catalog';
+import { CategoryDefinition } from '@/data/catalog';
 import {
   getCategories,
   findCategoryBySlugOrName,
@@ -73,17 +73,6 @@ export function SearchResultsClient({
       const local = getCatalogProducts();
       if (Array.isArray(local)) {
         for (const item of local) {
-          for (const off of item.offers || []) {
-            if (off.price && off.price > highest) highest = off.price;
-            if (off.regularPrice && off.regularPrice > highest) highest = off.regularPrice;
-          }
-        }
-      }
-    } catch (e) {}
-
-    try {
-      if (Array.isArray(PRODUCTS_CATALOG)) {
-        for (const item of PRODUCTS_CATALOG) {
           for (const off of item.offers || []) {
             if (off.price && off.price > highest) highest = off.price;
             if (off.regularPrice && off.regularPrice > highest) highest = off.regularPrice;

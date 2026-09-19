@@ -15,7 +15,7 @@ const POPULAR_QUERIES = [
   'gaming monitor',
 ];
 
-import { PRODUCTS_CATALOG } from '@/data/catalog';
+import { getDatabaseProducts } from '@/lib/catalogDb';
 import { getSupabaseAdminClient } from '@/lib/db/client';
 
 export async function GET(request: NextRequest) {
@@ -30,8 +30,11 @@ export async function GET(request: NextRequest) {
   const syncedProducts: { id: string; title: string; offersUpdated: number }[] = [];
   const supabase = getSupabaseAdminClient();
 
-  // 1. Daily Auto Price Sync across all products in catalog
-  for (const product of PRODUCTS_CATALOG) {
+  // 1. Daily Auto Price Sync across all products in database
+  const catalogProducts = await getDatabaseProducts();
+  let totalOffersUpdated = 0;
+
+  for (const product of catalogProducts) {
     let offersUpdated = 0;
     if (Array.isArray(product.offers)) {
       for (const offer of product.offers) {
@@ -68,6 +71,11 @@ export async function GET(request: NextRequest) {
     if (offersUpdated > 0) {
       syncedProducts.push({ id: product.id, title: product.title, offersUpdated });
     }
+  }
+
+  if (syncedProducts.length > 0) {
+    const { setSiteKV } = await import('@/lib/db/kv');
+    await setSiteKV('products_catalog', catalogProducts);
   }
 
   // 2. Refresh search cache for popular queries

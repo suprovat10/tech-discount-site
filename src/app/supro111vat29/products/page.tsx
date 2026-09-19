@@ -3,13 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { CatalogItem, PRODUCTS_CATALOG } from '@/data/catalog';
+import { CatalogItem } from '@/data/catalog';
 import {
   getCatalogProducts,
   deleteCatalogProduct,
   duplicateCatalogProduct,
   saveCatalogProducts,
-  resetCatalogToDefault,
   fetchAndSyncCatalogFromServer,
 } from '@/lib/catalogStore';
 import {
@@ -94,26 +93,17 @@ export default function AdminProductsManager() {
     }
   };
 
-  // Delete Action
-  const handleDeleteProduct = (id: string, title: string) => {
+  // Delete Action - Permanently remove from DB and state
+  const handleDeleteProduct = async (id: string, title: string) => {
     if (window.confirm(`Are you sure you want to permanently delete "${title}"? This cannot be undone.`)) {
       deleteCatalogProduct(id);
-      setProducts(getCatalogProducts());
-      setSuccessMessage(`Product "${title}" deleted permanently.`);
-      setTimeout(() => setSuccessMessage(null), 3500);
-    }
-  };
-
-  // Restore Default Static Catalog
-  const handleRestoreDefaultCatalog = () => {
-    if (
-      window.confirm(
-        'Restore the full initial seed catalog? This will restore any deleted default products without deleting your custom additions.'
-      )
-    ) {
-      const restored = resetCatalogToDefault();
-      setProducts(restored);
-      setSuccessMessage('Default catalog restored successfully.');
+      setProducts((prev) => prev.filter((p) => p.id !== id && p.slug !== id));
+      try {
+        await fetch(`/api/products?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      } catch (e) {
+        console.warn('Delete API warning:', e);
+      }
+      setSuccessMessage(`Product "${title}" deleted permanently from database.`);
       setTimeout(() => setSuccessMessage(null), 3500);
     }
   };
@@ -160,18 +150,24 @@ export default function AdminProductsManager() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {products.length < PRODUCTS_CATALOG.length && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRestoreDefaultCatalog}
-              className="text-xs font-bold h-9 px-3 flex items-center gap-1.5 border-amber-500 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40"
-              title="Load all 22 products from system catalog"
-            >
-              <Database className="w-3.5 h-3.5" />
-              <span>Load All Products ({PRODUCTS_CATALOG.length})</span>
-            </Button>
-          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              setIsSyncing(true);
+              const fresh = await fetchAndSyncCatalogFromServer();
+              setProducts(fresh);
+              setIsSyncing(false);
+              setSuccessMessage(`Refreshed ${fresh.length} products from live cloud database.`);
+              setTimeout(() => setSuccessMessage(null), 3000);
+            }}
+            disabled={isSyncing}
+            className="text-xs font-bold h-9 px-3 flex items-center gap-1.5"
+            title="Reload latest products from cloud database"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-blue-600' : ''}`} />
+            <span>Refresh Products</span>
+          </Button>
 
           <Button
             variant="outline"
