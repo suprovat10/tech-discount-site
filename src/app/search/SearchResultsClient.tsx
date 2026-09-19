@@ -33,11 +33,13 @@ import { getRetailerDisplayName, getRetailerHexColor } from '@/lib/utils';
 interface SearchResultsClientProps {
   initialCategorySlug?: string;
   initialSubcategorySlug?: string;
+  initialProducts?: UnifiedProduct[];
 }
 
 export function SearchResultsClient({
   initialCategorySlug = '',
   initialSubcategorySlug = '',
+  initialProducts = [],
 }: SearchResultsClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -46,8 +48,8 @@ export function SearchResultsClient({
   const [categories, setCategories] = useState<CategoryDefinition[]>([]);
   const [adminBrands, setAdminBrands] = useState<BrandItem[]>([]);
   const [catalogVersion, setCatalogVersion] = useState(0);
-  const [products, setProducts] = useState<UnifiedProduct[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [products, setProducts] = useState<UnifiedProduct[]>(initialProducts);
+  const [isLoading, setIsLoading] = useState(initialProducts.length === 0);
   const [error, setError] = useState<string | null>(null);
 
   // Search & Filter States
@@ -461,7 +463,11 @@ export function SearchResultsClient({
     let isMounted = true;
 
     async function fetchResults() {
-      setIsLoading(true);
+      if (!searchQuery.trim() && initialProducts.length > 0 && products.length > 0 && catalogVersion === 0) {
+        setIsLoading(false);
+        return;
+      }
+      setIsLoading(products.length === 0);
       setError(null);
 
       try {

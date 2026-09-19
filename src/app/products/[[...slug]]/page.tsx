@@ -4,6 +4,9 @@ import { SearchResultsClient } from '@/app/search/SearchResultsClient';
 import { Loader2 } from 'lucide-react';
 import { getServerSettings } from '@/lib/settingsServer';
 import { getCategories } from '@/lib/categoryStore';
+import { getDatabaseProducts } from '@/lib/catalogDb';
+import { transformCatalogItemToUnified } from '@/lib/adapters';
+import { UnifiedProduct } from '@/types/product';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -78,6 +81,14 @@ export default async function ProductsPage({ params }: ProductsPageProps) {
   const catSlug = slugs[0] || '';
   const subSlug = slugs[1] || '';
 
+  let initialProducts: UnifiedProduct[] = [];
+  try {
+    const catalog = await getDatabaseProducts();
+    initialProducts = catalog.map((item) => transformCatalogItemToUnified(item));
+  } catch (e) {
+    console.error('Failed to load initial products for page:', e);
+  }
+
   return (
     <div className="container mx-auto px-4 sm:px-6 py-8">
       <Suspense
@@ -92,6 +103,7 @@ export default async function ProductsPage({ params }: ProductsPageProps) {
           key={`${catSlug}-${subSlug}`}
           initialCategorySlug={catSlug}
           initialSubcategorySlug={subSlug}
+          initialProducts={initialProducts}
         />
       </Suspense>
     </div>
