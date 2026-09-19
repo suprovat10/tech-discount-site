@@ -22,12 +22,12 @@ function getDbPath(): string {
   return '';
 }
 
-// In-memory cache for 0ms reads
+// In-memory cache for 0ms reads with disk mtime synchronization
 const memoryCache = new Map<string, any>();
+let lastMtime = 0;
 let isInitialized = false;
 
-function ensureLoaded(): void {
-  if (isInitialized) return;
+function ensureLoaded(forceFresh = false): void {
   const fsModule = getFs();
   const dbPath = getDbPath();
   if (!fsModule || !dbPath) {
@@ -43,18 +43,23 @@ function ensureLoaded(): void {
     }
 
     if (fsModule.existsSync(dbPath)) {
-      const raw = fsModule.readFileSync(dbPath, 'utf-8');
-      if (raw && raw.trim()) {
-        const parsed = JSON.parse(raw);
-        if (typeof parsed === 'object' && parsed !== null) {
-          Object.entries(parsed).forEach(([k, v]) => {
-            memoryCache.set(k, v);
-          });
+      const stat = fsModule.statSync(dbPath);
+      if (forceFresh || !isInitialized || stat.mtimeMs > lastMtime) {
+        const raw = fsModule.readFileSync(dbPath, 'utf-8');
+        if (raw && raw.trim()) {
+          const parsed = JSON.parse(raw);
+          if (typeof parsed === 'object' && parsed !== null) {
+            memoryCache.clear();
+            Object.entries(parsed).forEach(([k, v]) => {
+              memoryCache.set(k, v);
+            });
+            lastMtime = stat.mtimeMs;
+          }
         }
       }
     }
   } catch (err) {
-    console.warn('[Store] Warning initializing local store from disk:', err);
+    console.warn('[Store] Warning reading local store from disk:', err);
   } finally {
     isInitialized = true;
   }
@@ -80,6 +85,9 @@ function persistToDisk(): void {
     const tempPath = `${dbPath}.tmp.${Date.now()}`;
     fsModule.writeFileSync(tempPath, JSON.stringify(obj, null, 2), 'utf-8');
     fsModule.renameSync(tempPath, dbPath);
+    try {
+      lastMtime = fsModule.statSync(dbPath).mtimeMs;
+    } catch {}
   } catch (err) {
     console.error('[Store] Error persisting local store to disk:', err);
   }
@@ -87,17 +95,13 @@ function persistToDisk(): void {
 
 export function invalidateSiteKVCache(key?: string): void {
   isInitialized = false;
+  lastMtime = 0;
   memoryCache.clear();
-  ensureLoaded();
+  ensureLoaded(true);
 }
 
 export async function getSiteKV<T>(key: string, forceFresh = false): Promise<T | null> {
-  if (forceFresh || !isInitialized) {
-    ensureLoaded();
-  } else {
-    ensureLoaded();
-  }
-
+  ensureLoaded(forceFresh);
   const value = memoryCache.get(key);
   if (value === undefined) return null;
   return value as T;
