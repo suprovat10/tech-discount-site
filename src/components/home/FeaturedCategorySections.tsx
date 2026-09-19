@@ -15,15 +15,43 @@ interface FeaturedCategorySectionsProps {
 
 export function FeaturedCategorySections({
   initialCategories = CATEGORIES,
-  allProducts,
+  allProducts: initialProducts,
 }: FeaturedCategorySectionsProps) {
   const [categories, setCategories] = useState<CategoryDefinition[]>(initialCategories);
+  const [productsList, setProductsList] = useState<UnifiedProduct[]>(initialProducts);
 
   useEffect(() => {
-    const loaded = getCategories();
-    if (loaded && loaded.length > 0) {
-      setCategories(loaded);
-    }
+    setProductsList(initialProducts);
+  }, [initialProducts]);
+
+  useEffect(() => {
+    const handleSync = () => {
+      try {
+        const loaded = getCategories();
+        if (loaded && loaded.length > 0) {
+          setCategories(loaded);
+        }
+        const { getCatalogProducts } = require('@/lib/catalogStore');
+        const { transformCatalogItemToUnified } = require('@/lib/adapters');
+        const local = getCatalogProducts();
+        if (Array.isArray(local) && local.length > 0) {
+          setProductsList(local.map(transformCatalogItemToUnified));
+        }
+      } catch {
+        // ignore
+      }
+    };
+
+    handleSync();
+    window.addEventListener('smarttech_catalog_updated', handleSync);
+    window.addEventListener('smarttech_categories_updated', handleSync);
+    window.addEventListener('storage', handleSync);
+
+    return () => {
+      window.removeEventListener('smarttech_catalog_updated', handleSync);
+      window.removeEventListener('smarttech_categories_updated', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
   }, []);
 
   // Filter only categories featured on home (limit to max 4)
@@ -42,34 +70,28 @@ export function FeaturedCategorySections({
         const catNameLower = category.name.toLowerCase();
         const catSlugLower = category.slug.toLowerCase();
 
-        let matchedProducts = allProducts.filter((p) => {
+        const matchedProducts = productsList.filter((p) => {
           const pCat = (p.category || '').toLowerCase();
           const pSub = (p.subcategory || '').toLowerCase();
           return (
-            pCat.includes(catNameLower) ||
-            catNameLower.includes(pCat) ||
-            pCat.includes(catSlugLower) ||
+            pCat === catNameLower ||
+            pCat === catSlugLower ||
             category.subcategories?.some(
-              (s) => pSub.includes(s.name.toLowerCase()) || pSub.includes(s.slug.toLowerCase())
+              (s) => pSub === s.name.toLowerCase() || pSub === s.slug.toLowerCase()
             )
           );
         });
 
-        // If fewer than 4 matched, pad with fallback products so section looks full
-        if (matchedProducts.length < 4) {
-          const remaining = allProducts.filter(
-            (p) => !matchedProducts.some((mp) => mp.id === p.id)
-          );
-          matchedProducts = [...matchedProducts, ...remaining].slice(0, 4);
-        } else {
-          matchedProducts = matchedProducts.slice(0, 4);
+        // Only show category block if there are matching products
+        if (matchedProducts.length === 0) {
+          return null;
         }
 
         return (
           <CategoryShowcaseBlock
             key={category.id}
             category={category}
-            products={matchedProducts}
+            products={matchedProducts.slice(0, 8)}
           />
         );
       })}

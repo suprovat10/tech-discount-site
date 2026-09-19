@@ -48,32 +48,62 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
     [product?.category || '']: true,
   });
 
-  // Sync categories & catalog products from persistent store + client fallback lookup
+  // 1. Immediately update activeProduct when product or slug changes
   useEffect(() => {
-    try {
-      const allCats = getCategories();
-      setCategories(allCats);
-      const allProds = getCatalogProducts();
-      setCatalogProducts(allProds);
-
-      if (!activeProduct && slug) {
-        const localItem = getCatalogProductByIdOrSlug(slug);
-        if (localItem) {
-          const unified = transformCatalogItemToUnified(localItem);
-          setActiveProduct(unified);
-        }
-      }
-
-      if (activeProduct?.category) {
+    if (product) {
+      setActiveProduct(product);
+      if (product.category) {
         setExpandedCategories((prev) => ({
           ...prev,
-          [activeProduct.category]: true,
+          [product.category]: true,
         }));
       }
-    } catch {
-      // ignore
+    } else if (slug) {
+      const localItem = getCatalogProductByIdOrSlug(slug);
+      if (localItem) {
+        const unified = transformCatalogItemToUnified(localItem);
+        setActiveProduct(unified);
+        if (unified.category) {
+          setExpandedCategories((prev) => ({
+            ...prev,
+            [unified.category]: true,
+          }));
+        }
+      }
     }
-  }, [activeProduct, slug]);
+  }, [product, slug]);
+
+  // 2. React to live catalog updates (from admin or other tabs in real-time)
+  useEffect(() => {
+    const handleSync = () => {
+      try {
+        const allCats = getCategories();
+        setCategories(allCats);
+        const allProds = getCatalogProducts();
+        setCatalogProducts(allProds);
+
+        if (slug) {
+          const localItem = getCatalogProductByIdOrSlug(slug);
+          if (localItem) {
+            setActiveProduct(transformCatalogItemToUnified(localItem));
+          }
+        }
+      } catch {
+        // ignore
+      }
+    };
+
+    handleSync();
+    window.addEventListener('smarttech_catalog_updated', handleSync);
+    window.addEventListener('smarttech_categories_updated', handleSync);
+    window.addEventListener('storage', handleSync);
+
+    return () => {
+      window.removeEventListener('smarttech_catalog_updated', handleSync);
+      window.removeEventListener('smarttech_categories_updated', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
+  }, [slug]);
 
   const matchesCategory = (p: UnifiedProduct | CatalogItem, catName: string) => {
     return (p.category || '').toLowerCase() === catName.toLowerCase();

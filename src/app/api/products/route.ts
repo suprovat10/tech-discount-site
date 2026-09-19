@@ -1,9 +1,28 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { PRODUCTS_CATALOG, CatalogItem, upsertInMemoryCatalogProduct, deleteInMemoryCatalogProduct } from '@/data/catalog';
 import { adapterRegistry } from '@/lib/adapters';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+
+async function purgeServerCaches(productSlug?: string) {
+  try {
+    revalidatePath('/', 'layout');
+    revalidatePath('/products', 'page');
+    revalidatePath('/search', 'page');
+    if (productSlug) {
+      revalidatePath(`/product/${productSlug}`, 'page');
+    }
+    const { getSupabaseAdminClient } = await import('@/lib/db/client');
+    const supabase = getSupabaseAdminClient();
+    if (supabase) {
+      await supabase.from('search_cache').delete().neq('query_hash', '');
+    }
+  } catch (err) {
+    console.warn('Cache purge non-fatal warning:', err);
+  }
+}
 
 async function getActiveCatalogItems(): Promise<CatalogItem[]> {
   let allCatalogItems = [...PRODUCTS_CATALOG];
@@ -142,6 +161,8 @@ export async function POST(request: Request) {
       console.warn('Failed to persist product to Supabase site_kv:', dbErr);
     }
 
+    await purgeServerCaches(newProduct.slug);
+
     return NextResponse.json(
       { success: true, product: newProduct },
       { status: 201 }
@@ -167,6 +188,7 @@ export async function DELETE(request: Request) {
         const deletedIds = Array.from(new Set([...allBaselineIds, ...allBaselineSlugs]));
         await setSiteKV('deleted_product_ids', deletedIds);
         await setSiteKV('custom_products', []);
+        await purgeServerCaches();
         return NextResponse.json({
           success: true,
           message: 'All default sample products cleared successfully',
@@ -226,6 +248,8 @@ export async function DELETE(request: Request) {
     } catch (dbErr) {
       console.warn('Failed to delete product from Supabase site_kv:', dbErr);
     }
+
+    await purgeServerCaches(existing?.slug || id);
 
     return NextResponse.json({
       success: true,

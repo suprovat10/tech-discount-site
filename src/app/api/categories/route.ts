@@ -1,9 +1,26 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { CATEGORIES, CategoryDefinition } from '@/data/catalog';
+import { getSiteKV, setSiteKV } from '@/lib/db/kv';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 let dynamicCategories: CategoryDefinition[] = [...CATEGORIES];
 
 export async function GET() {
+  try {
+    const cloudCategories = await getSiteKV<CategoryDefinition[]>('categories_catalog');
+    if (cloudCategories && Array.isArray(cloudCategories) && cloudCategories.length > 0) {
+      dynamicCategories = cloudCategories;
+      return NextResponse.json({
+        success: true,
+        count: cloudCategories.length,
+        data: cloudCategories,
+      });
+    }
+  } catch {}
+
   return NextResponse.json({
     success: true,
     count: dynamicCategories.length,
@@ -31,6 +48,11 @@ export async function POST(request: Request) {
 
     dynamicCategories.push(newCategory);
 
+    try {
+      await setSiteKV('categories_catalog', dynamicCategories);
+      revalidatePath('/', 'layout');
+    } catch {}
+
     return NextResponse.json(
       { success: true, category: newCategory },
       { status: 201 }
@@ -44,11 +66,15 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
-
   try {
     const body = await request.json();
     if (Array.isArray(body.categories)) {
       dynamicCategories = body.categories;
+      try {
+        await setSiteKV('categories_catalog', dynamicCategories);
+        revalidatePath('/', 'layout');
+      } catch {}
+
       return NextResponse.json({
         success: true,
         count: dynamicCategories.length,
@@ -69,6 +95,11 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ success: false, error: 'ID required' }, { status: 400 });
     }
     dynamicCategories = dynamicCategories.filter((c) => c.id !== id);
+    try {
+      await setSiteKV('categories_catalog', dynamicCategories);
+      revalidatePath('/', 'layout');
+    } catch {}
+
     return NextResponse.json({ success: true, count: dynamicCategories.length });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

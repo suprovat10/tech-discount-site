@@ -84,25 +84,41 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   let product = allProducts.find((p) => p.slug === slug || p.id === slug);
 
   if (!product) {
+    try {
+      const { getSiteKV } = await import('@/lib/db/kv');
+      const cloudProducts = await getSiteKV<import('@/data/catalog').CatalogItem[]>('custom_products');
+      if (cloudProducts && Array.isArray(cloudProducts)) {
+        const cloudMatch = cloudProducts.find((p) => p.slug === slug || p.id === slug);
+        if (cloudMatch) {
+          const { transformCatalogItemToUnified } = await import('@/lib/adapters');
+          product = transformCatalogItemToUnified(cloudMatch);
+        }
+      }
+    } catch {}
+  }
+
+  if (!product) {
     const searchMatches = await adapterRegistry.searchAllRetailers({ query: cleanQuery });
-    product = searchMatches.find((p) => p.slug === slug || p.id === slug) || searchMatches[0];
+    product = searchMatches.find((p) => p.slug === slug || p.id === slug);
+  }
+
+  if (!product) {
+    notFound();
   }
 
   // Related products strictly from the same category
-  let relatedProducts = product
-    ? allProducts.filter(
-        (p) =>
-          p.slug !== product.slug &&
-          p.id !== product.id &&
-          p.category &&
-          product.category &&
-          p.category.toLowerCase().trim() === product.category.toLowerCase().trim()
-      )
-    : allProducts.slice(0, 4);
+  let relatedProducts = allProducts.filter(
+    (p) =>
+      p.slug !== product!.slug &&
+      p.id !== product!.id &&
+      p.category &&
+      product!.category &&
+      p.category.toLowerCase().trim() === product!.category.toLowerCase().trim()
+  );
 
-  // If no products in the exact category, fallback to others
+  // If no products in the exact category, fallback to other products
   if (relatedProducts.length === 0) {
-    relatedProducts = allProducts.filter((p) => !product || (p.slug !== product.slug && p.id !== product.id));
+    relatedProducts = allProducts.filter((p) => p.slug !== product!.slug && p.id !== product!.id);
   }
 
   relatedProducts = relatedProducts.slice(0, 4);

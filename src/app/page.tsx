@@ -1,10 +1,10 @@
 import React from 'react';
 import Link from 'next/link';
 import { HeroSection } from '@/components/home/HeroSection';
-import { DealCard } from '@/components/deals/DealCard';
 import { TopCategorySlider } from '@/components/home/TopCategorySlider';
 import { FeaturedCategorySections } from '@/components/home/FeaturedCategorySections';
 import { BrandShowcaseSection } from '@/components/home/BrandShowcaseSection';
+import { HomeFeaturedDeals } from '@/components/home/HomeFeaturedDeals';
 import { adapterRegistry } from '@/lib/adapters';
 import { UnifiedProduct } from '@/types/product';
 import { ArrowRight } from 'lucide-react';
@@ -54,11 +54,7 @@ export default async function HomePage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-5">
-            {featuredDeals.map((product) => (
-              <DealCard key={product.id} product={product} />
-            ))}
-          </div>
+          <HomeFeaturedDeals initialDeals={featuredDeals} />
         </section>
 
         {/* 4. Popular Brand Partners Showcase Section */}
