@@ -8,12 +8,13 @@ import { BrandShowcaseSection } from '@/components/home/BrandShowcaseSection';
 import { adapterRegistry } from '@/lib/adapters';
 import { UnifiedProduct } from '@/types/product';
 import { ArrowRight } from 'lucide-react';
-import { getServerSettings } from '@/lib/settingsServer';
+import { getServerSettingsAsync } from '@/lib/settingsServer';
 
-export const revalidate = 900; // ISR 15 minutes cache
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function HomePage() {
-  const settings = getServerSettings();
+  const settings = await getServerSettingsAsync();
   let allProducts: UnifiedProduct[] = [];
   try {
     allProducts = await adapterRegistry.searchAllRetailers({ query: '', limit: 60 });

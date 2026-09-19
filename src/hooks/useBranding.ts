@@ -18,16 +18,11 @@ export function useBranding() {
       .then((res) => res.json())
       .then((serverData) => {
         if (serverData && !serverData.error && Object.keys(serverData).length > 0) {
-          const isCustomLogo = cfg.logoUrl && cfg.logoUrl !== '/logo.png';
-          const isCustomFavicon = cfg.faviconUrl && cfg.faviconUrl !== '/favicon.png';
-          const isCustomBrand = cfg.brandName && cfg.brandName !== 'suprodesign';
-          const isCustomTitle = cfg.siteTitle && !cfg.siteTitle.includes('suprodesign');
-
           const merged: BrandingConfig = {
-            logoUrl: isCustomLogo ? cfg.logoUrl : (serverData.logoUrl || cfg.logoUrl || '/logo.png'),
-            faviconUrl: isCustomFavicon ? cfg.faviconUrl : (serverData.faviconUrl || cfg.faviconUrl || '/favicon.png'),
-            brandName: isCustomBrand ? cfg.brandName : (serverData.siteBrandName || cfg.brandName || 'TechPriceDrop'),
-            siteTitle: isCustomTitle ? cfg.siteTitle : (serverData.siteTitle || cfg.siteTitle || 'TechPriceDrop - Compare Prices'),
+            logoUrl: serverData.logoUrl || cfg.logoUrl || DEFAULT_BRANDING.logoUrl,
+            faviconUrl: serverData.faviconUrl || cfg.faviconUrl || DEFAULT_BRANDING.faviconUrl,
+            brandName: serverData.siteBrandName || cfg.brandName || DEFAULT_BRANDING.brandName,
+            siteTitle: serverData.siteTitle || cfg.siteTitle || DEFAULT_BRANDING.siteTitle,
             footerBioText: serverData.footerBioText !== undefined ? serverData.footerBioText : cfg.footerBioText,
             socialFacebook: serverData.socialFacebook !== undefined ? serverData.socialFacebook : cfg.socialFacebook,
             socialInstagram: serverData.socialInstagram !== undefined ? serverData.socialInstagram : cfg.socialInstagram,
@@ -35,6 +30,7 @@ export function useBranding() {
             socialTwitter: serverData.socialTwitter !== undefined ? serverData.socialTwitter : cfg.socialTwitter,
           };
           setBranding(merged);
+          updateFaviconInDocument(merged.faviconUrl);
         }
       })
       .catch(() => {});

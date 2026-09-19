@@ -17,7 +17,17 @@ export function HeroSection({ initialSettings }: HeroSectionProps) {
   });
 
   useEffect(() => {
-    // Check localStorage
+    // 1. Fetch server settings from cloud database
+    fetch('/api/settings')
+      .then((res) => res.json())
+      .then((serverData) => {
+        if (serverData && !serverData.error && Object.keys(serverData).length > 0) {
+          setSettings((prev) => ({ ...prev, ...serverData }));
+        }
+      })
+      .catch(() => {});
+
+    // 2. Check localStorage
     try {
       const stored = localStorage.getItem('smarttech_admin_settings');
       if (stored) {
