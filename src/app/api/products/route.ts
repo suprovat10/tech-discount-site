@@ -115,14 +115,6 @@ export async function POST(request: Request) {
     // Save permanently to Supabase cloud database
     await saveDatabaseProduct(newProduct);
 
-    // Purge search cache
-    try {
-      const supabase = getSupabaseAdminClient();
-      if (supabase) {
-        await supabase.from('search_cache').delete().neq('query_hash', '__purge__');
-      }
-    } catch {}
-
     purgeServerCaches(newProduct.slug);
 
     return NextResponse.json(
@@ -172,14 +164,6 @@ export async function DELETE(request: Request) {
 
     // Permanently remove from Supabase cloud database
     await deleteDatabaseProduct(id);
-
-    // Purge search cache
-    try {
-      const supabase = getSupabaseAdminClient();
-      if (supabase) {
-        await supabase.from('search_cache').delete().neq('query_hash', '__purge__');
-      }
-    } catch {}
 
     purgeServerCaches(existing?.slug);
 

@@ -25,6 +25,7 @@ import { Input } from '@/components/ui/input';
 import { CouponItem, DEFAULT_COUPONS } from '@/data/coupons';
 import {
   getCoupons,
+  saveCoupons,
   upsertCoupon,
   deleteCoupon,
   resetCouponsToDefault,
@@ -63,10 +64,21 @@ export default function AdminCouponsPage() {
 
   useEffect(() => {
     refreshCoupons();
+    fetch('/api/coupons', { cache: 'no-store' })
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && Array.isArray(json.data)) {
+          setCoupons(json.data);
+          saveCoupons(json.data);
+        }
+      })
+      .catch((err) => console.warn('Coupons fetch error:', err));
+
     const handleUpdate = () => refreshCoupons();
     window.addEventListener(COUPONS_UPDATED_EVENT, handleUpdate);
     return () => window.removeEventListener(COUPONS_UPDATED_EVENT, handleUpdate);
   }, []);
+
 
   const showToast = (msg: string) => {
     setNotification(msg);
@@ -115,7 +127,7 @@ export default function AdminCouponsPage() {
     setIsFormOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const finalStore = store === 'Other' ? (customStore.trim() || 'Custom Store') : store;
     if (!title.trim()) {
@@ -149,14 +161,50 @@ export default function AdminCouponsPage() {
     upsertCoupon(itemData);
     setIsFormOpen(false);
     showToast(editingId ? 'Coupon successfully updated!' : 'New coupon added successfully!');
+
+    try {
+      await fetch('/api/coupons', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(itemData),
+      });
+    } catch (err) {
+      console.warn('Coupons server save error:', err);
+    }
   };
 
-  const handleDelete = (id: string, itemTitle: string) => {
+  const handleDelete = async (id: string, itemTitle: string) => {
     if (confirm(`Are you sure you want to delete coupon: "${itemTitle}"?`)) {
       deleteCoupon(id);
       showToast('Coupon deleted.');
+
+      try {
+        await fetch(`/api/coupons?id=${encodeURIComponent(id)}`, {
+          method: 'DELETE',
+        });
+      } catch (err) {
+        console.warn('Coupons server delete error:', err);
+      }
     }
   };
+
+  const handleResetDefaults = async () => {
+    if (confirm('Reset all coupons to default seed coupons?')) {
+      resetCouponsToDefault();
+      showToast('Reset to defaults');
+
+      try {
+        await fetch('/api/coupons', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ coupons: DEFAULT_COUPONS }),
+        });
+      } catch (err) {
+        console.warn('Coupons server reset error:', err);
+      }
+    }
+  };
+
 
   const handleCopyCode = (id: string, codeStr: string) => {
     navigator.clipboard.writeText(codeStr);
@@ -301,7 +349,7 @@ export default function AdminCouponsPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={resetCouponsToDefault}
+            onClick={handleResetDefaults}
             title="Reset to default seed coupons"
             className="text-xs font-bold h-9 ml-auto sm:ml-0"
           >

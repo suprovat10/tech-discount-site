@@ -5,7 +5,8 @@ import { DealCard } from '@/components/deals/DealCard';
 import { TopCategorySlider } from '@/components/home/TopCategorySlider';
 import { FeaturedCategorySections } from '@/components/home/FeaturedCategorySections';
 import { BrandShowcaseSection } from '@/components/home/BrandShowcaseSection';
-import { adapterRegistry } from '@/lib/adapters';
+import { getDatabaseProducts } from '@/lib/catalogDb';
+import { transformCatalogItemToUnified } from '@/lib/adapters';
 import { UnifiedProduct } from '@/types/product';
 import { ArrowRight } from 'lucide-react';
 import { getServerSettings } from '@/lib/settingsServer';
@@ -17,12 +18,14 @@ export default async function HomePage() {
   const settings = getServerSettings();
   let allProducts: UnifiedProduct[] = [];
   try {
-    allProducts = await adapterRegistry.searchAllRetailers({ query: '', limit: 60 });
+    const catalog = await getDatabaseProducts();
+    allProducts = catalog.map((item) => transformCatalogItemToUnified(item));
   } catch (e) {
     console.error('Failed to load initial products:', e);
   }
 
   const featuredDeals = allProducts.slice(0, 8);
+
 
   return (
     <div className="space-y-12 pb-16">

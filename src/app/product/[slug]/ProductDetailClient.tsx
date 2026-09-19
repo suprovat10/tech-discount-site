@@ -196,7 +196,7 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
               <span>Browse All Deals & Products</span>
             </Button>
           </Link>
-          <Link href="/">
+          <Link href="/" prefetch={true}>
             <Button variant="outline" className="font-bold text-xs">
               Go to Homepage
             </Button>
@@ -279,7 +279,7 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground pb-2.5 border-b border-border/60 overflow-x-auto whitespace-nowrap scrollbar-none [&::-webkit-scrollbar]:hidden py-1"
       >
-        <Link href="/" className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
+        <Link href="/" prefetch={true} className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
           Home
         </Link>
         <ChevronRight className="w-3 h-3 text-muted-foreground/40 shrink-0" />

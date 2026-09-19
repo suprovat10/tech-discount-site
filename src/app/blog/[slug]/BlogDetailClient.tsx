@@ -89,7 +89,7 @@ export function BlogDetailClient({
               <span>Back to Tech Guides & Blog</span>
             </Button>
           </Link>
-          <Link href="/">
+          <Link href="/" prefetch={true}>
             <Button variant="outline" className="font-bold text-xs">
               Go to Homepage
             </Button>
@@ -170,7 +170,7 @@ export function BlogDetailClient({
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         className="flex items-center gap-2 text-xs text-muted-foreground font-medium overflow-x-auto whitespace-nowrap scrollbar-none [&::-webkit-scrollbar]:hidden py-1 pb-2 border-b border-border/60"
       >
-        <Link href="/" className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
+        <Link href="/" prefetch={true} className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
           Home
         </Link>
         <ChevronRight className="w-3.5 h-3.5 shrink-0 text-muted-foreground/40" />

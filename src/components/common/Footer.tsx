@@ -63,7 +63,7 @@ export function Footer() {
           
           {/* Column 1: Brand & Mission */}
           <div className="space-y-4">
-            <Link href="/" className="inline-block group">
+            <Link href="/" prefetch={true} className="inline-block group">
               <img
                 src={branding.logoUrl || '/logo.png'}
                 alt={branding.brandName || 'suprodesign'}

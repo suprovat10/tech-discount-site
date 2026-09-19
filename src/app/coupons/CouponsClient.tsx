@@ -18,27 +18,42 @@ import {
   Info,
 } from 'lucide-react';
 import { CouponItem, DEFAULT_COUPONS } from '@/data/coupons';
-import { getCoupons, COUPONS_UPDATED_EVENT } from '@/lib/couponStore';
+import { getCoupons, saveCoupons, fetchAndSyncCouponsFromServer, COUPONS_UPDATED_EVENT } from '@/lib/couponStore';
 import { Button } from '@/components/ui/button';
 
-export function CouponsClient() {
-  const [coupons, setCoupons] = useState<CouponItem[]>(DEFAULT_COUPONS);
+interface CouponsClientProps {
+  initialCoupons?: CouponItem[];
+}
+
+export function CouponsClient({ initialCoupons }: CouponsClientProps) {
+  const [coupons, setCoupons] = useState<CouponItem[]>(initialCoupons || DEFAULT_COUPONS);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStore, setSelectedStore] = useState<string>('All');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null);
   const [copiedLinkId, setCopiedLinkId] = useState<string | null>(null);
 
-  // Sync with client-side coupon store
+  // Sync with client-side coupon store and server
   useEffect(() => {
+    if (initialCoupons && Array.isArray(initialCoupons)) {
+      setCoupons(initialCoupons);
+      saveCoupons(initialCoupons);
+    } else {
+      setCoupons(getCoupons());
+    }
+
+    fetchAndSyncCouponsFromServer().then((fresh) => {
+      if (fresh) setCoupons(fresh);
+    });
+
     const loadData = () => {
       setCoupons(getCoupons());
     };
-    loadData();
 
     window.addEventListener(COUPONS_UPDATED_EVENT, loadData);
     return () => window.removeEventListener(COUPONS_UPDATED_EVENT, loadData);
-  }, []);
+  }, [initialCoupons]);
+
 
   // Extract unique stores and categories
   const allStores = useMemo(() => {
@@ -107,7 +122,7 @@ export function CouponsClient() {
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground pb-2.5 border-b border-border/60 overflow-x-auto whitespace-nowrap scrollbar-none [&::-webkit-scrollbar]:hidden py-1"
       >
-        <Link href="/" className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
+        <Link href="/" prefetch={true} className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
           Home
         </Link>
         <ChevronRight className="w-3 h-3 text-muted-foreground/40 shrink-0" />

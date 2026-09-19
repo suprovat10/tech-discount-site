@@ -45,7 +45,7 @@ export function PolicyPageClient({ slug }: PolicyPageClientProps) {
 
       {/* Back to Home / Search Navigation */}
       <div className="pt-4 flex items-center justify-between text-xs font-semibold">
-        <Link href="/" className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors">
+        <Link href="/" prefetch={true} className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to Home</span>
         </Link>

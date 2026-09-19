@@ -9,19 +9,14 @@ export function getCoupons(): CouponItem[] {
   }
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
+    if (raw !== null) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
         return parsed;
       }
     }
   } catch (e) {
     console.error('Failed to read coupons from localStorage:', e);
-  }
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_COUPONS));
-  } catch (e) {
-    console.error('Failed to initialize coupons in localStorage:', e);
   }
   return DEFAULT_COUPONS;
 }
@@ -34,6 +29,22 @@ export function saveCoupons(coupons: CouponItem[]): void {
   } catch (e) {
     console.error('Failed to save coupons to localStorage:', e);
   }
+}
+
+export async function fetchAndSyncCouponsFromServer(): Promise<CouponItem[] | null> {
+  if (typeof window === 'undefined') return null;
+  try {
+    const res = await fetch('/api/coupons', { cache: 'no-store' });
+    if (!res.ok) return null;
+    const json = await res.json();
+    if (json.success && Array.isArray(json.data)) {
+      saveCoupons(json.data);
+      return json.data;
+    }
+  } catch (err) {
+    console.warn('Failed to fetch coupons from server:', err);
+  }
+  return null;
 }
 
 export function getCouponById(id: string): CouponItem | undefined {
@@ -63,14 +74,36 @@ export function upsertCoupon(coupon: CouponItem): void {
     ];
   }
   saveCoupons(updated);
+
+  if (typeof window !== 'undefined') {
+    fetch('/api/coupons', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(coupon),
+    }).catch((err) => console.warn('Coupons server upsert error:', err));
+  }
 }
 
 export function deleteCoupon(id: string): void {
   const coupons = getCoupons();
   const filtered = coupons.filter((c) => c.id !== id);
   saveCoupons(filtered);
+
+  if (typeof window !== 'undefined') {
+    fetch(`/api/coupons?id=${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    }).catch((err) => console.warn('Coupons server delete error:', err));
+  }
 }
 
 export function resetCouponsToDefault(): void {
   saveCoupons(DEFAULT_COUPONS);
+  if (typeof window !== 'undefined') {
+    fetch('/api/coupons', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ coupons: DEFAULT_COUPONS }),
+    }).catch((err) => console.warn('Coupons server reset error:', err));
+  }
 }
+

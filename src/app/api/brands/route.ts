@@ -11,7 +11,7 @@ const BRANDS_KEY = 'brands_catalog';
 async function loadBrandsFromCloud(): Promise<BrandItem[]> {
   try {
     const cloud = await getSiteKV<BrandItem[]>(BRANDS_KEY);
-    if (cloud && Array.isArray(cloud) && cloud.length > 0) {
+    if (cloud !== null && Array.isArray(cloud)) {
       return cloud;
     }
   } catch (e) {
