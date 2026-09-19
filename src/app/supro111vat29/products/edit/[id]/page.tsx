@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { CATEGORIES, CatalogItem, CategoryDefinition } from '@/data/catalog';
-import { getCatalogProductByIdOrSlug, upsertCatalogProduct } from '@/lib/catalogStore';
+import { getCatalogProductByIdOrSlug, fetchProductByIdOrSlug, upsertCatalogProduct } from '@/lib/catalogStore';
 import { getCategories } from '@/lib/categoryStore';
 import { RichTextEditor } from '@/components/admin/RichTextEditor';
 import {
@@ -234,95 +234,107 @@ export default function EditProductStudioPage({
 
   useEffect(() => {
     setCategoriesList(getCategories());
-    const existing = getCatalogProductByIdOrSlug(productId);
-    if (!existing) {
-      setProductNotFound(true);
+    let isMounted = true;
+
+    async function loadProduct() {
+      const existing = await fetchProductByIdOrSlug(productId);
+      if (!isMounted) return;
+
+      if (!existing) {
+        setProductNotFound(true);
+        setLoading(false);
+        return;
+      }
+
+      setTitle(existing.title);
+      setBrand(existing.brand);
+      setCategory(existing.category);
+      setSubcategory(existing.subcategory || '');
+      setBadge(existing.badge || 'Admin Verified');
+      setRating(String(existing.rating || 4.8));
+      setReviewCount(String(existing.reviewCount || 100));
+
+      setRichDescription(existing.richDescription || `<p>${existing.description}</p>`);
+      setFeatures(existing.features || []);
+
+      if (existing.keySpecs && Object.keys(existing.keySpecs).length > 0) {
+        setKeySpecsList(
+          Object.entries(existing.keySpecs).map(([key, value]) => ({ key, value }))
+        );
+      } else if (existing.specs) {
+        setKeySpecsList(
+          Object.entries(existing.specs).slice(0, 4).map(([key, value]) => ({ key, value }))
+        );
+      }
+
+      if (existing.specs) {
+        const parsedSpecs: SpecItem[] = Object.entries(existing.specs).map(([key, value]) => ({
+          key,
+          value,
+        }));
+        setSpecsList(parsedSpecs);
+      }
+
+      setFaqs(
+        existing.faqs || [
+          {
+            question: 'Is this eligible for official warranty?',
+            answer: 'Yes, this product is backed by authorized US manufacturer warranty.',
+          },
+        ]
+      );
+
+      const allImages = existing.images && existing.images.length > 0 ? existing.images : [existing.imageUrl];
+      setImages(allImages);
+      setCoverAlt(existing.imageAlt || '');
+      setImageAlts(existing.imageAlts || []);
+
+      // Offers
+      if (existing.offers && existing.offers.length > 0) {
+        setPlatforms(
+          existing.offers.map((o, idx) => ({
+            id: o.retailerItemId || `${o.retailer}-${idx}-${Date.now()}`,
+            retailer: o.retailer,
+            retailerName:
+              (o.retailerName && o.retailerName.toLowerCase() !== 'custom')
+                ? o.retailerName
+                : (o.retailer === 'amazon'
+                  ? 'Amazon US'
+                  : o.retailer === 'walmart'
+                  ? 'Walmart US'
+                  : o.retailer === 'bestbuy'
+                  ? 'Best Buy US'
+                  : o.retailer === 'target'
+                  ? 'Target US'
+                  : getRetailerDisplayName(o.retailer)),
+            price: o.price > 0 ? String(o.price) : '',
+            url: o.productUrl || '',
+            inStock: o.isInStock ?? true,
+            shippingInfo: o.shippingInfo || 'Free Standard Delivery',
+          }))
+        );
+      } else {
+        setPlatforms(DEFAULT_PLATFORMS);
+      }
+
+      // SEO
+      if (existing.seo) {
+        setMetaTitle(existing.seo.metaTitle || '');
+        setMetaDescription(existing.seo.metaDescription || '');
+        setKeywords(existing.seo.keywords || '');
+        setOgImageUrl(existing.seo.ogImageUrl || '');
+        setOgImageAlt(existing.seo.ogImageAlt || '');
+      }
+      setCustomSlug(existing.slug);
+
       setLoading(false);
-      return;
     }
 
-    setTitle(existing.title);
-    setBrand(existing.brand);
-    setCategory(existing.category);
-    setSubcategory(existing.subcategory || '');
-    setBadge(existing.badge || 'Admin Verified');
-    setRating(String(existing.rating || 4.8));
-    setReviewCount(String(existing.reviewCount || 100));
+    loadProduct();
 
-    setRichDescription(existing.richDescription || `<p>${existing.description}</p>`);
-    setFeatures(existing.features || []);
-
-    if (existing.keySpecs && Object.keys(existing.keySpecs).length > 0) {
-      setKeySpecsList(
-        Object.entries(existing.keySpecs).map(([key, value]) => ({ key, value }))
-      );
-    } else if (existing.specs) {
-      setKeySpecsList(
-        Object.entries(existing.specs).slice(0, 4).map(([key, value]) => ({ key, value }))
-      );
-    }
-
-    if (existing.specs) {
-      const parsedSpecs: SpecItem[] = Object.entries(existing.specs).map(([key, value]) => ({
-        key,
-        value,
-      }));
-      setSpecsList(parsedSpecs);
-    }
-
-    setFaqs(
-      existing.faqs || [
-        {
-          question: 'Is this eligible for official warranty?',
-          answer: 'Yes, this product is backed by authorized US manufacturer warranty.',
-        },
-      ]
-    );
-
-    const allImages = existing.images && existing.images.length > 0 ? existing.images : [existing.imageUrl];
-    setImages(allImages);
-    setCoverAlt(existing.imageAlt || '');
-    setImageAlts(existing.imageAlts || []);
-
-    // Offers
-    if (existing.offers && existing.offers.length > 0) {
-      setPlatforms(
-        existing.offers.map((o, idx) => ({
-          id: o.retailerItemId || `${o.retailer}-${idx}-${Date.now()}`,
-          retailer: o.retailer,
-          retailerName:
-            (o.retailerName && o.retailerName.toLowerCase() !== 'custom')
-              ? o.retailerName
-              : (o.retailer === 'amazon'
-                ? 'Amazon US'
-                : o.retailer === 'walmart'
-                ? 'Walmart US'
-                : o.retailer === 'bestbuy'
-                ? 'Best Buy US'
-                : o.retailer === 'target'
-                ? 'Target US'
-                : getRetailerDisplayName(o.retailer)),
-          price: o.price > 0 ? String(o.price) : '',
-          url: o.productUrl || '',
-          inStock: o.isInStock ?? true,
-          shippingInfo: o.shippingInfo || 'Free Standard Delivery',
-        }))
-      );
-    } else {
-      setPlatforms(DEFAULT_PLATFORMS);
-    }
-
-    // SEO
-    if (existing.seo) {
-      setMetaTitle(existing.seo.metaTitle || '');
-      setMetaDescription(existing.seo.metaDescription || '');
-      setKeywords(existing.seo.keywords || '');
-      setOgImageUrl(existing.seo.ogImageUrl || '');
-      setOgImageAlt(existing.seo.ogImageAlt || '');
-    }
-    setCustomSlug(existing.slug);
-
-    setLoading(false);
+    return () => {
+      isMounted = false;
+    };
   }, [productId]);
 
   // Feature Handlers: Add, Remove, Move, Duplicate, Edit
@@ -612,7 +624,7 @@ export default function EditProductStudioPage({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
 
@@ -697,7 +709,7 @@ export default function EditProductStudioPage({
       offers: constructedOffers,
     };
 
-    upsertCatalogProduct(updatedProduct);
+    await upsertCatalogProduct(updatedProduct);
     setSuccessToast(true);
 
     setTimeout(() => {

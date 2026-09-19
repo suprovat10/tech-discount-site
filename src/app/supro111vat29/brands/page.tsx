@@ -30,6 +30,7 @@ import {
   deleteBrand,
   moveBrand,
   getBrandProductCount,
+  fetchAndSyncBrandsFromServer,
 } from '@/lib/brandStore';
 
 export default function AdminBrandsPage() {
@@ -54,6 +55,9 @@ export default function AdminBrandsPage() {
 
   useEffect(() => {
     refreshBrands();
+    fetchAndSyncBrandsFromServer().then((fresh) => {
+      if (fresh) setBrands(fresh);
+    });
     const handleUpdate = () => refreshBrands();
     window.addEventListener('smarttech_brands_updated', handleUpdate);
     return () => window.removeEventListener('smarttech_brands_updated', handleUpdate);

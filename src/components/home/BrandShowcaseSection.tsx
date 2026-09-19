@@ -4,13 +4,16 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { BrandItem, DEFAULT_BRANDS } from '@/data/brands';
-import { getBrands } from '@/lib/brandStore';
+import { getBrands, fetchAndSyncBrandsFromServer } from '@/lib/brandStore';
 
 export function BrandShowcaseSection() {
   const [brands, setBrands] = useState<BrandItem[]>(DEFAULT_BRANDS);
 
   useEffect(() => {
     setBrands(getBrands());
+    fetchAndSyncBrandsFromServer().then((fresh) => {
+      if (fresh) setBrands(fresh);
+    });
     const handleUpdate = () => setBrands(getBrands());
     window.addEventListener('smarttech_brands_updated', handleUpdate);
     return () => window.removeEventListener('smarttech_brands_updated', handleUpdate);

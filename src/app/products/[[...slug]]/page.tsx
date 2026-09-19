@@ -5,6 +5,9 @@ import { Loader2 } from 'lucide-react';
 import { getServerSettings } from '@/lib/settingsServer';
 import { getCategories } from '@/lib/categoryStore';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 interface ProductsPageProps {
   params: Promise<{ slug?: string[] }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;

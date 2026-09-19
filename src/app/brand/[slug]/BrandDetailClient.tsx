@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { UnifiedProduct } from '@/types/product';
 import { BrandItem, DEFAULT_BRANDS } from '@/data/brands';
 import { getBrands, getBrandBySlug } from '@/lib/brandStore';
-import { getCatalogProducts } from '@/lib/catalogStore';
+import { getCatalogProducts, fetchAndSyncCatalogFromServer } from '@/lib/catalogStore';
+import { transformCatalogItemToUnified } from '@/lib/adapters';
 import { DealCard } from '@/components/deals/DealCard';
 import { ChevronRight, ChevronLeft, ExternalLink, ShieldCheck, ArrowLeft, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -50,67 +51,19 @@ export function BrandDetailClient({
     }
   };
 
-  const syncBrandProducts = () => {
+  const syncBrandProducts = async () => {
     try {
       const liveBrand = getBrandBySlug(slug);
       if (liveBrand) {
         setBrand(liveBrand);
-        const allCatalog = getCatalogProducts();
+      }
+      const allCatalog = await fetchAndSyncCatalogFromServer();
+      if (liveBrand && Array.isArray(allCatalog)) {
         const brandProducts = allCatalog.filter(
           (p) => p.brand && p.brand.toLowerCase().trim() === liveBrand.name.toLowerCase().trim()
         );
         if (brandProducts.length > 0) {
-          setProducts(
-            brandProducts.map((p) => {
-              const inStockPrices = p.offers.filter((o) => o.isInStock && o.price > 0).map((o) => o.price);
-              const lowestPrice = inStockPrices.length > 0 ? Math.min(...inStockPrices) : Math.min(...p.offers.map((o) => o.price));
-              const regularPrice = Math.max(...p.offers.map((o) => o.regularPrice || o.price));
-              const maxSavingsPercentage = regularPrice > lowestPrice ? Math.round(((regularPrice - lowestPrice) / regularPrice) * 100) : 0;
-              return {
-                id: p.id,
-                slug: p.slug,
-                title: p.title,
-                brand: p.brand,
-                category: p.category,
-                subcategory: p.subcategory,
-                badge: p.badge,
-                rating: p.rating,
-                ratingCount: p.reviewCount,
-                lowestPrice,
-                highestPrice: Math.max(...p.offers.map((o) => o.price)),
-                regularPrice,
-                maxSavingsPercentage,
-                imageUrl: p.imageUrl,
-                imageAlt: p.imageAlt,
-                offers: p.offers.map((o) => ({
-                  retailer: o.retailer,
-                  retailerName:
-                    (o.retailerName && o.retailerName.toLowerCase() !== 'custom')
-                      ? o.retailerName
-                      : getRetailerDisplayName(o.retailer),
-                  retailerItemId: o.retailerItemId,
-                  productUrl: o.productUrl,
-                  directAffiliateUrl: o.productUrl,
-                  internalGoUrl: o.productUrl,
-                  price: o.price,
-                  regularPrice: o.regularPrice,
-                  currency: 'USD',
-                  isLowestPrice: o.price === lowestPrice,
-                  isInStock: o.isInStock,
-                  availabilityStatus: o.availabilityStatus,
-                  shippingInfo: o.shippingInfo,
-                  condition: 'New',
-                  lastUpdated: p.updatedAt || new Date().toISOString(),
-                })),
-                specs: p.specs,
-                features: p.features,
-                description: p.description,
-                richDescription: p.richDescription,
-                lastUpdated: p.updatedAt || new Date().toISOString(),
-                updatedAt: p.updatedAt || new Date().toISOString(),
-              };
-            })
-          );
+          setProducts(brandProducts.map(transformCatalogItemToUnified));
         }
       }
     } catch {

@@ -5,6 +5,9 @@ import { DEFAULT_BRANDS } from '@/data/brands';
 import { adapterRegistry } from '@/lib/adapters';
 import { BrandDetailClient } from './BrandDetailClient';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 interface BrandPageProps {
   params: Promise<{ slug: string }>;
 }

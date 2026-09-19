@@ -4,10 +4,37 @@ import { getCatalogProducts } from './catalogStore';
 
 const STORAGE_KEY = 'smarttech_brands_list';
 
+let isInitialBrandFetchTriggered = false;
+
+export async function fetchAndSyncBrandsFromServer(): Promise<BrandItem[]> {
+  if (typeof window === 'undefined') return DEFAULT_BRANDS;
+  try {
+    const res = await fetch('/api/brands', { cache: 'no-store' });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(json.data));
+        window.dispatchEvent(new Event('smarttech_brands_updated'));
+        return json.data;
+      }
+    }
+  } catch (e) {
+    console.warn('Could not sync brands from server:', e);
+  }
+  return getBrands();
+}
+
 export function getBrands(): BrandItem[] {
   if (typeof window === 'undefined') {
     return DEFAULT_BRANDS;
   }
+
+  // Trigger background server sync once per page session
+  if (!isInitialBrandFetchTriggered) {
+    isInitialBrandFetchTriggered = true;
+    fetchAndSyncBrandsFromServer().catch(() => {});
+  }
+
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
@@ -19,21 +46,22 @@ export function getBrands(): BrandItem[] {
   } catch (e) {
     console.error('Failed to read brands from localStorage:', e);
   }
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_BRANDS));
-  } catch (e) {
-    console.error('Failed to initialize brands in localStorage:', e);
-  }
+
   return DEFAULT_BRANDS;
 }
 
-export function saveBrands(brands: BrandItem[]): void {
+export async function saveBrands(brands: BrandItem[]): Promise<void> {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(brands));
     window.dispatchEvent(new Event('smarttech_brands_updated'));
+    await fetch('/api/brands', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ brands }),
+    });
   } catch (e) {
-    console.error('Failed to save brands to localStorage:', e);
+    console.error('Failed to save brands:', e);
   }
 }
 
@@ -45,7 +73,7 @@ export function getBrandBySlug(slug: string): BrandItem | undefined {
   );
 }
 
-export function upsertBrand(brand: BrandItem): void {
+export async function upsertBrand(brand: BrandItem): Promise<void> {
   const brands = getBrands();
   const index = brands.findIndex((b) => b.id === brand.id || b.slug === brand.slug);
   let updated: BrandItem[];
@@ -56,13 +84,35 @@ export function upsertBrand(brand: BrandItem): void {
     const nextOrder = brands.length > 0 ? Math.max(...brands.map((b) => b.order || 0)) + 1 : 1;
     updated = [...brands, { ...brand, order: brand.order || nextOrder }];
   }
-  saveBrands(updated);
+
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    window.dispatchEvent(new Event('smarttech_brands_updated'));
+  }
+
+  try {
+    await fetch('/api/brands', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(brand),
+    });
+  } catch (e) {
+    console.warn('Brand server sync failed:', e);
+  }
 }
 
-export function deleteBrand(id: string): void {
+export async function deleteBrand(id: string): Promise<void> {
   const brands = getBrands();
   const filtered = brands.filter((b) => b.id !== id);
-  saveBrands(filtered);
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+    window.dispatchEvent(new Event('smarttech_brands_updated'));
+  }
+  try {
+    await fetch(`/api/brands?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+  } catch (e) {
+    console.warn('Brand delete server sync failed:', e);
+  }
 }
 
 export function moveBrand(id: string, direction: 'up' | 'down'): BrandItem[] {

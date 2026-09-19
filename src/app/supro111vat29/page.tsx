@@ -40,7 +40,7 @@ export default function AdminDashboardPage() {
       setProducts(localProducts);
 
       const freshProducts = await fetchAndSyncCatalogFromServer();
-      if (freshProducts && freshProducts.length > 0) {
+      if (Array.isArray(freshProducts)) {
         setProducts(freshProducts);
       }
 
@@ -73,8 +73,18 @@ export default function AdminDashboardPage() {
       } catch {}
 
       // 4. Calculate unique brands
-      const storedBrands = getBrands();
-      const productBrands = new Set(freshProducts.map((p) => (p.brand || '').trim().toLowerCase()).filter(Boolean));
+      let storedBrands = getBrands();
+      try {
+        const brandRes = await fetch('/api/brands', { cache: 'no-store' });
+        if (brandRes.ok) {
+          const bData = await brandRes.json();
+          if (bData.data && Array.isArray(bData.data)) {
+            storedBrands = bData.data;
+          }
+        }
+      } catch {}
+      const activeCatalog = Array.isArray(freshProducts) ? freshProducts : localProducts;
+      const productBrands = new Set(activeCatalog.map((p) => (p.brand || '').trim().toLowerCase()).filter(Boolean));
       storedBrands.forEach((b) => productBrands.add(b.name.trim().toLowerCase()));
       setBrandsCount(productBrands.size);
     } catch (e) {

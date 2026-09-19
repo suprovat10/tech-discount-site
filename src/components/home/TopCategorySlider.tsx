@@ -26,6 +26,21 @@ export function TopCategorySlider() {
     if (loaded && loaded.length > 0) {
       setCategories(loaded);
     }
+    fetch('/api/categories', { cache: 'no-store' })
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          setCategories(json.data);
+        }
+      })
+      .catch(() => {});
+
+    const handleUpdate = () => {
+      const fresh = getCategories();
+      if (fresh && fresh.length > 0) setCategories(fresh);
+    };
+    window.addEventListener('smarttech_categories_updated', handleUpdate);
+    return () => window.removeEventListener('smarttech_categories_updated', handleUpdate);
   }, []);
 
   // Build items list: Featured categories + top slider subcategories

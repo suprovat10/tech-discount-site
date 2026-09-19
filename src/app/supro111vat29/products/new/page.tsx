@@ -533,7 +533,7 @@ export default function CreateProductStudioPage() {
   };
 
   // Save Product
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) {
       alert('Product title is required.');
@@ -628,7 +628,7 @@ export default function CreateProductStudioPage() {
       offers: constructedOffers,
     };
 
-    upsertCatalogProduct(newProduct);
+    await upsertCatalogProduct(newProduct);
     setSuccessToast(true);
 
     setTimeout(() => {

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { UnifiedProduct } from '@/types/product';
 import { CATEGORIES, CatalogItem } from '@/data/catalog';
-import { getCatalogProductByIdOrSlug, getCatalogProducts } from '@/lib/catalogStore';
+import { getCatalogProductByIdOrSlug, getCatalogProducts, fetchAndSyncCatalogFromServer } from '@/lib/catalogStore';
 import { getCategories, getCategorySlug, getSubcategorySlug } from '@/lib/categoryStore';
 import { DealCard } from '@/components/deals/DealCard';
 import { WatchlistButton } from '@/components/watchlist/WatchlistButton';
@@ -54,7 +54,14 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
       const allCats = getCategories();
       setCategories(allCats);
       const allProds = getCatalogProducts();
-      setCatalogProducts(allProds);
+      if (allProds && allProds.length > 0) {
+        setCatalogProducts(allProds);
+      }
+      fetchAndSyncCatalogFromServer().then((fresh) => {
+        if (fresh && fresh.length > 0) {
+          setCatalogProducts(fresh);
+        }
+      });
 
       if (product) {
         setActiveProduct(product);

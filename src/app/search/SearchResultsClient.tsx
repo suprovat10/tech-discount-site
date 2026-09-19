@@ -13,7 +13,6 @@ import {
   getCategorySlug,
   getSubcategorySlug,
 } from '@/lib/categoryStore';
-import { getCatalogProducts } from '@/lib/catalogStore';
 import { getBrands, BrandItem } from '@/lib/brandStore';
 import { transformCatalogItemToUnified } from '@/lib/adapters';
 import { DealCard } from '@/components/deals/DealCard';
@@ -69,17 +68,6 @@ export function SearchResultsClient({
       }
     }
 
-    try {
-      const local = getCatalogProducts();
-      if (Array.isArray(local)) {
-        for (const item of local) {
-          for (const off of item.offers || []) {
-            if (off.price && off.price > highest) highest = off.price;
-            if (off.regularPrice && off.regularPrice > highest) highest = off.regularPrice;
-          }
-        }
-      }
-    } catch (e) {}
 
     if (highest <= 0) return 3500;
     const rounded = Math.ceil(highest / 50) * 50;
@@ -486,16 +474,7 @@ export function SearchResultsClient({
           apiProducts = json.data || [];
         }
 
-        // Also merge with client-side dynamic products in localStorage
-        const localItems = getCatalogProducts();
-        const localUnified = localItems.map((item) => transformCatalogItemToUnified(item));
-
-        // Deduplicate and combine (local catalog items take precedence)
-        const combinedMap = new Map<string, UnifiedProduct>();
-        apiProducts.forEach((p) => combinedMap.set(p.slug || p.id, p));
-        localUnified.forEach((p) => combinedMap.set(p.slug || p.id, p));
-
-        let finalProducts = Array.from(combinedMap.values());
+        let finalProducts = apiProducts;
 
         // If searchQuery exists, filter local items as well
         if (searchQuery.trim()) {

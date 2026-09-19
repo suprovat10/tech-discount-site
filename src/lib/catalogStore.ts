@@ -1,7 +1,9 @@
-import { PRODUCTS_CATALOG, CatalogItem } from '@/data/catalog';
+import { CatalogItem } from '@/data/catalog';
 
 const STORAGE_KEY = 'smarttech_products_catalog';
 const DELETED_KEY = 'smarttech_deleted_product_ids';
+
+let isInitialCatalogFetchTriggered = false;
 
 export function getDeletedProductIds(): Set<string> {
   if (typeof window === 'undefined') return new Set();
@@ -34,11 +36,17 @@ export function unmarkProductDeleted(id: string) {
 }
 
 /**
- * Get all catalog products from localStorage if available, otherwise fallback to empty/baseline
+ * Get all catalog products from localStorage if available, otherwise empty array and trigger server sync
  */
 export function getCatalogProducts(): CatalogItem[] {
   if (typeof window === 'undefined') {
-    return PRODUCTS_CATALOG;
+    return [];
+  }
+
+  // Trigger background server sync once per page session if not yet triggered
+  if (!isInitialCatalogFetchTriggered) {
+    isInitialCatalogFetchTriggered = true;
+    fetchAndSyncCatalogFromServer().catch(() => {});
   }
 
   try {
@@ -53,14 +61,14 @@ export function getCatalogProducts(): CatalogItem[] {
     console.error('Error reading catalog from localStorage:', e);
   }
 
-  return PRODUCTS_CATALOG;
+  return [];
 }
 
 /**
  * Sync fresh catalog items from server/cloud database into localStorage
  */
 export async function fetchAndSyncCatalogFromServer(): Promise<CatalogItem[]> {
-  if (typeof window === 'undefined') return PRODUCTS_CATALOG;
+  if (typeof window === 'undefined') return [];
   try {
     const res = await fetch('/api/products?rawCatalog=true', { cache: 'no-store' });
     if (res.ok) {
@@ -90,32 +98,8 @@ export function saveCatalogProducts(products: CatalogItem[]): void {
   }
 }
 
-async function syncToServerUpsert(product: CatalogItem) {
-  if (typeof window === 'undefined') return;
-  try {
-    await fetch('/api/products', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(product),
-    });
-  } catch (e) {
-    console.warn('Server sync skipped/failed:', e);
-  }
-}
-
-async function syncToServerDelete(id: string) {
-  if (typeof window === 'undefined') return;
-  try {
-    await fetch(`/api/products?id=${encodeURIComponent(id)}`, {
-      method: 'DELETE',
-    });
-  } catch (e) {
-    console.warn('Server sync delete failed:', e);
-  }
-}
-
 /**
- * Get single product by id or slug
+ * Get single product by id or slug from local memory
  */
 export function getCatalogProductByIdOrSlug(idOrSlug: string): CatalogItem | undefined {
   const products = getCatalogProducts();
@@ -123,9 +107,20 @@ export function getCatalogProductByIdOrSlug(idOrSlug: string): CatalogItem | und
 }
 
 /**
- * Add or update product in catalog
+ * Fetch product by id or slug from database if not found in local memory
  */
-export function upsertCatalogProduct(product: CatalogItem): void {
+export async function fetchProductByIdOrSlug(idOrSlug: string): Promise<CatalogItem | undefined> {
+  const local = getCatalogProductByIdOrSlug(idOrSlug);
+  if (local) return local;
+
+  const fresh = await fetchAndSyncCatalogFromServer();
+  return fresh.find((p) => p.id === idOrSlug || p.slug === idOrSlug);
+}
+
+/**
+ * Add or update product in catalog and persist immediately to Supabase
+ */
+export async function upsertCatalogProduct(product: CatalogItem): Promise<boolean> {
   unmarkProductDeleted(product.id);
   if (product.slug) unmarkProductDeleted(product.slug);
 
@@ -137,26 +132,55 @@ export function upsertCatalogProduct(product: CatalogItem): void {
     products.unshift(product);
   }
   saveCatalogProducts(products);
-  syncToServerUpsert(product);
+
+  if (typeof window === 'undefined') return true;
+
+  try {
+    const res = await fetch('/api/products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(product),
+    });
+    return res.ok;
+  } catch (e) {
+    console.warn('Server sync failed:', e);
+    return false;
+  }
 }
 
 /**
- * Delete product by id
+ * Delete product by id and remove immediately from Supabase
  */
-export function deleteCatalogProduct(id: string): void {
+export async function deleteCatalogProduct(id: string): Promise<boolean> {
   markProductDeleted(id);
   const products = getCatalogProducts();
   const filtered = products.filter((p) => p.id !== id && p.slug !== id);
   saveCatalogProducts(filtered);
-  syncToServerDelete(id);
+
+  if (typeof window === 'undefined') return true;
+
+  try {
+    const res = await fetch(`/api/products?id=${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    });
+    return res.ok;
+  } catch (e) {
+    console.warn('Server sync delete failed:', e);
+    return false;
+  }
 }
 
 /**
  * Duplicate (copy) product by id
  */
-export function duplicateCatalogProduct(id: string): CatalogItem | null {
-  const products = getCatalogProducts();
-  const source = products.find((p) => p.id === id);
+export async function duplicateCatalogProduct(id: string): Promise<CatalogItem | null> {
+  let products = getCatalogProducts();
+  let source = products.find((p) => p.id === id);
+  if (!source) {
+    const fresh = await fetchAndSyncCatalogFromServer();
+    source = fresh.find((p) => p.id === id);
+    products = fresh;
+  }
   if (!source) return null;
 
   const newId = `prod-${Date.now()}`;
@@ -169,9 +193,6 @@ export function duplicateCatalogProduct(id: string): CatalogItem | null {
     badge: 'Duplicate / Draft',
   };
 
-  products.unshift(cloned);
-  saveCatalogProducts(products);
-  syncToServerUpsert(cloned);
+  await upsertCatalogProduct(cloned);
   return cloned;
 }
-

@@ -41,13 +41,29 @@ export default function AdminProductsManager() {
   const PRODUCTS_PER_PAGE = 20;
   const [currentPage, setCurrentPage] = useState(1);
 
-  useEffect(() => {
-    setProducts(getCatalogProducts());
-    fetchAndSyncCatalogFromServer().then((fresh) => {
-      if (fresh && fresh.length > 0) {
+  const [isLoading, setIsLoading] = useState(true);
+
+  const loadFreshProducts = async () => {
+    setIsLoading(true);
+    try {
+      const fresh = await fetchAndSyncCatalogFromServer();
+      if (Array.isArray(fresh)) {
         setProducts(fresh);
       }
-    });
+    } catch (e) {
+      console.warn('Failed to load products from server:', e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const local = getCatalogProducts();
+    if (local && local.length > 0) {
+      setProducts(local);
+      setIsLoading(false);
+    }
+    loadFreshProducts();
 
     const handleUpdated = () => {
       setProducts(getCatalogProducts());
@@ -84,10 +100,11 @@ export default function AdminProductsManager() {
   const categories = Array.from(new Set(products.map((p) => p.category)));
 
   // Copy (Duplicate) Action
-  const handleCopyProduct = (id: string) => {
-    const cloned = duplicateCatalogProduct(id);
+  const handleCopyProduct = async (id: string) => {
+    const cloned = await duplicateCatalogProduct(id);
     if (cloned) {
-      setProducts(getCatalogProducts());
+      const fresh = await fetchAndSyncCatalogFromServer();
+      setProducts(fresh);
       setSuccessMessage(`Created duplicate product "${cloned.title}"!`);
       setTimeout(() => setSuccessMessage(null), 3500);
     }
@@ -96,13 +113,8 @@ export default function AdminProductsManager() {
   // Delete Action - Permanently remove from DB and state
   const handleDeleteProduct = async (id: string, title: string) => {
     if (window.confirm(`Are you sure you want to permanently delete "${title}"? This cannot be undone.`)) {
-      deleteCatalogProduct(id);
       setProducts((prev) => prev.filter((p) => p.id !== id && p.slug !== id));
-      try {
-        await fetch(`/api/products?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
-      } catch (e) {
-        console.warn('Delete API warning:', e);
-      }
+      await deleteCatalogProduct(id);
       setSuccessMessage(`Product "${title}" deleted permanently from database.`);
       setTimeout(() => setSuccessMessage(null), 3500);
     }
