@@ -37,17 +37,24 @@ export class AdapterRegistry {
     const q = (options.query || '').trim().toLowerCase();
     const cat = (options.category || '').trim().toLowerCase();
 
-    // 1. Merge baseline PRODUCTS_CATALOG with any Supabase custom products (persistent database)
+    // 1. Merge baseline PRODUCTS_CATALOG with any Supabase custom products, filtering out deleted products
     let allCatalogItems = PRODUCTS_CATALOG;
     try {
       const { getSiteKV } = await import('@/lib/db/kv');
+      const deletedIds = (await getSiteKV<string[]>('deleted_product_ids')) || [];
       const cloudProducts = await getSiteKV<CatalogItem[]>('custom_products');
-      if (cloudProducts && Array.isArray(cloudProducts) && cloudProducts.length > 0) {
-        const productMap = new Map<string, CatalogItem>();
-        allCatalogItems.forEach((p) => productMap.set(p.id, p));
-        cloudProducts.forEach((p) => productMap.set(p.id, p));
-        allCatalogItems = Array.from(productMap.values());
+
+      const productMap = new Map<string, CatalogItem>();
+      allCatalogItems
+        .filter((p) => !deletedIds.includes(p.id) && !deletedIds.includes(p.slug))
+        .forEach((p) => productMap.set(p.id, p));
+
+      if (cloudProducts && Array.isArray(cloudProducts)) {
+        cloudProducts
+          .filter((p) => !deletedIds.includes(p.id) && !deletedIds.includes(p.slug))
+          .forEach((p) => productMap.set(p.id, p));
       }
+      allCatalogItems = Array.from(productMap.values());
     } catch {
       // fallback to baseline PRODUCTS_CATALOG
     }
