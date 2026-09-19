@@ -43,7 +43,7 @@ function ContactFormInner() {
           Direct Support & Partnerships
         </div>
         <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-foreground">
-          Contact {branding.brandName || 'TechPriceDrop'}
+          Contact {branding.brandName || 'suprodesign'}
         </h1>
         <p className="text-sm text-muted-foreground max-w-lg mx-auto leading-relaxed">
           Have a question regarding price accuracy, merchant integrations, retailer affiliate compliance, or commercial partnerships? Drop us a line below.

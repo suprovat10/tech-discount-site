@@ -1,13 +1,13 @@
 import { MetadataRoute } from 'next';
-import { getServerSettingsAsync } from '@/lib/settingsServer';
+import { getServerSettings } from '@/lib/settingsServer';
 import { PRODUCTS_CATALOG, CATEGORIES } from '@/data/catalog';
 import { BLOG_POSTS } from '@/data/blogs';
 import { DEFAULT_BRANDS } from '@/data/brands';
 import { DEFAULT_PAGES } from '@/data/defaultPages';
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const settings = await getServerSettingsAsync();
-  const baseUrl = settings.canonicalUrl?.replace(/\/$/, '') || 'https://www.techpricedrop.com';
+export default function sitemap(): MetadataRoute.Sitemap {
+  const settings = getServerSettings();
+  const baseUrl = settings.canonicalUrl?.replace(/\/$/, '') || 'https://suprodesign.com';
 
   const now = new Date().toISOString();
 

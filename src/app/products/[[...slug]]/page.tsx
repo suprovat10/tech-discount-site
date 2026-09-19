@@ -2,11 +2,8 @@ import React, { Suspense } from 'react';
 import { Metadata } from 'next';
 import { SearchResultsClient } from '@/app/search/SearchResultsClient';
 import { Loader2 } from 'lucide-react';
-import { getServerSettingsAsync } from '@/lib/settingsServer';
+import { getServerSettings } from '@/lib/settingsServer';
 import { getCategories } from '@/lib/categoryStore';
-
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
 interface ProductsPageProps {
   params: Promise<{ slug?: string[] }>;
@@ -17,9 +14,9 @@ export async function generateMetadata({ params }: ProductsPageProps): Promise<M
   const resolvedParams = await params;
   const slugs = resolvedParams.slug || [];
   const categories = getCategories();
-  const settings = await getServerSettingsAsync();
-  const brand = settings.siteBrandName || 'TechPriceDrop';
-  const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
+  const settings = getServerSettings();
+  const brand = settings.siteBrandName || 'suprodesign';
+  const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
 
   const catSlug = slugs[0];
   const subSlug = slugs[1];
@@ -77,10 +74,9 @@ export default async function ProductsPage({ params }: ProductsPageProps) {
   const slugs = resolvedParams.slug || [];
   const catSlug = slugs[0] || '';
   const subSlug = slugs[1] || '';
-  const pageKey = slugs.length > 0 ? slugs.join('/') : 'all-products';
 
   return (
-    <div key={pageKey} className="container mx-auto px-4 sm:px-6 py-8">
+    <div className="container mx-auto px-4 sm:px-6 py-8">
       <Suspense
         fallback={
           <div className="py-24 text-center space-y-4">
@@ -90,7 +86,6 @@ export default async function ProductsPage({ params }: ProductsPageProps) {
         }
       >
         <SearchResultsClient
-          key={pageKey}
           initialCategorySlug={catSlug}
           initialSubcategorySlug={subSlug}
         />

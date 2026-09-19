@@ -1,7 +1,5 @@
 import { CATEGORIES as DEFAULT_CATEGORIES, CategoryDefinition } from '@/data/catalog';
 
-export type { CategoryDefinition };
-
 const CATEGORIES_STORAGE_KEY = 'smarttech_categories_catalog';
 
 /**

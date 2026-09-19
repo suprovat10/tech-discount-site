@@ -1,7 +1,5 @@
 import { PRODUCTS_CATALOG, CatalogItem } from '@/data/catalog';
 
-export type { CatalogItem };
-
 const STORAGE_KEY = 'smarttech_products_catalog';
 
 /**
@@ -13,37 +11,31 @@ export function getCatalogProducts(): CatalogItem[] {
   }
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw !== null) {
+    if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) {
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        // ALWAYS MERGE: Ensure all products in PRODUCTS_CATALOG are present in the admin backend!
+        // If an item exists in parsed (e.g. edited by user), keep the user's version.
+        // If an item in PRODUCTS_CATALOG is missing from parsed, append it!
+        const parsedIds = new Set(parsed.map((p: any) => p.id));
+        const missing = PRODUCTS_CATALOG.filter((p) => !parsedIds.has(p.id));
+        if (missing.length > 0) {
+          const merged = [...parsed, ...missing];
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+          return merged;
+        }
         return parsed;
       }
     }
   } catch (e) {
     console.error('Error reading catalog from localStorage:', e);
   }
-  return PRODUCTS_CATALOG;
-}
-
-/**
- * Fetch latest active catalog from server/Supabase
- */
-export async function fetchCatalogFromServer(): Promise<CatalogItem[]> {
   try {
-    const res = await fetch('/api/products?format=catalog');
-    if (res.ok) {
-      const data = await res.json();
-      if (data.catalog && Array.isArray(data.catalog)) {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(data.catalog));
-        }
-        return data.catalog;
-      }
-    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(PRODUCTS_CATALOG));
   } catch (e) {
-    console.warn('Failed to fetch catalog from server:', e);
+    console.error('Error initializing catalog in localStorage:', e);
   }
-  return getCatalogProducts();
+  return PRODUCTS_CATALOG;
 }
 
 /**
@@ -122,27 +114,13 @@ export function upsertCatalogProduct(product: CatalogItem): void {
 }
 
 /**
- * Delete product by id or slug
+ * Delete product by id
  */
 export function deleteCatalogProduct(id: string): void {
   const products = getCatalogProducts();
-  const filtered = products.filter((p) => p.id !== id && p.slug !== id);
+  const filtered = products.filter((p) => p.id !== id);
   saveCatalogProducts(filtered);
   syncToServerDelete(id);
-}
-
-/**
- * Clear all sample catalog products permanently
- */
-export async function clearAllCatalogProducts(): Promise<void> {
-  saveCatalogProducts([]);
-  if (typeof window !== 'undefined') {
-    try {
-      await fetch('/api/products?clearAll=true', { method: 'DELETE' });
-    } catch (e) {
-      console.warn('Failed to clear catalog on server:', e);
-    }
-  }
 }
 
 /**

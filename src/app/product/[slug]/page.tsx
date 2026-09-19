@@ -2,13 +2,10 @@ import React from 'react';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { adapterRegistry } from '@/lib/adapters';
-import { getServerSettingsAsync } from '@/lib/settingsServer';
+import { getServerSettings } from '@/lib/settingsServer';
 import { generateProductJsonLd, generateBreadcrumbJsonLd } from '@/lib/seo/jsonld';
 import { ProductDetailClient } from './ProductDetailClient';
 import { getCategories, getCategorySlug } from '@/lib/categoryStore';
-
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
 interface ProductPageProps {
   params: Promise<{
@@ -18,9 +15,9 @@ interface ProductPageProps {
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const settings = await getServerSettingsAsync();
-  const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
-  const brand = settings.siteBrandName || 'TechPriceDrop';
+  const settings = getServerSettings();
+  const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
+  const brand = settings.siteBrandName || 'suprodesign';
 
   const allProducts = await adapterRegistry.searchAllRetailers({ query: '' });
   const product = allProducts.find((p) => p.slug === slug || p.id === slug);
@@ -75,8 +72,8 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
 export default async function ProductDetailPage({ params }: ProductPageProps) {
   const { slug } = await params;
-  const settings = await getServerSettingsAsync();
-  const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
+  const settings = getServerSettings();
+  const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
 
   const cleanQuery = slug.replace(/-/g, ' ');
 
@@ -84,41 +81,25 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   let product = allProducts.find((p) => p.slug === slug || p.id === slug);
 
   if (!product) {
-    try {
-      const { getSiteKV } = await import('@/lib/db/kv');
-      const cloudProducts = await getSiteKV<import('@/data/catalog').CatalogItem[]>('custom_products');
-      if (cloudProducts && Array.isArray(cloudProducts)) {
-        const cloudMatch = cloudProducts.find((p) => p.slug === slug || p.id === slug);
-        if (cloudMatch) {
-          const { transformCatalogItemToUnified } = await import('@/lib/adapters');
-          product = transformCatalogItemToUnified(cloudMatch);
-        }
-      }
-    } catch {}
-  }
-
-  if (!product) {
     const searchMatches = await adapterRegistry.searchAllRetailers({ query: cleanQuery });
-    product = searchMatches.find((p) => p.slug === slug || p.id === slug);
-  }
-
-  if (!product) {
-    notFound();
+    product = searchMatches.find((p) => p.slug === slug || p.id === slug) || searchMatches[0];
   }
 
   // Related products strictly from the same category
-  let relatedProducts = allProducts.filter(
-    (p) =>
-      p.slug !== product!.slug &&
-      p.id !== product!.id &&
-      p.category &&
-      product!.category &&
-      p.category.toLowerCase().trim() === product!.category.toLowerCase().trim()
-  );
+  let relatedProducts = product
+    ? allProducts.filter(
+        (p) =>
+          p.slug !== product.slug &&
+          p.id !== product.id &&
+          p.category &&
+          product.category &&
+          p.category.toLowerCase().trim() === product.category.toLowerCase().trim()
+      )
+    : allProducts.slice(0, 4);
 
-  // If no products in the exact category, fallback to other products
+  // If no products in the exact category, fallback to others
   if (relatedProducts.length === 0) {
-    relatedProducts = allProducts.filter((p) => p.slug !== product!.slug && p.id !== product!.id);
+    relatedProducts = allProducts.filter((p) => !product || (p.slug !== product.slug && p.id !== product.id));
   }
 
   relatedProducts = relatedProducts.slice(0, 4);
@@ -154,7 +135,6 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
       />
 
       <ProductDetailClient
-        key={slug}
         product={product || null}
         slug={slug}
         relatedProducts={relatedProducts}

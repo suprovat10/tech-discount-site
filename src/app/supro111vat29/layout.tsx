@@ -70,7 +70,7 @@ export default function AdminLayout({
             alt="Favicon"
             className="w-5 h-5 object-contain"
           />
-          <span>{branding.brandName || 'TechPriceDrop'} Admin</span>
+          <span>{branding.brandName || 'suprodesign'} Admin</span>
         </div>
         <button
           onClick={() => setIsMobileNavOpen(!isMobileNavOpen)}
@@ -99,7 +99,7 @@ export default function AdminLayout({
               </div>
               <div>
                 <h2 className="font-black text-sm tracking-tight text-white leading-none">
-                  {branding.brandName || 'TechPriceDrop'}
+                  {branding.brandName || 'suprodesign'}
                 </h2>
                 <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
                   Admin Console

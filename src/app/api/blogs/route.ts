@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { revalidatePath } from 'next/cache';
 import {
   getServerBlogs,
   getServerBlogBySlug,
@@ -46,10 +45,6 @@ export async function POST(req: NextRequest) {
     }
 
     const saved = saveServerBlog(body);
-    try {
-      revalidatePath('/', 'layout');
-      revalidatePath('/blog', 'page');
-    } catch {}
     return NextResponse.json({ success: true, message: 'Blog saved successfully', data: body });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error?.message || 'Failed to save blog' }, { status: 500 });
@@ -76,10 +71,6 @@ export async function DELETE(req: NextRequest) {
     }
 
     deleteServerBlog(id);
-    try {
-      revalidatePath('/', 'layout');
-      revalidatePath('/blog', 'page');
-    } catch {}
     return NextResponse.json({ success: true, message: 'Blog and associated assets deleted successfully' });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error?.message || 'Failed to delete blog' }, { status: 500 });

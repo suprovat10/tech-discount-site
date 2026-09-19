@@ -342,7 +342,7 @@ export default function AdminSettingsPage() {
               <Input
                 value={settings.siteBrandName}
                 onChange={(e) => handleChange('siteBrandName', e.target.value)}
-                placeholder="TechPriceDrop"
+                placeholder="suprodesign"
                 className="h-9 text-xs max-w-md"
               />
               <span className="text-[10px] text-muted-foreground mt-1 block">
@@ -544,7 +544,7 @@ export default function AdminSettingsPage() {
                       <div className="w-4 h-4 bg-muted" />
                     )}
                     <span className="text-[11px] font-medium text-foreground truncate max-w-[120px]">
-                      {settings.siteBrandName || 'TechPriceDrop'}
+                      {settings.siteBrandName || 'suprodesign'}
                     </span>
                   </div>
                 </div>
@@ -561,7 +561,7 @@ export default function AdminSettingsPage() {
                   value={settings.footerBioText || ''}
                   onChange={(e) => handleChange('footerBioText', e.target.value)}
                   rows={3}
-                  placeholder="TechPriceDrop is a real-time price comparison and deals discovery engine..."
+                  placeholder="suprodesign is a real-time price comparison and deals discovery engine..."
                   className="w-full p-2.5 text-xs border border-input bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-blue-600 rounded-none"
                 />
                 <span className="text-[10px] text-muted-foreground mt-1 block">
@@ -899,15 +899,15 @@ export default function AdminSettingsPage() {
                     </div>
                     <div className="flex flex-col">
                       <span className="text-[11px] text-[#202124] dark:text-[#bdc1c6] font-medium leading-none">
-                        {settings.siteBrandName || 'TechPriceDrop'}
+                        {settings.siteBrandName || 'suprodesign'}
                       </span>
                       <span className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6] leading-tight">
-                        {settings.canonicalUrl || 'https://www.techpricedrop.com'}
+                        {settings.canonicalUrl || 'https://suprodesign.com'}
                       </span>
                     </div>
                   </div>
                   <h3 className="text-sm text-[#1a0dab] dark:text-[#8ab4f8] font-medium hover:underline cursor-pointer line-clamp-1 leading-tight">
-                    {settings.siteTitle || 'TechPriceDrop - Compare Prices & Find Deals'}
+                    {settings.siteTitle || 'suprodesign - Compare Prices & Find Deals'}
                   </h3>
                   <p className="text-xs text-[#4d5156] dark:text-[#bdc1c6] line-clamp-2 leading-relaxed">
                     {settings.metaDescription || 'Real-time price comparison and deals discovery engine...'}
@@ -937,10 +937,10 @@ export default function AdminSettingsPage() {
                   </div>
                   <div className="p-2.5 space-y-0.5">
                     <span className="text-[10px] uppercase text-muted-foreground font-semibold">
-                      {new URL(settings.canonicalUrl || 'https://www.techpricedrop.com').hostname}
+                      {new URL(settings.canonicalUrl || 'https://suprodesign.com').hostname}
                     </span>
                     <h4 className="text-xs font-bold text-foreground line-clamp-1">
-                      {settings.siteTitle || 'TechPriceDrop - Compare Prices'}
+                      {settings.siteTitle || 'suprodesign - Compare Prices'}
                     </h4>
                     <p className="text-[11px] text-muted-foreground line-clamp-2">
                       {settings.metaDescription}

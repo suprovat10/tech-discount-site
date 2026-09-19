@@ -91,11 +91,11 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/90 backdrop-blur-md transition-all relative">
       <div className="container max-w-[1200px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4 sm:gap-8">
-        {/* Brand Logo - TechPriceDrop */}
+        {/* Brand Logo - suprodesign */}
         <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
           <img
             src={branding.logoUrl || '/logo.png'}
-            alt={branding.brandName || 'TechPriceDrop'}
+            alt={branding.brandName || 'suprodesign'}
             className="h-8 sm:h-9 w-auto max-w-[180px] sm:max-w-[210px] object-contain transition-transform group-hover:scale-105"
             onError={(e) => {
               e.currentTarget.src = '/logo.png';
@@ -143,13 +143,13 @@ export function Header() {
 
         {/* Navigation Links */}
         <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-muted-foreground">
-          <Link href="/products" prefetch={true} className="hover:text-foreground transition-colors">
+          <Link href="/products" className="hover:text-foreground transition-colors">
             All Products
           </Link>
-          <Link href="/coupons" prefetch={true} className="hover:text-foreground transition-colors">
+          <Link href="/coupons" className="hover:text-foreground transition-colors">
             Coupons
           </Link>
-          <Link href="/blog" prefetch={true} className="hover:text-foreground transition-colors">
+          <Link href="/blog" className="hover:text-foreground transition-colors">
             Blog
           </Link>
         </nav>
@@ -158,7 +158,6 @@ export function Header() {
         <div className="flex items-center gap-2.5">
           <Link
             href="/watchlist"
-            prefetch={true}
             className="flex items-center gap-1.5 px-3 py-1.5 border border-border text-xs font-semibold text-foreground hover:bg-muted/50 hover:text-rose-600 transition-colors rounded-none group"
             title="View saved items"
           >
@@ -243,7 +242,6 @@ export function Header() {
             <div className="flex flex-col text-xs font-bold divide-y divide-border/40">
               <Link
                 href="/products"
-                prefetch={true}
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="py-2.5 text-foreground hover:text-blue-600 transition-colors"
               >
@@ -251,7 +249,6 @@ export function Header() {
               </Link>
               <Link
                 href="/coupons"
-                prefetch={true}
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="py-2.5 text-foreground hover:text-blue-600 transition-colors"
               >
@@ -259,7 +256,6 @@ export function Header() {
               </Link>
               <Link
                 href="/blog"
-                prefetch={true}
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="py-2.5 text-foreground hover:text-blue-600 transition-colors"
               >

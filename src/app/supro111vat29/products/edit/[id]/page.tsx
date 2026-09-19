@@ -234,90 +234,96 @@ export default function EditProductStudioPage({
 
   useEffect(() => {
     setCategoriesList(getCategories());
-    
-    const populateProduct = (existing: CatalogItem) => {
-      setTitle(existing.title);
-      setBrand(existing.brand);
-      setCategory(existing.category);
-      setSubcategory(existing.subcategory || '');
-      setBadge(existing.badge || 'Admin Verified');
-      setRating(String(existing.rating || 4.8));
-      setReviewCount(String(existing.reviewCount || 100));
-
-      setRichDescription(existing.richDescription || `<p>${existing.description}</p>`);
-      setFeatures(existing.features || []);
-
-      if (existing.keySpecs && Object.keys(existing.keySpecs).length > 0) {
-        setKeySpecsList(Object.entries(existing.keySpecs).map(([k, v]) => ({ key: k, value: String(v) })));
-      } else {
-        setKeySpecsList([]);
-      }
-
-      if (existing.specs && Object.keys(existing.specs).length > 0) {
-        setSpecsList(Object.entries(existing.specs).map(([k, v]) => ({ key: k, value: String(v) })));
-      } else {
-        setSpecsList([]);
-      }
-
-      setFaqs(existing.faqs || []);
-      setImages(existing.images && existing.images.length > 0 ? existing.images : [existing.imageUrl]);
-      setCoverAlt(existing.imageAlt || '');
-      setImageAlts(existing.imageAlts || []);
-
-      if (existing.offers && existing.offers.length > 0) {
-        setPlatforms(
-          existing.offers.map((o) => ({
-            id: o.retailer,
-            retailer: o.retailer,
-            retailerName: o.retailerName || o.retailer,
-            price: String(o.price || ''),
-            url: o.productUrl || '',
-            inStock: o.isInStock !== false,
-            shippingInfo: o.shippingInfo || 'Free Standard Delivery',
-          }))
-        );
-      }
-
-      if (existing.seo) {
-        setMetaTitle(existing.seo.metaTitle || '');
-        setMetaDescription(existing.seo.metaDescription || '');
-        setKeywords(existing.seo.keywords || '');
-        setCustomSlug(existing.slug || '');
-        setOgImageUrl(existing.seo.ogImageUrl || '');
-        setOgImageAlt(existing.seo.ogImageAlt || '');
-      }
-
-      setLoading(false);
-    };
-
     const existing = getCatalogProductByIdOrSlug(productId);
-    if (existing) {
-      populateProduct(existing);
+    if (!existing) {
+      setProductNotFound(true);
+      setLoading(false);
       return;
     }
 
-    // Try server catalog if not in local store
-    fetch('/api/products?format=catalog')
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.catalog && Array.isArray(data.catalog)) {
-          const found = data.catalog.find(
-            (p: CatalogItem) => p.id === productId || p.slug === productId
-          );
-          if (found) {
-            populateProduct(found);
-            return;
-          }
-        }
-        setProductNotFound(true);
-        setLoading(false);
-      })
-      .catch(() => {
-        setProductNotFound(true);
-        setLoading(false);
-      });
-  }, [productId]);
+    setTitle(existing.title);
+    setBrand(existing.brand);
+    setCategory(existing.category);
+    setSubcategory(existing.subcategory || '');
+    setBadge(existing.badge || 'Admin Verified');
+    setRating(String(existing.rating || 4.8));
+    setReviewCount(String(existing.reviewCount || 100));
 
+    setRichDescription(existing.richDescription || `<p>${existing.description}</p>`);
+    setFeatures(existing.features || []);
+
+    if (existing.keySpecs && Object.keys(existing.keySpecs).length > 0) {
+      setKeySpecsList(
+        Object.entries(existing.keySpecs).map(([key, value]) => ({ key, value }))
+      );
+    } else if (existing.specs) {
+      setKeySpecsList(
+        Object.entries(existing.specs).slice(0, 4).map(([key, value]) => ({ key, value }))
+      );
+    }
+
+    if (existing.specs) {
+      const parsedSpecs: SpecItem[] = Object.entries(existing.specs).map(([key, value]) => ({
+        key,
+        value,
+      }));
+      setSpecsList(parsedSpecs);
+    }
+
+    setFaqs(
+      existing.faqs || [
+        {
+          question: 'Is this eligible for official warranty?',
+          answer: 'Yes, this product is backed by authorized US manufacturer warranty.',
+        },
+      ]
+    );
+
+    const allImages = existing.images && existing.images.length > 0 ? existing.images : [existing.imageUrl];
+    setImages(allImages);
+    setCoverAlt(existing.imageAlt || '');
+    setImageAlts(existing.imageAlts || []);
+
+    // Offers
+    if (existing.offers && existing.offers.length > 0) {
+      setPlatforms(
+        existing.offers.map((o, idx) => ({
+          id: o.retailerItemId || `${o.retailer}-${idx}-${Date.now()}`,
+          retailer: o.retailer,
+          retailerName:
+            (o.retailerName && o.retailerName.toLowerCase() !== 'custom')
+              ? o.retailerName
+              : (o.retailer === 'amazon'
+                ? 'Amazon US'
+                : o.retailer === 'walmart'
+                ? 'Walmart US'
+                : o.retailer === 'bestbuy'
+                ? 'Best Buy US'
+                : o.retailer === 'target'
+                ? 'Target US'
+                : getRetailerDisplayName(o.retailer)),
+          price: o.price > 0 ? String(o.price) : '',
+          url: o.productUrl || '',
+          inStock: o.isInStock ?? true,
+          shippingInfo: o.shippingInfo || 'Free Standard Delivery',
+        }))
+      );
+    } else {
+      setPlatforms(DEFAULT_PLATFORMS);
+    }
+
+    // SEO
+    if (existing.seo) {
+      setMetaTitle(existing.seo.metaTitle || '');
+      setMetaDescription(existing.seo.metaDescription || '');
+      setKeywords(existing.seo.keywords || '');
+      setOgImageUrl(existing.seo.ogImageUrl || '');
+      setOgImageAlt(existing.seo.ogImageAlt || '');
+    }
+    setCustomSlug(existing.slug);
+
+    setLoading(false);
+  }, [productId]);
 
   // Feature Handlers: Add, Remove, Move, Duplicate, Edit
   const [editingFeatureIdx, setEditingFeatureIdx] = useState<number | null>(null);
@@ -606,7 +612,7 @@ export default function EditProductStudioPage({
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
 
@@ -683,7 +689,8 @@ export default function EditProductStudioPage({
       seo: {
         metaTitle: metaTitle || `${title} - Compare Lowest Prices & Deals`,
         metaDescription: metaDescription || `Compare verified prices for ${title}.`,
-        canonicalUrl: `https://www.techpricedrop.com/product/${customSlug || productId}`,
+        keywords,
+        canonicalUrl: `https://smarttechdeals.com/product/${customSlug || productId}`,
         ogImageUrl: ogImageUrl || images[0],
         ogImageAlt: ogImageAlt.trim() || undefined,
       },
@@ -691,16 +698,6 @@ export default function EditProductStudioPage({
     };
 
     upsertCatalogProduct(updatedProduct);
-    try {
-      await fetch('/api/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedProduct),
-      });
-    } catch (err) {
-      console.warn('Failed to post updated product to server:', err);
-    }
-
     setSuccessToast(true);
 
     setTimeout(() => {
@@ -2058,7 +2055,7 @@ export default function EditProductStudioPage({
                   </div>
                   <div className="p-2.5 bg-card space-y-1">
                     <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
-                      techpricedrop.com
+                      smarttechdeals.com
                     </span>
                     <h4 className="text-xs font-bold text-foreground line-clamp-1">
                       {metaTitle || title}

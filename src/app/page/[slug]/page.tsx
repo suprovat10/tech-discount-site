@@ -6,16 +6,13 @@ interface CustomPageRouteProps {
   params: Promise<{ slug: string }>;
 }
 
-import { getServerSettingsAsync } from '@/lib/settingsServer';
+import { getServerSettings } from '@/lib/settingsServer';
 import { getPageBySlug } from '@/lib/pageStore';
-
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
 export async function generateMetadata({ params }: CustomPageRouteProps): Promise<Metadata> {
   const { slug } = await params;
-  const settings = await getServerSettingsAsync();
-  const brand = settings.siteBrandName || 'TechPriceDrop';
+  const settings = getServerSettings();
+  const brand = settings.siteBrandName || 'suprodesign';
   const page = getPageBySlug(slug);
   const title = page?.title || slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, ' ');
 

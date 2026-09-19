@@ -48,62 +48,32 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
     [product?.category || '']: true,
   });
 
-  // 1. Immediately update activeProduct when product or slug changes
+  // Sync categories & catalog products from persistent store + client fallback lookup
   useEffect(() => {
-    if (product) {
-      setActiveProduct(product);
-      if (product.category) {
+    try {
+      const allCats = getCategories();
+      setCategories(allCats);
+      const allProds = getCatalogProducts();
+      setCatalogProducts(allProds);
+
+      if (!activeProduct && slug) {
+        const localItem = getCatalogProductByIdOrSlug(slug);
+        if (localItem) {
+          const unified = transformCatalogItemToUnified(localItem);
+          setActiveProduct(unified);
+        }
+      }
+
+      if (activeProduct?.category) {
         setExpandedCategories((prev) => ({
           ...prev,
-          [product.category]: true,
+          [activeProduct.category]: true,
         }));
       }
-    } else if (slug) {
-      const localItem = getCatalogProductByIdOrSlug(slug);
-      if (localItem) {
-        const unified = transformCatalogItemToUnified(localItem);
-        setActiveProduct(unified);
-        if (unified.category) {
-          setExpandedCategories((prev) => ({
-            ...prev,
-            [unified.category]: true,
-          }));
-        }
-      }
+    } catch {
+      // ignore
     }
-  }, [product, slug]);
-
-  // 2. React to live catalog updates (from admin or other tabs in real-time)
-  useEffect(() => {
-    const handleSync = () => {
-      try {
-        const allCats = getCategories();
-        setCategories(allCats);
-        const allProds = getCatalogProducts();
-        setCatalogProducts(allProds);
-
-        if (slug) {
-          const localItem = getCatalogProductByIdOrSlug(slug);
-          if (localItem) {
-            setActiveProduct(transformCatalogItemToUnified(localItem));
-          }
-        }
-      } catch {
-        // ignore
-      }
-    };
-
-    handleSync();
-    window.addEventListener('smarttech_catalog_updated', handleSync);
-    window.addEventListener('smarttech_categories_updated', handleSync);
-    window.addEventListener('storage', handleSync);
-
-    return () => {
-      window.removeEventListener('smarttech_catalog_updated', handleSync);
-      window.removeEventListener('smarttech_categories_updated', handleSync);
-      window.removeEventListener('storage', handleSync);
-    };
-  }, [slug]);
+  }, [activeProduct, slug]);
 
   const matchesCategory = (p: UnifiedProduct | CatalogItem, catName: string) => {
     return (p.category || '').toLowerCase() === catName.toLowerCase();
@@ -209,18 +179,16 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
           </p>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-          <Link
-            href="/products"
-            className="inline-flex items-center justify-center font-bold text-xs gap-1.5 bg-blue-600 hover:bg-blue-700 text-white h-9 px-4 rounded-none transition-colors cursor-pointer"
-          >
-            <Search className="w-3.5 h-3.5" />
-            <span>Browse All Deals & Products</span>
+          <Link href="/products">
+            <Button className="font-bold text-xs gap-1.5">
+              <Search className="w-3.5 h-3.5" />
+              <span>Browse All Deals & Products</span>
+            </Button>
           </Link>
-          <Link
-            href="/"
-            className="inline-flex items-center justify-center font-bold text-xs border border-border bg-background hover:bg-muted text-foreground h-9 px-4 rounded-none transition-colors cursor-pointer"
-          >
-            Go to Homepage
+          <Link href="/">
+            <Button variant="outline" className="font-bold text-xs">
+              Go to Homepage
+            </Button>
           </Link>
         </div>
       </div>
@@ -758,14 +726,18 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
                             href={offer.productUrl || offer.internalGoUrl}
                             target="_blank"
                             rel="nofollow sponsored noopener"
-                            className={`inline-flex items-center justify-center text-xs font-bold h-8 px-3 sm:px-4 rounded-none transition-colors cursor-pointer select-none ${
-                              offer.isLowestPrice
-                                ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                                : 'bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 text-white'
-                            }`}
                           >
-                            <span>Buy Now</span>
-                            <ExternalLink className="w-3 h-3 ml-1" />
+                            <Button
+                              size="sm"
+                              className={`text-xs font-bold h-8 px-3 sm:px-4 ${
+                                offer.isLowestPrice
+                                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                                  : 'bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 text-white'
+                              }`}
+                            >
+                              <span>Buy Now</span>
+                              <ExternalLink className="w-3 h-3 ml-1" />
+                            </Button>
                           </a>
                         </td>
                       </tr>

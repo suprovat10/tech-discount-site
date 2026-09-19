@@ -231,9 +231,7 @@ export function SearchResultsClient({
 
       const queryString = params.toString().replace(/%2C/gi, ',');
       const nextPath = queryString ? `${basePath}?${queryString}` : basePath;
-      if (typeof window !== 'undefined') {
-        window.history.replaceState(window.history.state, '', nextPath);
-      }
+      window.history.replaceState(null, '', nextPath);
     },
     [
       searchQuery,

@@ -5,20 +5,17 @@ import { DEFAULT_BRANDS } from '@/data/brands';
 import { adapterRegistry } from '@/lib/adapters';
 import { BrandDetailClient } from './BrandDetailClient';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
 interface BrandPageProps {
   params: Promise<{ slug: string }>;
 }
 
-import { getServerSettingsAsync } from '@/lib/settingsServer';
+import { getServerSettings } from '@/lib/settingsServer';
 
 export async function generateMetadata({ params }: BrandPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const settings = await getServerSettingsAsync();
-  const siteBrand = settings.siteBrandName || 'TechPriceDrop';
-  const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
+  const settings = getServerSettings();
+  const siteBrand = settings.siteBrandName || 'suprodesign';
+  const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
 
   const brand = DEFAULT_BRANDS.find(
     (b) => b.slug.toLowerCase() === slug.toLowerCase() || b.name.toLowerCase() === slug.toLowerCase()
@@ -60,7 +57,6 @@ export default async function BrandPage({ params }: BrandPageProps) {
   return (
     <div className="container mx-auto px-4 sm:px-6 py-6">
       <BrandDetailClient
-        key={cleanSlug}
         slug={cleanSlug}
         initialBrand={brand}
         initialProducts={brandProducts}

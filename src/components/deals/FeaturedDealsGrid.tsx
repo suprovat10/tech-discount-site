@@ -28,12 +28,11 @@ export function FeaturedDealsGrid({
           </h2>
         </div>
 
-        <Link
-          href="/products"
-          className="inline-flex items-center justify-center font-bold text-sm border border-input bg-background hover:bg-accent hover:text-accent-foreground px-5 h-11 gap-2 transition-colors cursor-pointer"
-        >
-          <span>View All Deals</span>
-          <ArrowRight className="w-4 h-4" />
+        <Link href="/products">
+          <Button variant="outline" className="font-bold text-sm rounded-xl px-5 h-11 flex items-center gap-2">
+            <span>View All Deals</span>
+            <ArrowRight className="w-4 h-4" />
+          </Button>
         </Link>
       </div>
 

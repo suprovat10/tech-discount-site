@@ -533,7 +533,7 @@ export default function CreateProductStudioPage() {
   };
 
   // Save Product
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) {
       alert('Product title is required.');
@@ -568,8 +568,6 @@ export default function CreateProductStudioPage() {
     const offerPrices = validPlatforms.map((p) => parseFloat(p.price) || 0).filter((p) => p > 0);
     const minOfferPrice = offerPrices.length > 0 ? Math.min(...offerPrices) : 0;
 
-    const productId = `prod-dyn-${Date.now()}`;
-
     const constructedOffers = validPlatforms.map((p, idx) => {
       const priceNum = parseFloat(p.price) || 0;
       const userStoreName = p.retailerName?.trim() || '';
@@ -583,7 +581,7 @@ export default function CreateProductStudioPage() {
       return {
         retailer: cleanRetailer as any,
         retailerName: finalRetailerName,
-        retailerItemId: p.id || `${cleanRetailer}-${productId}-${idx}`,
+        retailerItemId: `${cleanRetailer}-${Date.now()}-${idx}`,
         productUrl: p.url.trim(),
         price: priceNum,
         regularPrice: priceNum > 0 ? Number((priceNum * 1.15).toFixed(2)) : undefined,
@@ -598,7 +596,7 @@ export default function CreateProductStudioPage() {
     });
 
     const newProduct: CatalogItem = {
-      id: productId,
+      id: `prod-dyn-${Date.now()}`,
       slug: generatedSlug,
       title: title.trim(),
       brand: brand.trim() || 'Generic',
@@ -623,7 +621,7 @@ export default function CreateProductStudioPage() {
           metaDescription ||
           `Compare verified live prices for ${title} across leading retailers. Save with real-time price tracking.`,
         keywords,
-        canonicalUrl: `https://www.techpricedrop.com/product/${generatedSlug}`,
+        canonicalUrl: `https://smarttechdeals.com/product/${generatedSlug}`,
         ogImageUrl: ogImageUrl || images[0] || '',
         ogImageAlt: ogImageAlt.trim() || undefined,
       },
@@ -631,16 +629,6 @@ export default function CreateProductStudioPage() {
     };
 
     upsertCatalogProduct(newProduct);
-    try {
-      await fetch('/api/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newProduct),
-      });
-    } catch (err) {
-      console.error('Failed to sync new product to server:', err);
-    }
-
     setSuccessToast(true);
 
     setTimeout(() => {
@@ -2001,7 +1989,7 @@ export default function CreateProductStudioPage() {
                   </div>
                   <div className="p-2.5 bg-card space-y-1">
                     <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
-                      techpricedrop.com
+                      smarttechdeals.com
                     </span>
                     <h4 className="text-xs font-bold text-foreground line-clamp-1">
                       {metaTitle || (title ? `${title} - Compare Prices` : 'Product Title')}
@@ -2020,10 +2008,10 @@ export default function CreateProductStudioPage() {
                 Google Search Result Preview
               </span>
               <div className="text-[#1a0dab] dark:text-[#8ab4f8] text-sm font-semibold truncate hover:underline cursor-pointer">
-                {metaTitle || (title ? `${title} - 4-Store Price Comparison | TechPriceDrop` : 'Product Title')}
+                {metaTitle || (title ? `${title} - 4-Store Price Comparison | SmartTech` : 'Product Title')}
               </div>
               <div className="text-[#006621] dark:text-[#34a853] text-[11px] truncate">
-                https://www.techpricedrop.com/product/{customSlug || (title ? title.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'product-slug')}
+                https://smarttechdeals.com/product/{customSlug || (title ? title.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'product-slug')}
               </div>
               <p className="text-xs text-muted-foreground line-clamp-2">
                 {metaDescription ||

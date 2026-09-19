@@ -32,12 +32,11 @@ export function WatchlistGrid() {
           </p>
         </div>
 
-        <Link
-          href="/"
-          className="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-10 px-5 rounded-none transition-colors cursor-pointer"
-        >
-          <Search className="w-4 h-4 mr-2" />
-          <span>Explore Tech Deals</span>
+        <Link href="/">
+          <Button className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold">
+            <Search className="w-4 h-4 mr-2" />
+            Explore Tech Deals
+          </Button>
         </Link>
       </div>
     );

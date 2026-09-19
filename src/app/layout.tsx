@@ -1,14 +1,14 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import Script from 'next/script';
-import { getServerSettingsAsync } from '@/lib/settingsServer';
+import { getServerSettings } from '@/lib/settingsServer';
 import { generateWebsiteJsonLd, generateOrganizationJsonLd } from '@/lib/seo/jsonld';
 import { StoreLayoutWrapper } from '@/components/common/StoreLayoutWrapper';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await getServerSettingsAsync();
-  const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
-  const brand = settings.siteBrandName || 'TechPriceDrop';
+  const settings = getServerSettings();
+  const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
+  const brand = settings.siteBrandName || 'suprodesign';
   const title = settings.siteTitle || `${brand} - Compare Prices & Find Deals`;
   const description =
     settings.metaDescription ||
@@ -85,15 +85,15 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const settings = await getServerSettingsAsync();
-  const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
-  const brand = settings.siteBrandName || 'TechPriceDrop';
-  const logoUrl = settings.logoUrl || '/logo-techpricedrop.png';
+  const settings = getServerSettings();
+  const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
+  const brand = settings.siteBrandName || 'suprodesign';
+  const logoUrl = settings.logoUrl || '/logo.png';
   const socials = [
     settings.socialFacebook,
     settings.socialInstagram,

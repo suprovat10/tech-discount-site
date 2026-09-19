@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { revalidatePath } from 'next/cache';
 import fs from 'fs';
 import path from 'path';
 import { getSiteKV, setSiteKV } from '@/lib/db/kv';
@@ -45,10 +44,6 @@ export async function POST(req: NextRequest) {
     } catch {
       // Ignored in read-only Vercel environment
     }
-
-    try {
-      revalidatePath('/', 'layout');
-    } catch {}
 
     return NextResponse.json({ success: true, settings: body });
   } catch (e: any) {

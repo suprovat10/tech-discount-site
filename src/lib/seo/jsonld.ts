@@ -1,7 +1,7 @@
 import { UnifiedProduct } from '@/types/product';
 import { BlogPost } from '@/data/blogs';
 
-export function generateProductJsonLd(product: UnifiedProduct, siteUrl = 'https://www.techpricedrop.com') {
+export function generateProductJsonLd(product: UnifiedProduct, siteUrl = 'https://suprodesign.com') {
   const inStockOffers = product.offers.filter((o) => o.isInStock);
   const bestOffer = product.offers.find((o) => o.isLowestPrice) || product.offers[0];
 
@@ -59,8 +59,8 @@ export function generateProductJsonLd(product: UnifiedProduct, siteUrl = 'https:
 }
 
 export function generateWebsiteJsonLd(
-  siteUrl = 'https://www.techpricedrop.com',
-  siteName = 'TechPriceDrop'
+  siteUrl = 'https://suprodesign.com',
+  siteName = 'suprodesign'
 ) {
   return {
     '@context': 'https://schema.org',
@@ -76,9 +76,9 @@ export function generateWebsiteJsonLd(
 }
 
 export function generateOrganizationJsonLd(
-  siteUrl = 'https://www.techpricedrop.com',
-  siteName = 'TechPriceDrop',
-  logoUrl = '/logo-techpricedrop.png',
+  siteUrl = 'https://suprodesign.com',
+  siteName = 'suprodesign',
+  logoUrl = '/logo.png',
   socials: string[] = []
 ) {
   const fullLogoUrl = logoUrl.startsWith('http') ? logoUrl : `${siteUrl}${logoUrl}`;
@@ -96,9 +96,9 @@ export function generateOrganizationJsonLd(
 
 export function generateArticleJsonLd(
   post: BlogPost,
-  siteUrl = 'https://www.techpricedrop.com',
-  siteName = 'TechPriceDrop',
-  logoUrl = '/logo-techpricedrop.png'
+  siteUrl = 'https://suprodesign.com',
+  siteName = 'suprodesign',
+  logoUrl = '/logo.png'
 ) {
   const fullLogoUrl = logoUrl.startsWith('http') ? logoUrl : `${siteUrl}${logoUrl}`;
   const postUrl = `${siteUrl}/blog/${post.slug}`;
@@ -133,7 +133,7 @@ export function generateArticleJsonLd(
 
 export function generateBreadcrumbJsonLd(
   items: { name: string; url?: string }[],
-  siteUrl = 'https://www.techpricedrop.com'
+  siteUrl = 'https://suprodesign.com'
 ) {
   return {
     '@context': 'https://schema.org',

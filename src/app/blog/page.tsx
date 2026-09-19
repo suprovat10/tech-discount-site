@@ -2,15 +2,12 @@ import React from 'react';
 import { Metadata } from 'next';
 import { getServerBlogs, getServerBlogCategories } from '@/lib/blogServer';
 import { BlogListClient } from './BlogListClient';
-import { getServerSettingsAsync } from '@/lib/settingsServer';
-
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+import { getServerSettings } from '@/lib/settingsServer';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await getServerSettingsAsync();
-  const brand = settings.siteBrandName || 'TechPriceDrop';
-  const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
+  const settings = getServerSettings();
+  const brand = settings.siteBrandName || 'suprodesign';
+  const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
 
   return {
     title: `Tech Buying Guides & Price Analysis Blog | ${brand}`,

@@ -1,20 +1,19 @@
 import React from 'react';
 import Link from 'next/link';
 import { HeroSection } from '@/components/home/HeroSection';
+import { DealCard } from '@/components/deals/DealCard';
 import { TopCategorySlider } from '@/components/home/TopCategorySlider';
 import { FeaturedCategorySections } from '@/components/home/FeaturedCategorySections';
 import { BrandShowcaseSection } from '@/components/home/BrandShowcaseSection';
-import { HomeFeaturedDeals } from '@/components/home/HomeFeaturedDeals';
 import { adapterRegistry } from '@/lib/adapters';
 import { UnifiedProduct } from '@/types/product';
 import { ArrowRight } from 'lucide-react';
-import { getServerSettingsAsync } from '@/lib/settingsServer';
+import { getServerSettings } from '@/lib/settingsServer';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const revalidate = 900; // ISR 15 minutes cache
 
 export default async function HomePage() {
-  const settings = await getServerSettingsAsync();
+  const settings = getServerSettings();
   let allProducts: UnifiedProduct[] = [];
   try {
     allProducts = await adapterRegistry.searchAllRetailers({ query: '', limit: 60 });
@@ -54,7 +53,11 @@ export default async function HomePage() {
             </Link>
           </div>
 
-          <HomeFeaturedDeals initialDeals={featuredDeals} />
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-5">
+            {featuredDeals.map((product) => (
+              <DealCard key={product.id} product={product} />
+            ))}
+          </div>
         </section>
 
         {/* 4. Popular Brand Partners Showcase Section */}
