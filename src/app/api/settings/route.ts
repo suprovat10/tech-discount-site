@@ -3,6 +3,9 @@ import fs from 'fs';
 import path from 'path';
 import { getSiteKV, setSiteKV } from '@/lib/db/kv';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const SETTINGS_FILE = path.join(process.cwd(), 'src', 'data', 'settings.json');
 
 export async function GET() {
