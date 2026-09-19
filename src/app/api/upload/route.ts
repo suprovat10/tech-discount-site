@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import { getSupabaseAdminClient } from '@/lib/db/client';
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,37 +24,7 @@ export async function POST(req: NextRequest) {
     const timestamp = Date.now();
     const filename = `${folder}-${cleanName || 'image'}-${timestamp}${ext}`;
 
-    // 1. Try Supabase Storage first for permanent CDN hosting
-    const supabase = getSupabaseAdminClient();
-    if (supabase) {
-      try {
-        const { data: uploadData, error: uploadErr } = await supabase.storage
-          .from('uploads')
-          .upload(filename, buffer, {
-            contentType: mimeType,
-            upsert: true,
-          });
-
-        if (!uploadErr && uploadData) {
-          const { data: publicUrlData } = supabase.storage
-            .from('uploads')
-            .getPublicUrl(filename);
-
-          if (publicUrlData?.publicUrl) {
-            return NextResponse.json({
-              success: true,
-              url: publicUrlData.publicUrl,
-              filename,
-              message: 'File uploaded to Supabase Storage successfully',
-            });
-          }
-        }
-      } catch (err) {
-        console.warn('Supabase storage product upload failed, using fallback:', err);
-      }
-    }
-
-    // 2. Try writing to local public/uploads for local development
+    // Write directly to local public/uploads (standard Node.js / Hostinger VPS)
     let localSaved = false;
     try {
       const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
@@ -64,7 +33,8 @@ export async function POST(req: NextRequest) {
       }
       fs.writeFileSync(path.join(uploadsDir, filename), buffer);
       localSaved = true;
-    } catch {
+    } catch (err) {
+      console.warn('Local disk write warning:', err);
       localSaved = false;
     }
 

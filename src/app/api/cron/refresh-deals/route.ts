@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { adapterRegistry } from '@/lib/adapters';
-import { setCachedSearchResults } from '@/lib/db/queries';
+import { getDatabaseProducts, saveDatabaseProduct } from '@/lib/catalogDb';
+import { setSiteKV } from '@/lib/db/kv';
 
 const POPULAR_QUERIES = [
   'airpods pro',
@@ -15,11 +16,7 @@ const POPULAR_QUERIES = [
   'gaming monitor',
 ];
 
-import { getDatabaseProducts } from '@/lib/catalogDb';
-import { getSupabaseAdminClient } from '@/lib/db/client';
-
 export async function GET(request: NextRequest) {
-  // Authorize Vercel Cron or Admin manual trigger
   const authHeader = request.headers.get('authorization');
   const cronSecret = process.env.CRON_SECRET;
 
@@ -28,7 +25,6 @@ export async function GET(request: NextRequest) {
   }
 
   const syncedProducts: { id: string; title: string; offersUpdated: number }[] = [];
-  const supabase = getSupabaseAdminClient();
 
   // 1. Daily Auto Price Sync across all products in database
   const catalogProducts = await getDatabaseProducts();
@@ -48,19 +44,6 @@ export async function GET(request: NextRequest) {
               offer.isInStock = liveDetails.isInStock;
               offer.lastUpdated = new Date().toISOString();
               offersUpdated++;
-
-              // Sync to Supabase if connected
-              if (supabase) {
-                await supabase
-                  .from('offers')
-                  .update({
-                    price: liveDetails.price,
-                    regular_price: liveDetails.regularPrice,
-                    is_in_stock: liveDetails.isInStock,
-                    last_checked_at: new Date().toISOString(),
-                  })
-                  .match({ retailer: offer.retailer, retailer_item_id: offer.retailerItemId });
-              }
             }
           }
         } catch (err: any) {
@@ -74,37 +57,14 @@ export async function GET(request: NextRequest) {
   }
 
   if (syncedProducts.length > 0) {
-    const { setSiteKV } = await import('@/lib/db/kv');
     await setSiteKV('products_catalog', catalogProducts);
-  }
-
-  // 2. Refresh search cache for popular queries
-  const resultsSummary = [];
-  for (const query of POPULAR_QUERIES) {
-    try {
-      const freshProducts = await adapterRegistry.searchAllRetailers({
-        query,
-        limit: 10,
-      });
-
-      const queryHash = crypto
-        .createHash('sha256')
-        .update(`${query.toLowerCase()}_`)
-        .digest('hex');
-
-      await setCachedSearchResults(queryHash, query, freshProducts, 60);
-      resultsSummary.push({ query, count: freshProducts.length, status: 'refreshed' });
-    } catch (err: any) {
-      resultsSummary.push({ query, status: 'error', error: err.message });
-    }
   }
 
   return NextResponse.json({
     success: true,
-    message: 'Daily price sync and popular deal refresh completed successfully',
+    message: 'Daily price sync completed successfully',
     timestamp: new Date().toISOString(),
     productsSyncedCount: syncedProducts.length,
     syncedProducts,
-    popularDeals: resultsSummary,
   });
 }

@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { CatalogItem } from '@/data/catalog';
 import { adapterRegistry } from '@/lib/adapters';
-import { getSupabaseAdminClient } from '@/lib/db/client';
 import {
   getDatabaseProducts,
   saveDatabaseProduct,

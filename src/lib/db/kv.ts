@@ -1,82 +1,113 @@
-import { getSupabaseAdminClient } from './client';
-
-/**
- * Universal Key-Value / Entity store backed by Supabase
- * Ensures admin data (products, settings, blogs, categories, coupons, brands)
- * survives Git pushes and Vercel rebuilds permanently.
- */
-
-interface CacheEntry {
-  value: any;
-  expiry: number;
+// Safe runtime helpers to avoid client-side webpack resolution issues
+function getFs(): any {
+  if (typeof window === 'undefined') {
+    try {
+      return eval('require')('fs');
+    } catch {
+      return null;
+    }
+  }
+  return null;
 }
 
-const memoryCache = new Map<string, CacheEntry>();
-const CACHE_TTL_MS = 5000; // 5 seconds in-memory cache to make page navigation instant
+function getDbPath(): string {
+  if (typeof window === 'undefined') {
+    try {
+      const pathModule = eval('require')('path');
+      return pathModule.join(process.cwd(), 'src', 'data', 'store.json');
+    } catch {
+      return '';
+    }
+  }
+  return '';
+}
+
+// In-memory cache for 0ms reads
+const memoryCache = new Map<string, any>();
+let isInitialized = false;
+
+function ensureLoaded(): void {
+  if (isInitialized) return;
+  const fsModule = getFs();
+  const dbPath = getDbPath();
+  if (!fsModule || !dbPath) {
+    isInitialized = true;
+    return;
+  }
+
+  try {
+    const pathModule = eval('require')('path');
+    const dir = pathModule.dirname(dbPath);
+    if (!fsModule.existsSync(dir)) {
+      fsModule.mkdirSync(dir, { recursive: true });
+    }
+
+    if (fsModule.existsSync(dbPath)) {
+      const raw = fsModule.readFileSync(dbPath, 'utf-8');
+      if (raw && raw.trim()) {
+        const parsed = JSON.parse(raw);
+        if (typeof parsed === 'object' && parsed !== null) {
+          Object.entries(parsed).forEach(([k, v]) => {
+            memoryCache.set(k, v);
+          });
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('[Store] Warning initializing local store from disk:', err);
+  } finally {
+    isInitialized = true;
+  }
+}
+
+function persistToDisk(): void {
+  const fsModule = getFs();
+  const dbPath = getDbPath();
+  if (!fsModule || !dbPath) return;
+
+  try {
+    const pathModule = eval('require')('path');
+    const dir = pathModule.dirname(dbPath);
+    if (!fsModule.existsSync(dir)) {
+      fsModule.mkdirSync(dir, { recursive: true });
+    }
+
+    const obj: Record<string, any> = {};
+    memoryCache.forEach((value, key) => {
+      obj[key] = value;
+    });
+
+    const tempPath = `${dbPath}.tmp.${Date.now()}`;
+    fsModule.writeFileSync(tempPath, JSON.stringify(obj, null, 2), 'utf-8');
+    fsModule.renameSync(tempPath, dbPath);
+  } catch (err) {
+    console.error('[Store] Error persisting local store to disk:', err);
+  }
+}
 
 export function invalidateSiteKVCache(key?: string): void {
-  if (key) {
-    memoryCache.delete(key);
-  } else {
-    memoryCache.clear();
-  }
+  isInitialized = false;
+  memoryCache.clear();
+  ensureLoaded();
 }
 
 export async function getSiteKV<T>(key: string, forceFresh = false): Promise<T | null> {
-  if (!forceFresh) {
-    const cached = memoryCache.get(key);
-    if (cached && Date.now() < cached.expiry) {
-      return cached.value as T;
-    }
+  if (forceFresh || !isInitialized) {
+    ensureLoaded();
+  } else {
+    ensureLoaded();
   }
 
-  const supabase = getSupabaseAdminClient();
-  if (!supabase) return null;
-
-  try {
-    const { data, error } = await supabase
-      .from('site_kv')
-      .select('value')
-      .eq('key', key)
-      .maybeSingle();
-
-    if (error || !data) return null;
-    const val = data.value as T;
-    memoryCache.set(key, { value: val, expiry: Date.now() + CACHE_TTL_MS });
-    return val;
-  } catch (err) {
-    console.warn(`[getSiteKV] Error reading key "${key}":`, err);
-    return null;
-  }
+  const value = memoryCache.get(key);
+  if (value === undefined) return null;
+  return value as T;
 }
 
 export async function setSiteKV<T>(key: string, value: T): Promise<boolean> {
-  // Update in-memory cache immediately so this process gets instant read with 0 delay
-  memoryCache.set(key, { value, expiry: Date.now() + CACHE_TTL_MS });
-
-  const supabase = getSupabaseAdminClient();
-  if (!supabase) return false;
-
-  try {
-    const { error } = await supabase
-      .from('site_kv')
-      .upsert(
-        {
-          key,
-          value,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'key' }
-      );
-
-    if (error) {
-      console.warn(`[setSiteKV] Failed to upsert key "${key}":`, error);
-      return false;
-    }
-    return true;
-  } catch (err) {
-    console.warn(`[setSiteKV] Exception saving key "${key}":`, err);
-    return false;
-  }
+  ensureLoaded();
+  memoryCache.set(key, value);
+  persistToDisk();
+  return true;
 }
+
 

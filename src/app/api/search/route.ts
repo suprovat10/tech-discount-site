@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
   const query = searchParams.get('q')?.trim() || '';
   const category = searchParams.get('category')?.trim() || undefined;
 
-  // Live query directly from Supabase database and retailer adapters (never stale cache)
+  // Live query directly from database and retailer adapters (never stale cache)
   try {
     const freshProducts = await adapterRegistry.searchAllRetailers({
       query,

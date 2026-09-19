@@ -12,7 +12,7 @@ export const DB_CATALOG_KEY = 'products_catalog';
 export async function getDatabaseProducts(): Promise<CatalogItem[]> {
   try {
     const cloud = await getSiteKV<CatalogItem[]>(DB_CATALOG_KEY);
-    if (cloud && Array.isArray(cloud)) {
+    if (cloud !== null && Array.isArray(cloud)) {
       return cloud;
     }
 

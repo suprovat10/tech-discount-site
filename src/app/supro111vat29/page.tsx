@@ -130,7 +130,7 @@ export default function AdminDashboardPage() {
             <h1 className="text-3xl font-black text-foreground">Admin Console Overview</h1>
             <span className="px-2.5 py-0.5 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-bold text-xs flex items-center gap-1">
               <Database className="w-3 h-3 text-emerald-600" />
-              <span>Supabase Live DB</span>
+              <span>Live Database Engine</span>
             </span>
           </div>
           <p className="text-xs text-muted-foreground mt-1">

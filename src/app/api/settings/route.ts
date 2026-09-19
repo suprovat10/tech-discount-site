@@ -11,7 +11,7 @@ const SETTINGS_FILE = path.join(process.cwd(), 'src', 'data', 'settings.json');
 
 export async function GET() {
   try {
-    // 1. Check Supabase cloud database first (persists across Git pushes and Vercel rebuilds)
+    // 1. Check persistent store first
     const cloudSettings = await getSiteKV('settings');
     if (cloudSettings && typeof cloudSettings === 'object' && Object.keys(cloudSettings).length > 0) {
       return NextResponse.json(cloudSettings);
@@ -32,10 +32,10 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    // 1. Save to Supabase cloud database (permanent)
+    // 1. Save to persistent store
     await setSiteKV('settings', body);
 
-    // 2. Also try local filesystem for local development
+    // 2. Also save to settings.json
     try {
       const dir = path.dirname(SETTINGS_FILE);
       if (!fs.existsSync(dir)) {
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
       }
       fs.writeFileSync(SETTINGS_FILE, JSON.stringify(body, null, 2), 'utf-8');
     } catch {
-      // Ignored in read-only Vercel environment
+      // Ignored if disk permissions issue
     }
 
     try {

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import { getSupabaseAdminClient } from '@/lib/db/client';
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,36 +20,7 @@ export async function POST(req: NextRequest) {
     const prefix = type || 'asset';
     const filename = `${prefix}-${timestamp}${ext}`;
 
-    // 1. Try Supabase Storage first for permanent CDN hosting
-    const supabase = getSupabaseAdminClient();
-    if (supabase) {
-      try {
-        const { data: uploadData, error: uploadErr } = await supabase.storage
-          .from('uploads')
-          .upload(filename, buffer, {
-            contentType: mimeType,
-            upsert: true,
-          });
-
-        if (!uploadErr && uploadData) {
-          const { data: publicUrlData } = supabase.storage
-            .from('uploads')
-            .getPublicUrl(filename);
-
-          if (publicUrlData?.publicUrl) {
-            return NextResponse.json({
-              success: true,
-              url: publicUrlData.publicUrl,
-              message: 'Asset uploaded to Supabase Storage successfully.',
-            });
-          }
-        }
-      } catch (err) {
-        console.warn('Supabase storage upload failed, using fallback:', err);
-      }
-    }
-
-    // 2. Try writing to local public/uploads for local development
+    // Write directly to local public folder (Node.js / Hostinger VPS)
     let localSaved = false;
     try {
       const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
@@ -66,12 +36,11 @@ export async function POST(req: NextRequest) {
         fs.writeFileSync(path.join(process.cwd(), 'public', 'logo.png'), buffer);
       }
       localSaved = true;
-    } catch {
-      // Vercel serverless has read-only filesystem, so this is expected in production
+    } catch (err) {
+      console.warn('Local asset write warning:', err);
       localSaved = false;
     }
 
-    // 3. In serverless environment without Supabase, return a high-res Data URL so it renders instantly
     const dataUrl = `data:${mimeType};base64,${buffer.toString('base64')}`;
     const returnUrl = localSaved ? `/uploads/${filename}` : dataUrl;
 
