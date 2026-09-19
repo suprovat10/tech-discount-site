@@ -47,6 +47,8 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({
     [product?.category || '']: true,
   });
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
   // Sync categories & catalog products from persistent store + client fallback lookup
   useEffect(() => {
@@ -241,11 +243,7 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
   const images: string[] =
     activeProduct.images && activeProduct.images.length > 0 ? activeProduct.images : defaultGallery;
 
-  const [activeImageIndex, setActiveImageIndex] = useState(0);
-
   // FAQ Accordion State (Requirement 3)
-  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
-
   const productFaqs =
     activeProduct.faqs && activeProduct.faqs.length > 0
       ? activeProduct.faqs

@@ -48,7 +48,7 @@ export function ComparisonTable({ product }: ComparisonTableProps) {
       <div className="p-3.5 rounded-xl bg-muted/40 border border-border/80 text-xs text-muted-foreground flex items-start gap-2.5">
         <ShieldAlert className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
         <p className="leading-relaxed">
-          Prices and availability are updated in real-time through official retailer data feeds. Retailers may change prices or inventory without notice. The price displayed on the retailer's checkout page will apply.
+          Prices and availability are updated in real-time through official retailer data feeds. Retailers may change prices or inventory without notice. The price displayed on the retailer&apos;s checkout page will apply.
         </p>
       </div>
     </div>

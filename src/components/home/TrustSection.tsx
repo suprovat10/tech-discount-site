@@ -12,7 +12,7 @@ export function TrustSection() {
             Zero Manipulation Guarantee
           </div>
           <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
-            Real Retail Data. No Fake 'Original' Prices.
+            Real Retail Data. No Fake &apos;Original&apos; Prices.
           </h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
             Many deal sites inflate regular prices or promote questionable third-party marketplace sellers. TechPrice US connects directly to official retail APIs to show real, in-stock prices from authorized retailers.

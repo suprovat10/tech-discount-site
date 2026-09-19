@@ -177,11 +177,10 @@ export default function ColorPickerPopover({
 
   // Browser EyeDropper API
   const handleEyeDropper = async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (typeof window !== 'undefined' && (window as any).EyeDropper) {
+    if (typeof window !== 'undefined' && 'EyeDropper' in window) {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const eyeDropper = new (window as any).EyeDropper();
+        const EyeDropperConstructor = (window as unknown as { EyeDropper: new () => { open: () => Promise<{ sRGBHex?: string }> } }).EyeDropper;
+        const eyeDropper = new EyeDropperConstructor();
         const result = await eyeDropper.open();
         if (result && result.sRGBHex) {
           handleHexInputChange(result.sRGBHex);
