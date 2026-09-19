@@ -40,11 +40,18 @@ export async function GET(request: Request) {
     // If rawCatalog is requested (for admin inventory management)
     if (rawCatalog) {
       const allCatalog = await getDatabaseProducts();
-      return NextResponse.json({
-        success: true,
-        count: allCatalog.length,
-        data: allCatalog,
-      });
+      return NextResponse.json(
+        {
+          success: true,
+          count: allCatalog.length,
+          data: allCatalog,
+        },
+        {
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          },
+        }
+      );
     }
 
     const products = await adapterRegistry.searchAllRetailers({
@@ -53,11 +60,18 @@ export async function GET(request: Request) {
       limit,
     });
 
-    return NextResponse.json({
-      success: true,
-      count: products.length,
-      data: products,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        count: products.length,
+        data: products,
+      },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        },
+      }
+    );
   } catch (error: any) {
     return NextResponse.json(
       { success: false, error: error.message || 'Failed to fetch products' },

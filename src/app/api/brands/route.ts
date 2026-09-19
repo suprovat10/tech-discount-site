@@ -34,11 +34,18 @@ function purgeBrandCaches() {
 
 export async function GET() {
   const brands = await loadBrandsFromCloud();
-  return NextResponse.json({
-    success: true,
-    count: brands.length,
-    data: brands,
-  });
+  return NextResponse.json(
+    {
+      success: true,
+      count: brands.length,
+      data: brands,
+    },
+    {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      },
+    }
+  );
 }
 
 export async function POST(request: Request) {

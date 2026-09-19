@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import crypto from 'crypto';
 import { adapterRegistry } from '@/lib/adapters';
-import { getCachedSearchResults, setCachedSearchResults } from '@/lib/db/queries';
 import { checkRateLimit } from '@/lib/ratelimit/limiter';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function GET(request: NextRequest) {
   const ip = request.headers.get('x-forwarded-for') || '127.0.0.1';
-  const rateCheck = checkRateLimit(ip, 60, 60);
+  const rateCheck = checkRateLimit(ip, 120, 60);
 
   if (!rateCheck.success) {
     return NextResponse.json(
@@ -19,26 +20,7 @@ export async function GET(request: NextRequest) {
   const query = searchParams.get('q')?.trim() || '';
   const category = searchParams.get('category')?.trim() || undefined;
 
-  // Allow empty query to fetch all catalog products
-
-  const queryHash = crypto
-    .createHash('sha256')
-    .update(`${query.toLowerCase()}_${category || ''}`)
-    .digest('hex');
-
-  // Check Supabase / Server Cache
-  const cachedResults = await getCachedSearchResults(queryHash);
-  if (cachedResults && cachedResults.length > 0) {
-    return NextResponse.json({
-      success: true,
-      source: 'cache',
-      query,
-      count: cachedResults.length,
-      data: cachedResults,
-    });
-  }
-
-  // Live Aggregation across all 4 retailer adapters
+  // Live query directly from Supabase database and retailer adapters (never stale cache)
   try {
     const freshProducts = await adapterRegistry.searchAllRetailers({
       query,
@@ -46,20 +28,20 @@ export async function GET(request: NextRequest) {
       limit: 100,
     });
 
-    // Save to cache asynchronously
-    if (freshProducts.length > 0) {
-      setCachedSearchResults(queryHash, query, freshProducts, 30).catch((e) =>
-        console.error('Failed to set cache:', e)
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      source: 'live',
-      query,
-      count: freshProducts.length,
-      data: freshProducts,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        source: 'live',
+        query,
+        count: freshProducts.length,
+        data: freshProducts,
+      },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        },
+      }
+    );
   } catch (error: any) {
     console.error('Search API exception:', error);
     return NextResponse.json(

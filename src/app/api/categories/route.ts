@@ -31,11 +31,18 @@ function purgeCategoryCaches() {
 
 export async function GET() {
   const categories = await loadCategoriesFromCloud();
-  return NextResponse.json({
-    success: true,
-    count: categories.length,
-    data: categories,
-  });
+  return NextResponse.json(
+    {
+      success: true,
+      count: categories.length,
+      data: categories,
+    },
+    {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      },
+    }
+  );
 }
 
 export async function POST(request: Request) {
