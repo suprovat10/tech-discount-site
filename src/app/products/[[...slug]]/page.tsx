@@ -2,8 +2,11 @@ import React, { Suspense } from 'react';
 import { Metadata } from 'next';
 import { SearchResultsClient } from '@/app/search/SearchResultsClient';
 import { Loader2 } from 'lucide-react';
-import { getServerSettings } from '@/lib/settingsServer';
+import { getServerSettingsAsync } from '@/lib/settingsServer';
 import { getCategories } from '@/lib/categoryStore';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 interface ProductsPageProps {
   params: Promise<{ slug?: string[] }>;
@@ -14,9 +17,9 @@ export async function generateMetadata({ params }: ProductsPageProps): Promise<M
   const resolvedParams = await params;
   const slugs = resolvedParams.slug || [];
   const categories = getCategories();
-  const settings = getServerSettings();
-  const brand = settings.siteBrandName || 'suprodesign';
-  const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
+  const settings = await getServerSettingsAsync();
+  const brand = settings.siteBrandName || 'TechPriceDrop';
+  const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
 
   const catSlug = slugs[0];
   const subSlug = slugs[1];

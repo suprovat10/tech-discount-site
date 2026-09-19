@@ -7,7 +7,7 @@ import { BrandItem, DEFAULT_BRANDS } from '@/data/brands';
 import { getBrands, getBrandBySlug } from '@/lib/brandStore';
 import { getCatalogProducts } from '@/lib/catalogStore';
 import { DealCard } from '@/components/deals/DealCard';
-import { ChevronRight, ExternalLink, ShieldCheck, ArrowLeft, Package } from 'lucide-react';
+import { ChevronRight, ChevronLeft, ExternalLink, ShieldCheck, ArrowLeft, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getRetailerDisplayName } from '@/lib/utils';
 
@@ -25,6 +25,10 @@ export function BrandDetailClient({
   const [brand, setBrand] = useState<BrandItem | undefined>(initialBrand);
   const [products, setProducts] = useState<UnifiedProduct[]>(initialProducts);
   const [sortBy, setSortBy] = useState<string>('latest');
+  
+  // Pagination (20 per page as requested)
+  const PRODUCTS_PER_PAGE = 20;
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Load and remember user sort preference across browser visits
   useEffect(() => {
@@ -40,6 +44,7 @@ export function BrandDetailClient({
 
   const handleSortChange = (newSort: string) => {
     setSortBy(newSort);
+    setCurrentPage(1);
     try {
       localStorage.setItem('smarttech_sort_preference', newSort);
     } catch {
@@ -131,6 +136,12 @@ export function BrandDetailClient({
       return 0;
     });
   }, [products, sortBy]);
+
+  const totalPages = Math.ceil(sortedProducts.length / PRODUCTS_PER_PAGE) || 1;
+  const paginatedProducts = sortedProducts.slice(
+    (currentPage - 1) * PRODUCTS_PER_PAGE,
+    currentPage * PRODUCTS_PER_PAGE
+  );
 
   const brandDisplayName = brand?.name || slug.replace(/-/g, ' ').toUpperCase();
 
@@ -239,12 +250,74 @@ export function BrandDetailClient({
           </div>
         </div>
 
-        {sortedProducts.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {sortedProducts.map((product) => (
-              <DealCard key={product.id} product={product} />
-            ))}
-          </div>
+        {paginatedProducts.length > 0 ? (
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-5">
+              {paginatedProducts.map((product) => (
+                <DealCard key={product.id} product={product} />
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="pt-6 border-t border-border/60 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <p className="text-xs text-muted-foreground font-medium">
+                  Showing <span className="font-bold text-foreground">{(currentPage - 1) * PRODUCTS_PER_PAGE + 1}</span> to{' '}
+                  <span className="font-bold text-foreground">
+                    {Math.min(currentPage * PRODUCTS_PER_PAGE, sortedProducts.length)}
+                  </span>{' '}
+                  of <span className="font-bold text-foreground">{sortedProducts.length}</span> products
+                </p>
+
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setCurrentPage((p) => Math.max(1, p - 1));
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    disabled={currentPage === 1}
+                    className="h-8 px-2.5 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                    <span>Prev</span>
+                  </Button>
+
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                    <button
+                      key={pageNum}
+                      onClick={() => {
+                        setCurrentPage(pageNum);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className={`w-8 h-8 text-xs font-bold transition-colors border cursor-pointer ${
+                        currentPage === pageNum
+                          ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-slate-900 dark:border-white'
+                          : 'bg-background text-muted-foreground hover:text-foreground border-border hover:bg-muted'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  ))}
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setCurrentPage((p) => Math.min(totalPages, p + 1));
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    disabled={currentPage === totalPages}
+                    className="h-8 px-2.5 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>Next</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
         ) : (
           <div className="p-12 border border-border/80 bg-card text-center space-y-4">
             <div className="w-12 h-12 bg-muted/40 text-muted-foreground flex items-center justify-center mx-auto">

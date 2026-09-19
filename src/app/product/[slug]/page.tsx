@@ -2,10 +2,13 @@ import React from 'react';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { adapterRegistry } from '@/lib/adapters';
-import { getServerSettings } from '@/lib/settingsServer';
+import { getServerSettingsAsync } from '@/lib/settingsServer';
 import { generateProductJsonLd, generateBreadcrumbJsonLd } from '@/lib/seo/jsonld';
 import { ProductDetailClient } from './ProductDetailClient';
 import { getCategories, getCategorySlug } from '@/lib/categoryStore';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 interface ProductPageProps {
   params: Promise<{
@@ -15,9 +18,9 @@ interface ProductPageProps {
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const settings = getServerSettings();
-  const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
-  const brand = settings.siteBrandName || 'suprodesign';
+  const settings = await getServerSettingsAsync();
+  const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
+  const brand = settings.siteBrandName || 'TechPriceDrop';
 
   const allProducts = await adapterRegistry.searchAllRetailers({ query: '' });
   const product = allProducts.find((p) => p.slug === slug || p.id === slug);
@@ -72,8 +75,8 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
 export default async function ProductDetailPage({ params }: ProductPageProps) {
   const { slug } = await params;
-  const settings = getServerSettings();
-  const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
+  const settings = await getServerSettingsAsync();
+  const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
 
   const cleanQuery = slug.replace(/-/g, ' ');
 

@@ -66,7 +66,7 @@ export function Footer() {
             <Link href="/" className="inline-block group">
               <img
                 src={branding.logoUrl || '/logo.png'}
-                alt={branding.brandName || 'suprodesign'}
+                alt={branding.brandName || 'TechPriceDrop'}
                 className="h-8 w-auto max-w-[170px] object-contain transition-transform group-hover:scale-105"
                 onError={(e) => {
                   e.currentTarget.src = '/logo.png';
@@ -74,7 +74,7 @@ export function Footer() {
               />
             </Link>
             <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">
-              {branding.footerBioText || `${branding.brandName || 'suprodesign'} is a real-time price comparison and deals discovery engine. We scan authorized retailers like Amazon, Walmart, Best Buy, and Target so you never overpay for tech.`}
+              {branding.footerBioText || `${branding.brandName || 'TechPriceDrop'} is a real-time price comparison and deals discovery engine. We scan authorized retailers like Amazon, Walmart, Best Buy, and Target so you never overpay for tech.`}
             </p>
 
             {/* Social Media Follow Icons */}
@@ -280,7 +280,7 @@ export function Footer() {
         <div className="container max-w-[1240px] mx-auto px-4 sm:px-6 space-y-4">
           <div className="text-[11px] leading-relaxed text-muted-foreground/80 space-y-1.5">
             <p>
-              <strong>Affiliate Disclosure:</strong> {branding.brandName || 'suprodesign'} is an independent, advertising-supported comparison service. We are a participant in the Amazon Services LLC Associates Program, the Walmart Affiliate Network, the Best Buy Affiliate Program, the Target Partner Program, and other verified merchant affiliate networks. When you click on retailer links and make qualifying purchases, we may earn an affiliate commission at no additional cost to you.
+              <strong>Affiliate Disclosure:</strong> {branding.brandName || 'TechPriceDrop'} is an independent, advertising-supported comparison service. We are a participant in the Amazon Services LLC Associates Program, the Walmart Affiliate Network, the Best Buy Affiliate Program, the Target Partner Program, and other verified merchant affiliate networks. When you click on retailer links and make qualifying purchases, we may earn an affiliate commission at no additional cost to you.
             </p>
             <p>
               Product prices, stock availability, and shipping terms are accurate as of the last API crawl and are subject to immediate change by individual merchants. Any price and availability information displayed on merchant websites at the time of purchase will apply to the purchase of the product.
@@ -289,7 +289,7 @@ export function Footer() {
 
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-muted-foreground border-t border-border/40">
             <p>
-              © {currentYear} {branding.brandName || 'suprodesign'}. All rights reserved. Built for smart tech shoppers.
+              © {currentYear} {branding.brandName || 'TechPriceDrop'}. All rights reserved. Built for smart tech shoppers.
             </p>
 
             <div className="flex items-center gap-4 text-[11px] font-medium">

@@ -2058,7 +2058,7 @@ export default function EditProductStudioPage({
                   </div>
                   <div className="p-2.5 bg-card space-y-1">
                     <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
-                      smarttechdeals.com
+                      techpricedrop.com
                     </span>
                     <h4 className="text-xs font-bold text-foreground line-clamp-1">
                       {metaTitle || title}

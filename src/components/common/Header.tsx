@@ -91,11 +91,11 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/90 backdrop-blur-md transition-all relative">
       <div className="container max-w-[1200px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4 sm:gap-8">
-        {/* Brand Logo - suprodesign */}
+        {/* Brand Logo - TechPriceDrop */}
         <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
           <img
             src={branding.logoUrl || '/logo.png'}
-            alt={branding.brandName || 'suprodesign'}
+            alt={branding.brandName || 'TechPriceDrop'}
             className="h-8 sm:h-9 w-auto max-w-[180px] sm:max-w-[210px] object-contain transition-transform group-hover:scale-105"
             onError={(e) => {
               e.currentTarget.src = '/logo.png';

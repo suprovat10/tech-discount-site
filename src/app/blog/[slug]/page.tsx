@@ -1,8 +1,11 @@
 import React from 'react';
 import { Metadata } from 'next';
-import { getServerSettings } from '@/lib/settingsServer';
+import { getServerSettingsAsync } from '@/lib/settingsServer';
 import { getServerBlogs, getServerBlogBySlug } from '@/lib/blogServer';
 import { BlogDetailClient } from './BlogDetailClient';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 interface BlogDetailProps {
   params: Promise<{
@@ -12,9 +15,9 @@ interface BlogDetailProps {
 
 export async function generateMetadata({ params }: BlogDetailProps): Promise<Metadata> {
   const { slug } = await params;
-  const settings = getServerSettings();
-  const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
-  const brand = settings.siteBrandName || 'suprodesign';
+  const settings = await getServerSettingsAsync();
+  const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
+  const brand = settings.siteBrandName || 'TechPriceDrop';
 
   const post = getServerBlogBySlug(slug);
 
@@ -57,9 +60,9 @@ export async function generateMetadata({ params }: BlogDetailProps): Promise<Met
 
 export default async function BlogDetailPage({ params }: BlogDetailProps) {
   const { slug } = await params;
-  const settings = getServerSettings();
-  const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
-  const brand = settings.siteBrandName || 'suprodesign';
+  const settings = await getServerSettingsAsync();
+  const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
+  const brand = settings.siteBrandName || 'TechPriceDrop';
   const logoUrl = settings.logoUrl || '/logo.png';
 
   const allBlogs = getServerBlogs();

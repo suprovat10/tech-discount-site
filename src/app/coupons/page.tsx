@@ -1,12 +1,15 @@
 import type { Metadata } from 'next';
 import { CouponsClient } from './CouponsClient';
 
-import { getServerSettings } from '@/lib/settingsServer';
+import { getServerSettingsAsync } from '@/lib/settingsServer';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = getServerSettings();
-  const brand = settings.siteBrandName || 'suprodesign';
-  const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
+  const settings = await getServerSettingsAsync();
+  const brand = settings.siteBrandName || 'TechPriceDrop';
+  const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
 
   return {
     title: `Verified Tech Coupons & Promo Codes | ${brand}`,

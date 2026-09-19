@@ -5,17 +5,20 @@ import { DEFAULT_BRANDS } from '@/data/brands';
 import { adapterRegistry } from '@/lib/adapters';
 import { BrandDetailClient } from './BrandDetailClient';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 interface BrandPageProps {
   params: Promise<{ slug: string }>;
 }
 
-import { getServerSettings } from '@/lib/settingsServer';
+import { getServerSettingsAsync } from '@/lib/settingsServer';
 
 export async function generateMetadata({ params }: BrandPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const settings = getServerSettings();
-  const siteBrand = settings.siteBrandName || 'suprodesign';
-  const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
+  const settings = await getServerSettingsAsync();
+  const siteBrand = settings.siteBrandName || 'TechPriceDrop';
+  const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
 
   const brand = DEFAULT_BRANDS.find(
     (b) => b.slug.toLowerCase() === slug.toLowerCase() || b.name.toLowerCase() === slug.toLowerCase()
