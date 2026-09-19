@@ -1,17 +1,66 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { PRODUCTS_CATALOG, CatalogItem, upsertInMemoryCatalogProduct, deleteInMemoryCatalogProduct } from '@/data/catalog';
 import { adapterRegistry } from '@/lib/adapters';
+import { getSupabaseAdminClient } from '@/lib/db/client';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+
+function purgeServerCaches(slug?: string) {
+  try {
+    revalidatePath('/', 'layout');
+    revalidatePath('/', 'page');
+    revalidatePath('/products', 'layout');
+    revalidatePath('/products', 'page');
+    revalidatePath('/search', 'page');
+    revalidatePath('/brand/[slug]', 'page');
+    revalidatePath('/product/[slug]', 'page');
+    if (slug) {
+      revalidatePath(`/product/${slug}`, 'page');
+    }
+  } catch (e) {
+    console.warn('Cache purge warning:', e);
+  }
+}
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get('q') || '';
   const category = searchParams.get('category') || '';
-  const limit = parseInt(searchParams.get('limit') || '50', 10);
+  const limit = parseInt(searchParams.get('limit') || '100', 10);
+  const rawCatalog = searchParams.get('rawCatalog') === 'true';
 
   try {
+    // If rawCatalog is requested (for admin inventory management)
+    if (rawCatalog) {
+      let allCatalog: CatalogItem[] = [...PRODUCTS_CATALOG];
+      try {
+        const { getSiteKV } = await import('@/lib/db/kv');
+        const cloudProducts = await getSiteKV<CatalogItem[]>('custom_products');
+        if (cloudProducts && Array.isArray(cloudProducts) && cloudProducts.length > 0) {
+          const map = new Map<string, CatalogItem>();
+          allCatalog.forEach((p) => map.set(p.id, p));
+          cloudProducts.forEach((p) => map.set(p.id, p));
+          allCatalog = Array.from(map.values());
+        }
+
+        const deletedIds = await getSiteKV<string[]>('deleted_product_ids');
+        if (deletedIds && Array.isArray(deletedIds) && deletedIds.length > 0) {
+          const delSet = new Set(deletedIds);
+          allCatalog = allCatalog.filter((p) => !delSet.has(p.id) && !delSet.has(p.slug));
+        }
+      } catch (kvErr) {
+        console.warn('Could not read site_kv in GET products:', kvErr);
+      }
+
+      return NextResponse.json({
+        success: true,
+        count: allCatalog.length,
+        data: allCatalog,
+      });
+    }
+
     const products = await adapterRegistry.searchAllRetailers({
       query,
       category: category || undefined,
@@ -60,6 +109,7 @@ export async function POST(request: Request) {
       faqs: body.faqs || [],
       seo: body.seo || {},
       offers: body.offers || [],
+      updatedAt: new Date().toISOString(),
     };
 
     upsertInMemoryCatalogProduct(newProduct);
@@ -79,9 +129,26 @@ export async function POST(request: Request) {
         updatedCustom = [newProduct, ...existingCustom];
       }
       await setSiteKV('custom_products', updatedCustom);
+
+      // If it was previously marked deleted, un-delete it
+      const deletedIds = (await getSiteKV<string[]>('deleted_product_ids')) || [];
+      if (deletedIds.includes(newProduct.id) || deletedIds.includes(newProduct.slug)) {
+        await setSiteKV(
+          'deleted_product_ids',
+          deletedIds.filter((x) => x !== newProduct.id && x !== newProduct.slug)
+        );
+      }
+
+      // Purge Supabase search cache table
+      const supabase = getSupabaseAdminClient();
+      if (supabase) {
+        await supabase.from('search_cache').delete().neq('query_hash', '__purge__');
+      }
     } catch (dbErr) {
       console.warn('Failed to persist product to Supabase site_kv:', dbErr);
     }
+
+    purgeServerCaches(newProduct.slug);
 
     return NextResponse.json(
       { success: true, product: newProduct },
@@ -116,7 +183,7 @@ export async function DELETE(request: Request) {
       );
     }
 
-    const existing = PRODUCTS_CATALOG.find((p) => p.id === id);
+    const existing = PRODUCTS_CATALOG.find((p) => p.id === id || p.slug === id);
     if (existing) {
       const imagesToDelete = [existing.imageUrl, ...(existing.images || [])];
       try {
@@ -129,15 +196,28 @@ export async function DELETE(request: Request) {
 
     deleteInMemoryCatalogProduct(id);
 
-    // Remove from Supabase permanent cloud database
+    // Remove from Supabase permanent cloud database & track in deleted_product_ids
     try {
       const { getSiteKV, setSiteKV } = await import('@/lib/db/kv');
       const existingCustom = (await getSiteKV<CatalogItem[]>('custom_products')) || [];
-      const filtered = existingCustom.filter((p) => p.id !== id);
+      const filtered = existingCustom.filter((p) => p.id !== id && p.slug !== id);
       await setSiteKV('custom_products', filtered);
+
+      const deletedIds = (await getSiteKV<string[]>('deleted_product_ids')) || [];
+      if (!deletedIds.includes(id)) {
+        await setSiteKV('deleted_product_ids', [...deletedIds, id]);
+      }
+
+      // Purge Supabase search cache table
+      const supabase = getSupabaseAdminClient();
+      if (supabase) {
+        await supabase.from('search_cache').delete().neq('query_hash', '__purge__');
+      }
     } catch (dbErr) {
       console.warn('Failed to delete product from Supabase site_kv:', dbErr);
     }
+
+    purgeServerCaches(existing?.slug);
 
     return NextResponse.json({
       success: true,

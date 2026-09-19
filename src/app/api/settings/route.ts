@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import fs from 'fs';
 import path from 'path';
 import { getSiteKV, setSiteKV } from '@/lib/db/kv';
@@ -43,6 +44,12 @@ export async function POST(req: NextRequest) {
       fs.writeFileSync(SETTINGS_FILE, JSON.stringify(body, null, 2), 'utf-8');
     } catch {
       // Ignored in read-only Vercel environment
+    }
+
+    try {
+      revalidatePath('/', 'layout');
+    } catch (revalErr) {
+      console.warn('Settings revalidate warning:', revalErr);
     }
 
     return NextResponse.json({ success: true, settings: body });

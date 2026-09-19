@@ -29,35 +29,37 @@ export function TopCategorySlider() {
   }, []);
 
   // Build items list: Featured categories + top slider subcategories
-  const sliderItems: SliderItem[] = [];
-
-  categories.forEach((cat) => {
-    const catSlug = cat.slug || getCategorySlug(categories, cat.name);
-    // Include category if enabled (default true)
-    if (cat.showInTopSlider !== false) {
-      sliderItems.push({
-        id: `cat-${cat.id}`,
-        name: cat.name,
-        imageUrl: cat.imageUrl,
-        href: `/products/${catSlug}`,
-        isSub: false,
-      });
-    }
-
-    // Include subcategories explicitly toggled for top slider
-    cat.subcategories?.forEach((sub) => {
-      if (sub.showInTopSlider) {
-        const subSlug = sub.slug || getSubcategorySlug(cat, sub.name);
-        sliderItems.push({
-          id: `sub-${sub.id}`,
-          name: sub.name,
-          imageUrl: sub.imageUrl || cat.imageUrl,
-          href: `/products/${catSlug}/${subSlug}`,
-          isSub: true,
+  const sliderItems = React.useMemo(() => {
+    const items: SliderItem[] = [];
+    categories.forEach((cat) => {
+      const catSlug = cat.slug || getCategorySlug(categories, cat.name);
+      // Include category if enabled (default true)
+      if (cat.showInTopSlider !== false) {
+        items.push({
+          id: `cat-${cat.id}`,
+          name: cat.name,
+          imageUrl: cat.imageUrl,
+          href: `/products/${catSlug}`,
+          isSub: false,
         });
       }
+
+      // Include subcategories explicitly toggled for top slider
+      cat.subcategories?.forEach((sub) => {
+        if (sub.showInTopSlider) {
+          const subSlug = sub.slug || getSubcategorySlug(cat, sub.name);
+          items.push({
+            id: `sub-${sub.id}`,
+            name: sub.name,
+            imageUrl: sub.imageUrl || cat.imageUrl,
+            href: `/products/${catSlug}/${subSlug}`,
+            isSub: true,
+          });
+        }
+      });
     });
-  });
+    return items;
+  }, [categories]);
 
   const checkScroll = () => {
     if (!sliderRef.current) return;
@@ -113,7 +115,8 @@ export function TopCategorySlider() {
           <Link
             key={item.id}
             href={item.href}
-            className="group relative flex flex-col items-center justify-between p-3 sm:p-3.5 bg-card hover:bg-muted/30 border border-border/80 hover:border-foreground/30 transition-all rounded-sm shrink-0 w-28 sm:w-32 min-w-[115px] sm:min-w-[130px] min-h-[108px] sm:min-h-[116px] shadow-2xs hover:shadow-xs"
+            prefetch={true}
+            className="group relative flex flex-col items-center justify-between p-3 sm:p-3.5 bg-card hover:bg-muted/30 border border-border/80 hover:border-foreground/30 transition-all rounded-sm shrink-0 w-28 sm:w-32 min-w-[115px] sm:min-w-[130px] min-h-[108px] sm:min-h-[116px] shadow-sm hover:shadow-md cursor-pointer"
             title={item.name}
           >
             {/* Image Container on TOP (Transparent, no background box behind image for transparent PNGs) */}

@@ -48,6 +48,12 @@ export class AdapterRegistry {
         cloudProducts.forEach((p) => productMap.set(p.id, p));
         allCatalogItems = Array.from(productMap.values());
       }
+
+      const deletedIds = await getSiteKV<string[]>('deleted_product_ids');
+      if (deletedIds && Array.isArray(deletedIds) && deletedIds.length > 0) {
+        const delSet = new Set(deletedIds);
+        allCatalogItems = allCatalogItems.filter((p) => !delSet.has(p.id) && !delSet.has(p.slug));
+      }
     } catch {
       // fallback to baseline PRODUCTS_CATALOG
     }

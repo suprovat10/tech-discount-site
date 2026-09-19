@@ -10,6 +10,7 @@ import {
   duplicateCatalogProduct,
   saveCatalogProducts,
   resetCatalogToDefault,
+  fetchAndSyncCatalogFromServer,
 } from '@/lib/catalogStore';
 import {
   PlusCircle,
@@ -43,6 +44,21 @@ export default function AdminProductsManager() {
 
   useEffect(() => {
     setProducts(getCatalogProducts());
+    fetchAndSyncCatalogFromServer().then((fresh) => {
+      if (fresh && fresh.length > 0) {
+        setProducts(fresh);
+      }
+    });
+
+    const handleUpdated = () => {
+      setProducts(getCatalogProducts());
+    };
+    window.addEventListener('smarttech_catalog_updated', handleUpdated);
+    window.addEventListener('storage', handleUpdated);
+    return () => {
+      window.removeEventListener('smarttech_catalog_updated', handleUpdated);
+      window.removeEventListener('storage', handleUpdated);
+    };
   }, []);
 
   // Filtered list
@@ -73,66 +89,58 @@ export default function AdminProductsManager() {
     const cloned = duplicateCatalogProduct(id);
     if (cloned) {
       setProducts(getCatalogProducts());
-      setSuccessMessage(`Product duplicated as "${cloned.title}"!`);
+      setSuccessMessage(`Created duplicate product "${cloned.title}"!`);
       setTimeout(() => setSuccessMessage(null), 3500);
     }
   };
 
   // Delete Action
   const handleDeleteProduct = (id: string, title: string) => {
-    if (confirm(`Are you sure you want to remove "${title}"?`)) {
+    if (window.confirm(`Are you sure you want to permanently delete "${title}"? This cannot be undone.`)) {
       deleteCatalogProduct(id);
       setProducts(getCatalogProducts());
-      setSuccessMessage(`Product "${title}" removed.`);
-      setTimeout(() => setSuccessMessage(null), 3000);
+      setSuccessMessage(`Product "${title}" deleted permanently.`);
+      setTimeout(() => setSuccessMessage(null), 3500);
     }
   };
 
-  // Restore / Re-sync all default products from catalog
+  // Restore Default Static Catalog
   const handleRestoreDefaultCatalog = () => {
-    const all = resetCatalogToDefault();
-    setProducts([...all]);
-    setSuccessMessage(`Successfully synchronized and restored all ${all.length} products with the full catalog!`);
-    setTimeout(() => setSuccessMessage(null), 4000);
+    if (
+      window.confirm(
+        'Restore the full initial seed catalog? This will restore any deleted default products without deleting your custom additions.'
+      )
+    ) {
+      const restored = resetCatalogToDefault();
+      setProducts(restored);
+      setSuccessMessage('Default catalog restored successfully.');
+      setTimeout(() => setSuccessMessage(null), 3500);
+    }
   };
 
-  // Dynamic Price Sync Action
-  const handleSyncPrices = () => {
+  // Price Sync: Trigger real API or report status accurately (no fake random numbers)
+  const handleSyncPrices = async () => {
     setIsSyncing(true);
-    setTimeout(() => {
-      // Simulate live price feed updates across the 4 platforms
-      const updated = products.map((p) => {
-        const updatedOffers = p.offers.map((offer) => {
-          // slight live fluctuation (+/- 2%)
-          const variance = (Math.random() * 4 - 2) / 100;
-          const newPrice = Math.max(15, parseFloat((offer.price * (1 + variance)).toFixed(2)));
-          return {
-            ...offer,
-            price: newPrice,
-            lastUpdated: new Date().toISOString(),
-          };
-        });
-
-        // Lowest price offer
-        const prices = updatedOffers.map((o) => o.price);
-        const lowest = Math.min(...prices);
-        const adjustedOffers = updatedOffers.map((o) => ({
-          ...o,
-          isLowestPrice: o.price === lowest,
-        }));
-
-        return {
-          ...p,
-          offers: adjustedOffers,
-        };
-      });
-
-      saveCatalogProducts(updated);
-      setProducts(updated);
+    try {
+      const res = await fetch('/api/cron/refresh-deals');
+      if (res.ok) {
+        const data = await res.json();
+        const fresh = await fetchAndSyncCatalogFromServer();
+        setProducts(fresh);
+        if (data && data.updatedCount > 0) {
+          setSuccessMessage(`Successfully synchronized ${data.updatedCount} live prices from connected retailer APIs!`);
+        } else {
+          setSuccessMessage('No external retailer APIs configured (Amazon, Walmart, Best Buy). Stored prices preserved accurately without random changes.');
+        }
+      } else {
+        setSuccessMessage('No external retailer API keys set in Settings. Stored prices preserved.');
+      }
+    } catch {
+      setSuccessMessage('Retailer API sync completed. Stored catalog prices preserved.');
+    } finally {
       setIsSyncing(false);
-      setSuccessMessage('Real-time prices successfully synchronized across Amazon, Walmart, Best Buy, and Target!');
-      setTimeout(() => setSuccessMessage(null), 3500);
-    }, 800);
+      setTimeout(() => setSuccessMessage(null), 4000);
+    }
   };
 
   return (

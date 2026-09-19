@@ -82,7 +82,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
 
   if (!product) {
     const searchMatches = await adapterRegistry.searchAllRetailers({ query: cleanQuery });
-    product = searchMatches.find((p) => p.slug === slug || p.id === slug) || searchMatches[0];
+    product = searchMatches.find((p) => p.slug === slug || p.id === slug);
   }
 
   // Related products strictly from the same category
@@ -135,6 +135,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
       />
 
       <ProductDetailClient
+        key={slug}
         product={product || null}
         slug={slug}
         relatedProducts={relatedProducts}

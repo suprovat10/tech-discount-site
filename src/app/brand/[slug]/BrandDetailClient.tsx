@@ -7,7 +7,7 @@ import { BrandItem, DEFAULT_BRANDS } from '@/data/brands';
 import { getBrands, getBrandBySlug } from '@/lib/brandStore';
 import { getCatalogProducts } from '@/lib/catalogStore';
 import { DealCard } from '@/components/deals/DealCard';
-import { ChevronRight, ExternalLink, ShieldCheck, ArrowLeft, Package } from 'lucide-react';
+import { ChevronRight, ChevronLeft, ExternalLink, ShieldCheck, ArrowLeft, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getRetailerDisplayName } from '@/lib/utils';
 
@@ -25,6 +25,8 @@ export function BrandDetailClient({
   const [brand, setBrand] = useState<BrandItem | undefined>(initialBrand);
   const [products, setProducts] = useState<UnifiedProduct[]>(initialProducts);
   const [sortBy, setSortBy] = useState<string>('latest');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const PRODUCTS_PER_PAGE = 20;
 
   // Load and remember user sort preference across browser visits
   useEffect(() => {
@@ -40,6 +42,7 @@ export function BrandDetailClient({
 
   const handleSortChange = (newSort: string) => {
     setSortBy(newSort);
+    setCurrentPage(1);
     try {
       localStorage.setItem('smarttech_sort_preference', newSort);
     } catch {
@@ -47,8 +50,7 @@ export function BrandDetailClient({
     }
   };
 
-  useEffect(() => {
-    // Sync with client-side brands and products store
+  const syncBrandProducts = () => {
     try {
       const liveBrand = getBrandBySlug(slug);
       if (liveBrand) {
@@ -114,6 +116,16 @@ export function BrandDetailClient({
     } catch {
       // ignore
     }
+  };
+
+  useEffect(() => {
+    syncBrandProducts();
+    window.addEventListener('smarttech_catalog_updated', syncBrandProducts);
+    window.addEventListener('storage', syncBrandProducts);
+    return () => {
+      window.removeEventListener('smarttech_catalog_updated', syncBrandProducts);
+      window.removeEventListener('storage', syncBrandProducts);
+    };
   }, [slug]);
 
   const sortedProducts = React.useMemo(() => {
@@ -131,6 +143,17 @@ export function BrandDetailClient({
       return 0;
     });
   }, [products, sortBy]);
+
+  const totalPages = Math.ceil(sortedProducts.length / PRODUCTS_PER_PAGE) || 1;
+  const paginatedProducts = sortedProducts.slice(
+    (currentPage - 1) * PRODUCTS_PER_PAGE,
+    currentPage * PRODUCTS_PER_PAGE
+  );
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 320, behavior: 'smooth' });
+  };
 
   const brandDisplayName = brand?.name || slug.replace(/-/g, ' ').toUpperCase();
 
@@ -218,7 +241,7 @@ export function BrandDetailClient({
               {brandDisplayName} Products ({sortedProducts.length})
             </h2>
             <span className="text-xs text-muted-foreground font-semibold">
-              ● Real-time multi-store prices
+              ● Showing 20 items per page • Real-time multi-store prices
             </span>
           </div>
 
@@ -240,11 +263,85 @@ export function BrandDetailClient({
         </div>
 
         {sortedProducts.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {sortedProducts.map((product) => (
-              <DealCard key={product.id} product={product} />
-            ))}
-          </div>
+          <>
+            {/* Mobile 2 Columns & Desktop 3-4 Columns */}
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-5">
+              {paginatedProducts.map((product) => (
+                <DealCard key={product.id} product={product} />
+              ))}
+            </div>
+
+            {/* Pagination Controls (20 Products Per Page) */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between pt-6 border-t border-border/60">
+                <div className="text-xs text-muted-foreground">
+                  Showing <span className="font-bold text-foreground">{(currentPage - 1) * PRODUCTS_PER_PAGE + 1}</span> to{' '}
+                  <span className="font-bold text-foreground">
+                    {Math.min(currentPage * PRODUCTS_PER_PAGE, sortedProducts.length)}
+                  </span>{' '}
+                  of <span className="font-bold text-foreground">{sortedProducts.length}</span> deals
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage <= 1}
+                    className="h-8 px-2 text-xs font-bold gap-1 cursor-pointer disabled:opacity-50"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Prev</span>
+                  </Button>
+
+                  {Array.from({ length: totalPages }).map((_, idx) => {
+                    const pageNum = idx + 1;
+                    if (
+                      pageNum === 1 ||
+                      pageNum === totalPages ||
+                      Math.abs(pageNum - currentPage) <= 1
+                    ) {
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => handlePageChange(pageNum)}
+                          className={`w-8 h-8 text-xs font-bold transition-colors cursor-pointer ${
+                            currentPage === pageNum
+                              ? 'bg-blue-600 text-white shadow-xs'
+                              : 'border border-border bg-card text-muted-foreground hover:bg-muted/40 hover:text-foreground'
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    }
+                    if (
+                      (pageNum === 2 && currentPage > 3) ||
+                      (pageNum === totalPages - 1 && currentPage < totalPages - 2)
+                    ) {
+                      return (
+                        <span key={pageNum} className="px-1 text-muted-foreground text-xs">
+                          ...
+                        </span>
+                      );
+                    }
+                    return null;
+                  })}
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage >= totalPages}
+                    className="h-8 px-2 text-xs font-bold gap-1 cursor-pointer disabled:opacity-50"
+                  >
+                    <span className="hidden sm:inline">Next</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
         ) : (
           <div className="p-12 border border-border/80 bg-card text-center space-y-4">
             <div className="w-12 h-12 bg-muted/40 text-muted-foreground flex items-center justify-center mx-auto">

@@ -86,6 +86,7 @@ export default async function ProductsPage({ params }: ProductsPageProps) {
         }
       >
         <SearchResultsClient
+          key={`${catSlug}-${subSlug}`}
           initialCategorySlug={catSlug}
           initialSubcategorySlug={subSlug}
         />

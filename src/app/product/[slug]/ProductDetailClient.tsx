@@ -56,24 +56,28 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
       const allProds = getCatalogProducts();
       setCatalogProducts(allProds);
 
-      if (!activeProduct && slug) {
+      if (product) {
+        setActiveProduct(product);
+      } else if (slug) {
         const localItem = getCatalogProductByIdOrSlug(slug);
         if (localItem) {
           const unified = transformCatalogItemToUnified(localItem);
           setActiveProduct(unified);
         }
       }
-
-      if (activeProduct?.category) {
-        setExpandedCategories((prev) => ({
-          ...prev,
-          [activeProduct.category]: true,
-        }));
-      }
     } catch {
       // ignore
     }
-  }, [activeProduct, slug]);
+  }, [product, slug]);
+
+  useEffect(() => {
+    if (activeProduct?.category) {
+      setExpandedCategories((prev) => ({
+        ...prev,
+        [activeProduct.category]: true,
+      }));
+    }
+  }, [activeProduct?.category]);
 
   const matchesCategory = (p: UnifiedProduct | CatalogItem, catName: string) => {
     return (p.category || '').toLowerCase() === catName.toLowerCase();
