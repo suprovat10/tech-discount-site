@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { getSupabaseAdminClient } from '@/lib/db/client';
 
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const file = formData.get('file') as File | null;
-    const type = formData.get('type') as string | null; // 'favicon' | 'logo'
+    const type = formData.get('type') as string | null; // 'favicon' | 'logo' | 'og' | 'blog'
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
@@ -14,76 +15,71 @@ export async function POST(req: NextRequest) {
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
-
     const ext = path.extname(file.name) || '.png';
+    const mimeType = file.type || 'image/png';
     const timestamp = Date.now();
+    const prefix = type || 'asset';
+    const filename = `${prefix}-${timestamp}${ext}`;
 
-    if (type === 'favicon') {
-      // 1. Save specific versioned file in uploads
-      const versionedFilename = `favicon-${timestamp}${ext}`;
-      fs.writeFileSync(path.join(uploadsDir, versionedFilename), buffer);
-
-      // 2. Overwrite standard favicon files in public/
-      fs.writeFileSync(path.join(process.cwd(), 'public', 'favicon.png'), buffer);
-      fs.writeFileSync(path.join(process.cwd(), 'public', 'favicon.ico'), buffer);
-      fs.writeFileSync(path.join(process.cwd(), 'public', 'apple-touch-icon.png'), buffer);
-
-      // 3. Overwrite App Router dynamic icons in src/app/ if they exist
-      const srcAppDir = path.join(process.cwd(), 'src', 'app');
+    // 1. Try Supabase Storage first for permanent CDN hosting
+    const supabase = getSupabaseAdminClient();
+    if (supabase) {
       try {
-        fs.writeFileSync(path.join(srcAppDir, 'icon.png'), buffer);
-        fs.writeFileSync(path.join(srcAppDir, 'favicon.ico'), buffer);
-        fs.writeFileSync(path.join(srcAppDir, 'apple-icon.png'), buffer);
+        const { data: uploadData, error: uploadErr } = await supabase.storage
+          .from('uploads')
+          .upload(filename, buffer, {
+            contentType: mimeType,
+            upsert: true,
+          });
+
+        if (!uploadErr && uploadData) {
+          const { data: publicUrlData } = supabase.storage
+            .from('uploads')
+            .getPublicUrl(filename);
+
+          if (publicUrlData?.publicUrl) {
+            return NextResponse.json({
+              success: true,
+              url: publicUrlData.publicUrl,
+              message: 'Asset uploaded to Supabase Storage successfully.',
+            });
+          }
+        }
       } catch (err) {
-        console.warn('Could not write to src/app icons:', err);
+        console.warn('Supabase storage upload failed, using fallback:', err);
       }
-
-      const publicUrl = `/uploads/${versionedFilename}`;
-      return NextResponse.json({
-        success: true,
-        url: publicUrl,
-        fallbackUrl: `/favicon.png?v=${timestamp}`,
-        message: 'Favicon successfully uploaded and saved to server.',
-      });
-    } else if (type === 'og' || type === 'ogImage') {
-      const versionedFilename = `og-image-${timestamp}${ext}`;
-      fs.writeFileSync(path.join(uploadsDir, versionedFilename), buffer);
-
-      const publicUrl = `/uploads/${versionedFilename}`;
-      return NextResponse.json({
-        success: true,
-        url: publicUrl,
-        message: 'OpenGraph Image successfully uploaded and saved.',
-      });
-    } else if (type === 'blog') {
-      const versionedFilename = `blog-cover-${timestamp}${ext}`;
-      fs.writeFileSync(path.join(uploadsDir, versionedFilename), buffer);
-
-      const publicUrl = `/uploads/${versionedFilename}`;
-      return NextResponse.json({
-        success: true,
-        url: publicUrl,
-        message: 'Blog cover image successfully uploaded.',
-      });
-    } else {
-      // Logo upload
-      const versionedFilename = `logo-${timestamp}${ext}`;
-      fs.writeFileSync(path.join(uploadsDir, versionedFilename), buffer);
-      fs.writeFileSync(path.join(process.cwd(), 'public', 'logo.png'), buffer);
-
-      const publicUrl = `/uploads/${versionedFilename}`;
-      return NextResponse.json({
-        success: true,
-        url: publicUrl,
-        fallbackUrl: `/logo.png?v=${timestamp}`,
-        message: 'Logo successfully uploaded and saved to server.',
-      });
     }
+
+    // 2. Try writing to local public/uploads for local development
+    let localSaved = false;
+    try {
+      const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+      fs.writeFileSync(path.join(uploadsDir, filename), buffer);
+
+      if (type === 'favicon') {
+        fs.writeFileSync(path.join(process.cwd(), 'public', 'favicon.png'), buffer);
+        fs.writeFileSync(path.join(process.cwd(), 'public', 'favicon.ico'), buffer);
+      } else if (type === 'logo') {
+        fs.writeFileSync(path.join(process.cwd(), 'public', 'logo.png'), buffer);
+      }
+      localSaved = true;
+    } catch {
+      // Vercel serverless has read-only filesystem, so this is expected in production
+      localSaved = false;
+    }
+
+    // 3. In serverless environment without Supabase, return a high-res Data URL so it renders instantly
+    const dataUrl = `data:${mimeType};base64,${buffer.toString('base64')}`;
+    const returnUrl = localSaved ? `/uploads/${filename}` : dataUrl;
+
+    return NextResponse.json({
+      success: true,
+      url: returnUrl,
+      message: 'Asset processed and saved successfully.',
+    });
   } catch (error: any) {
     console.error('Error uploading setting asset:', error);
     return NextResponse.json(

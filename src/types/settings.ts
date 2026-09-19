@@ -38,20 +38,20 @@ export interface SiteSettings {
 }
 
 export const DEFAULT_SITE_SETTINGS: SiteSettings = {
-  siteTitle: 'suprodesign - Real-Time Tech Price Comparison & Deals',
+  siteTitle: 'TechPriceDrop - Real-Time Tech Price Comparison & Deals',
   metaDescription:
     'Find the lowest prices and best discounts on tech gadgets, laptops, smartphones, and accessories across major US retailers like Amazon, Walmart, Best Buy, and Target.',
   keywords:
     'deals, discounts, price comparison, amazon, walmart, best buy, target, tech gadgets, laptops, electronics price tracker',
-  canonicalUrl: 'https://suprodesign.com',
+  canonicalUrl: 'https://www.techpricedrop.com',
   ogImageUrl:
     'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1200&q=80',
   indexingEnabled: true,
   logoUrl: '/logo.png',
   faviconUrl: '/favicon.png',
-  siteBrandName: 'suprodesign',
+  siteBrandName: 'TechPriceDrop',
   footerBioText:
-    'suprodesign is a real-time price comparison and deals discovery engine. We scan authorized retailers like Amazon, Walmart, Best Buy, and Target so you never overpay for tech.',
+    'TechPriceDrop is a real-time price comparison and deals discovery engine. We scan authorized retailers like Amazon, Walmart, Best Buy, and Target so you never overpay for tech.',
   socialFacebook: 'https://facebook.com',
   socialInstagram: 'https://instagram.com',
   socialYoutube: 'https://youtube.com',

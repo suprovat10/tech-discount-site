@@ -13,9 +13,9 @@ export interface BrandingConfig {
 export const DEFAULT_BRANDING: BrandingConfig = {
   logoUrl: '/logo.png',
   faviconUrl: '/favicon.png',
-  brandName: 'suprodesign',
-  siteTitle: 'suprodesign - Compare Tech Deals & Prices',
-  footerBioText: 'suprodesign is a real-time price comparison and deals discovery engine. We scan authorized retailers like Amazon, Walmart, Best Buy, and Target so you never overpay for tech.',
+  brandName: 'TechPriceDrop',
+  siteTitle: 'TechPriceDrop - Compare Tech Deals & Prices',
+  footerBioText: 'TechPriceDrop is a real-time price comparison and deals discovery engine. We scan authorized retailers like Amazon, Walmart, Best Buy, and Target so you never overpay for tech.',
   socialFacebook: 'https://facebook.com',
   socialInstagram: 'https://instagram.com',
   socialYoutube: 'https://youtube.com',

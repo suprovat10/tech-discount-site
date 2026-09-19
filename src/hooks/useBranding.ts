@@ -18,11 +18,16 @@ export function useBranding() {
       .then((res) => res.json())
       .then((serverData) => {
         if (serverData && !serverData.error && Object.keys(serverData).length > 0) {
+          const isCustomLogo = cfg.logoUrl && cfg.logoUrl !== '/logo.png';
+          const isCustomFavicon = cfg.faviconUrl && cfg.faviconUrl !== '/favicon.png';
+          const isCustomBrand = cfg.brandName && cfg.brandName !== 'suprodesign';
+          const isCustomTitle = cfg.siteTitle && !cfg.siteTitle.includes('suprodesign');
+
           const merged: BrandingConfig = {
-            logoUrl: serverData.logoUrl || cfg.logoUrl,
-            faviconUrl: serverData.faviconUrl || cfg.faviconUrl,
-            brandName: serverData.siteBrandName || cfg.brandName,
-            siteTitle: serverData.siteTitle || cfg.siteTitle,
+            logoUrl: isCustomLogo ? cfg.logoUrl : (serverData.logoUrl || cfg.logoUrl || '/logo.png'),
+            faviconUrl: isCustomFavicon ? cfg.faviconUrl : (serverData.faviconUrl || cfg.faviconUrl || '/favicon.png'),
+            brandName: isCustomBrand ? cfg.brandName : (serverData.siteBrandName || cfg.brandName || 'TechPriceDrop'),
+            siteTitle: isCustomTitle ? cfg.siteTitle : (serverData.siteTitle || cfg.siteTitle || 'TechPriceDrop - Compare Prices'),
             footerBioText: serverData.footerBioText !== undefined ? serverData.footerBioText : cfg.footerBioText,
             socialFacebook: serverData.socialFacebook !== undefined ? serverData.socialFacebook : cfg.socialFacebook,
             socialInstagram: serverData.socialInstagram !== undefined ? serverData.socialInstagram : cfg.socialInstagram,
