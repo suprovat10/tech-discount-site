@@ -7,6 +7,8 @@ import { CategoryDefinition, CATEGORIES } from '@/data/catalog';
 import { UnifiedProduct } from '@/types/product';
 import { DealCard } from '@/components/deals/DealCard';
 import { getCategories, getCategorySlug } from '@/lib/categoryStore';
+import { getCatalogProducts } from '@/lib/catalogStore';
+import { transformCatalogItemToUnified } from '@/lib/adapters';
 
 interface FeaturedCategorySectionsProps {
   initialCategories?: CategoryDefinition[];
@@ -31,8 +33,6 @@ export function FeaturedCategorySections({
         if (loaded && loaded.length > 0) {
           setCategories(loaded);
         }
-        const { getCatalogProducts } = require('@/lib/catalogStore');
-        const { transformCatalogItemToUnified } = require('@/lib/adapters');
         const local = getCatalogProducts();
         if (Array.isArray(local) && local.length > 0) {
           setProductsList(local.map(transformCatalogItemToUnified));

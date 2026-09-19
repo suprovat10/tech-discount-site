@@ -143,13 +143,13 @@ export function Header() {
 
         {/* Navigation Links */}
         <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-muted-foreground">
-          <Link href="/products" className="hover:text-foreground transition-colors">
+          <Link href="/products" prefetch={true} className="hover:text-foreground transition-colors">
             All Products
           </Link>
-          <Link href="/coupons" className="hover:text-foreground transition-colors">
+          <Link href="/coupons" prefetch={true} className="hover:text-foreground transition-colors">
             Coupons
           </Link>
-          <Link href="/blog" className="hover:text-foreground transition-colors">
+          <Link href="/blog" prefetch={true} className="hover:text-foreground transition-colors">
             Blog
           </Link>
         </nav>
@@ -158,6 +158,7 @@ export function Header() {
         <div className="flex items-center gap-2.5">
           <Link
             href="/watchlist"
+            prefetch={true}
             className="flex items-center gap-1.5 px-3 py-1.5 border border-border text-xs font-semibold text-foreground hover:bg-muted/50 hover:text-rose-600 transition-colors rounded-none group"
             title="View saved items"
           >
@@ -242,6 +243,7 @@ export function Header() {
             <div className="flex flex-col text-xs font-bold divide-y divide-border/40">
               <Link
                 href="/products"
+                prefetch={true}
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="py-2.5 text-foreground hover:text-blue-600 transition-colors"
               >
@@ -249,6 +251,7 @@ export function Header() {
               </Link>
               <Link
                 href="/coupons"
+                prefetch={true}
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="py-2.5 text-foreground hover:text-blue-600 transition-colors"
               >
@@ -256,6 +259,7 @@ export function Header() {
               </Link>
               <Link
                 href="/blog"
+                prefetch={true}
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="py-2.5 text-foreground hover:text-blue-600 transition-colors"
               >

@@ -74,6 +74,7 @@ export default async function BlogDetailPage({ params }: BlogDetailProps) {
   return (
     <div className="container max-w-[1200px] mx-auto px-4 sm:px-6 py-6">
       <BlogDetailClient
+        key={slug}
         slug={slug}
         initialPost={post}
         initialRelatedPosts={relatedPosts}

@@ -77,9 +77,10 @@ export default async function ProductsPage({ params }: ProductsPageProps) {
   const slugs = resolvedParams.slug || [];
   const catSlug = slugs[0] || '';
   const subSlug = slugs[1] || '';
+  const pageKey = slugs.length > 0 ? slugs.join('/') : 'all-products';
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-8">
+    <div key={pageKey} className="container mx-auto px-4 sm:px-6 py-8">
       <Suspense
         fallback={
           <div className="py-24 text-center space-y-4">
@@ -89,6 +90,7 @@ export default async function ProductsPage({ params }: ProductsPageProps) {
         }
       >
         <SearchResultsClient
+          key={pageKey}
           initialCategorySlug={catSlug}
           initialSubcategorySlug={subSlug}
         />

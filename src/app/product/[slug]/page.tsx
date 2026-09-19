@@ -154,6 +154,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
       />
 
       <ProductDetailClient
+        key={slug}
         product={product || null}
         slug={slug}
         relatedProducts={relatedProducts}
