@@ -61,6 +61,25 @@ export async function POST(request: Request) {
 
     upsertInMemoryCatalogProduct(newProduct);
 
+    // Save to Supabase permanent cloud database (survives Git pushes and Vercel rebuilds)
+    try {
+      const { getSiteKV, setSiteKV } = await import('@/lib/db/kv');
+      const existingCustom = (await getSiteKV<CatalogItem[]>('custom_products')) || [];
+      const idx = existingCustom.findIndex(
+        (p) => p.id === newProduct.id || p.slug === newProduct.slug
+      );
+      let updatedCustom: CatalogItem[];
+      if (idx >= 0) {
+        updatedCustom = [...existingCustom];
+        updatedCustom[idx] = newProduct;
+      } else {
+        updatedCustom = [newProduct, ...existingCustom];
+      }
+      await setSiteKV('custom_products', updatedCustom);
+    } catch (dbErr) {
+      console.warn('Failed to persist product to Supabase site_kv:', dbErr);
+    }
+
     return NextResponse.json(
       { success: true, product: newProduct },
       { status: 201 }
@@ -106,6 +125,16 @@ export async function DELETE(request: Request) {
     }
 
     deleteInMemoryCatalogProduct(id);
+
+    // Remove from Supabase permanent cloud database
+    try {
+      const { getSiteKV, setSiteKV } = await import('@/lib/db/kv');
+      const existingCustom = (await getSiteKV<CatalogItem[]>('custom_products')) || [];
+      const filtered = existingCustom.filter((p) => p.id !== id);
+      await setSiteKV('custom_products', filtered);
+    } catch (dbErr) {
+      console.warn('Failed to delete product from Supabase site_kv:', dbErr);
+    }
 
     return NextResponse.json({
       success: true,

@@ -5,7 +5,7 @@ import { TargetAdapter } from './target.adapter';
 import { IRetailerAdapter, RetailerSearchResult, SearchQueryOptions } from '@/types/adapters';
 import { ProductOffer, RetailerId, UnifiedProduct } from '@/types/product';
 import { calculateSavings, slugify, getRetailerDisplayName } from '../utils';
-import { PRODUCTS_CATALOG } from '@/data/catalog';
+import { PRODUCTS_CATALOG, CatalogItem } from '@/data/catalog';
 
 export class AdapterRegistry {
   private adapters: Map<RetailerId, IRetailerAdapter> = new Map();
@@ -37,8 +37,22 @@ export class AdapterRegistry {
     const q = (options.query || '').trim().toLowerCase();
     const cat = (options.category || '').trim().toLowerCase();
 
-    // 1. First get items from the customizable PRODUCTS_CATALOG
-    const catalogMatches = PRODUCTS_CATALOG.filter((item) => {
+    // 1. Merge baseline PRODUCTS_CATALOG with any Supabase custom products (persistent database)
+    let allCatalogItems = PRODUCTS_CATALOG;
+    try {
+      const { getSiteKV } = await import('@/lib/db/kv');
+      const cloudProducts = await getSiteKV<CatalogItem[]>('custom_products');
+      if (cloudProducts && Array.isArray(cloudProducts) && cloudProducts.length > 0) {
+        const productMap = new Map<string, CatalogItem>();
+        allCatalogItems.forEach((p) => productMap.set(p.id, p));
+        cloudProducts.forEach((p) => productMap.set(p.id, p));
+        allCatalogItems = Array.from(productMap.values());
+      }
+    } catch {
+      // fallback to baseline PRODUCTS_CATALOG
+    }
+
+    const catalogMatches = allCatalogItems.filter((item) => {
       const matchText =
         !q ||
         item.title.toLowerCase().includes(q) ||

@@ -47,8 +47,8 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   ogImageUrl:
     'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1200&q=80',
   indexingEnabled: true,
-  logoUrl: '/logo.png',
-  faviconUrl: '/favicon.png',
+  logoUrl: '/logo-techpricedrop.png',
+  faviconUrl: '/favicon-techpricedrop.png',
   siteBrandName: 'TechPriceDrop',
   footerBioText:
     'TechPriceDrop is a real-time price comparison and deals discovery engine. We scan authorized retailers like Amazon, Walmart, Best Buy, and Target so you never overpay for tech.',

@@ -138,3 +138,18 @@ CREATE POLICY "Service write affiliate_clicks" ON affiliate_clicks FOR INSERT WI
 
 DROP POLICY IF EXISTS "Service read affiliate_clicks" ON affiliate_clicks;
 CREATE POLICY "Service read affiliate_clicks" ON affiliate_clicks FOR SELECT USING (auth.role() = 'service_role');
+
+-- 7. Universal Key-Value / Admin Entity Store (Persistent Settings, Products, Categories, Blogs)
+CREATE TABLE IF NOT EXISTS site_kv (
+    key VARCHAR(128) PRIMARY KEY,
+    value JSONB NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE site_kv ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public read site_kv" ON site_kv;
+CREATE POLICY "Public read site_kv" ON site_kv FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Service write site_kv" ON site_kv;
+CREATE POLICY "Service write site_kv" ON site_kv FOR ALL USING (true);

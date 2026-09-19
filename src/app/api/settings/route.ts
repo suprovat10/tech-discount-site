@@ -1,11 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { getSiteKV, setSiteKV } from '@/lib/db/kv';
 
 const SETTINGS_FILE = path.join(process.cwd(), 'src', 'data', 'settings.json');
 
 export async function GET() {
   try {
+    // 1. Check Supabase cloud database first (persists across Git pushes and Vercel rebuilds)
+    const cloudSettings = await getSiteKV('settings');
+    if (cloudSettings && typeof cloudSettings === 'object' && Object.keys(cloudSettings).length > 0) {
+      return NextResponse.json(cloudSettings);
+    }
+
+    // 2. Fallback to local settings.json file
     if (fs.existsSync(SETTINGS_FILE)) {
       const data = fs.readFileSync(SETTINGS_FILE, 'utf-8');
       return NextResponse.json(JSON.parse(data));
@@ -19,11 +27,21 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const dir = path.dirname(SETTINGS_FILE);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
+
+    // 1. Save to Supabase cloud database (permanent)
+    await setSiteKV('settings', body);
+
+    // 2. Also try local filesystem for local development
+    try {
+      const dir = path.dirname(SETTINGS_FILE);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      fs.writeFileSync(SETTINGS_FILE, JSON.stringify(body, null, 2), 'utf-8');
+    } catch {
+      // Ignored in read-only Vercel environment
     }
-    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(body, null, 2), 'utf-8');
+
     return NextResponse.json({ success: true, settings: body });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
