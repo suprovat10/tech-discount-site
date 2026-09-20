@@ -18,10 +18,20 @@ function getMongoDriver(): any {
   return null;
 }
 
+function getMongoUri(): string {
+  return (
+    process.env.MONGODB_URI ||
+    process.env.MONGODB_URL ||
+    process.env.STORAGE_URL ||
+    process.env.DATABASE_URL ||
+    ''
+  ).trim();
+}
+
 export function isMongoConfigured(): boolean {
   if (typeof window !== 'undefined') return false;
-  const uri = process.env.MONGODB_URI;
-  return Boolean(uri && uri.trim().length > 0);
+  const uri = getMongoUri();
+  return Boolean(uri.length > 0);
 }
 
 export async function getMongoDb(): Promise<Db | null> {
@@ -37,7 +47,7 @@ export async function getMongoDb(): Promise<Db | null> {
 
   try {
     const { MongoClient } = mongoModule;
-    const uri = process.env.MONGODB_URI!.trim();
+    const uri = getMongoUri();
     const dbName = process.env.MONGODB_DB_NAME || 'techpricedrop';
 
     if (!global._mongoClientPromise) {
