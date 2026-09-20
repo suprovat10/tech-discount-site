@@ -135,8 +135,22 @@ export function BlogDetailClient({
     '@type': 'Article',
     headline: post.title,
     description: post.excerpt,
-    datePublished: post.date,
-    dateModified: post.date,
+    datePublished: (() => {
+      try {
+        const d = new Date(post.date);
+        return isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
+      } catch {
+        return new Date().toISOString();
+      }
+    })(),
+    dateModified: (() => {
+      try {
+        const d = new Date(post.updatedAt || post.date);
+        return isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
+      } catch {
+        return new Date().toISOString();
+      }
+    })(),
     image: post.imageUrl || `${siteUrl}/og-image.png`,
     author: {
       '@type': 'Organization',

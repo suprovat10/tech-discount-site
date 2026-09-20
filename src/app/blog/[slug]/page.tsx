@@ -52,7 +52,14 @@ export async function generateMetadata({ params }: BlogDetailProps): Promise<Met
       url: postUrl,
       siteName: brand,
       type: 'article',
-      publishedTime: post.date,
+      publishedTime: (() => {
+        try {
+          const d = new Date(post.date);
+          return isNaN(d.getTime()) ? undefined : d.toISOString();
+        } catch {
+          return undefined;
+        }
+      })(),
       images: post.imageUrl ? [{ url: post.imageUrl, alt: post.imageAlt || post.title }] : [],
     },
     twitter: {
@@ -71,7 +78,7 @@ import { DEFAULT_BRANDS } from '@/data/brands';
 export default async function BlogDetailPage({ params }: BlogDetailProps) {
   const { slug } = await params;
   const settings = await getServerSettings();
-  const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
+  const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
   const brand = settings.siteBrandName || 'suprodesign';
   const logoUrl = settings.logoUrl || '/logo.png';
 

@@ -2,14 +2,23 @@ import { MetadataRoute } from 'next';
 import { getServerSettings } from '@/lib/settingsServer';
 import { getDatabaseCategories } from '@/lib/categoryServer';
 import { getDatabaseProducts } from '@/lib/catalogDb';
-import { BLOG_POSTS } from '@/data/blogs';
+import { getServerBlogs } from '@/lib/blogServer';
 import { DEFAULT_BRANDS } from '@/data/brands';
 import { DEFAULT_PAGES } from '@/data/defaultPages';
+
+function formatW3CDate(dateInput?: string | null): string {
+  if (!dateInput) return new Date().toISOString();
+  const parsed = new Date(dateInput);
+  if (isNaN(parsed.getTime())) {
+    return new Date().toISOString();
+  }
+  return parsed.toISOString();
+}
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const settings = await getServerSettings();
   const categories = await getDatabaseCategories();
-  const baseUrl = settings.canonicalUrl?.replace(/\/$/, '') || 'https://suprodesign.com';
+  const baseUrl = settings.canonicalUrl?.replace(/\/$/, '') || 'https://www.techpricedrop.com';
 
   const now = new Date().toISOString();
 
@@ -50,15 +59,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const products = await getDatabaseProducts();
   const productRoutes = products.map((p) => ({
     url: `${baseUrl}/product/${p.slug}`,
-    lastModified: p.updatedAt || now,
+    lastModified: formatW3CDate(p.updatedAt),
     changeFrequency: 'daily' as const,
     priority: 0.8,
   }));
 
   // 4. Dynamic Blog Articles
-  const blogRoutes = BLOG_POSTS.map((post) => ({
+  const blogs = await getServerBlogs();
+  const blogRoutes = blogs.map((post) => ({
     url: `${baseUrl}/blog/${post.slug}`,
-    lastModified: post.date || now,
+    lastModified: formatW3CDate(post.updatedAt || post.date),
     changeFrequency: 'weekly' as const,
     priority: 0.75,
   }));
@@ -74,7 +84,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // 6. CMS & Information Pages
   const cmsRoutes = DEFAULT_PAGES.map((page) => ({
     url: `${baseUrl}/${page.slug.replace(/^\/+/, '')}`,
-    lastModified: page.lastUpdated || now,
+    lastModified: formatW3CDate(page.lastUpdated),
     changeFrequency: 'monthly' as const,
     priority: 0.6,
   }));

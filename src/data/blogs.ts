@@ -26,6 +26,7 @@ export interface BlogPost {
   imageUrl: string;
   imageAlt?: string;
   tags: string[];
+  updatedAt?: string;
 }
 
 export const BLOG_POSTS: BlogPost[] = [

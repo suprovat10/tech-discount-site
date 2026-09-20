@@ -3,7 +3,7 @@ import { getServerSettings } from '@/lib/settingsServer';
 
 export default async function robots(): Promise<MetadataRoute.Robots> {
   const settings = await getServerSettings();
-  const baseUrl = settings.canonicalUrl?.replace(/\/$/, '') || 'https://suprodesign.com';
+  const baseUrl = settings.canonicalUrl?.replace(/\/$/, '') || 'https://www.techpricedrop.com';
 
   const isIndexingAllowed = settings.indexingEnabled !== false;
 
