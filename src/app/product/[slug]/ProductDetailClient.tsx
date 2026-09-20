@@ -40,6 +40,21 @@ interface ProductDetailClientProps {
   relatedProducts: UnifiedProduct[];
 }
 
+function getCleanSpecEntries(specs: any): [string, string][] {
+  if (!specs) return [];
+  if (Array.isArray(specs)) {
+    return specs
+      .map((item: any) => [String(item?.key || '').trim(), String(item?.value || '').trim()] as [string, string])
+      .filter(([k, v]) => k.length > 0 && v.length > 0);
+  }
+  if (typeof specs === 'object') {
+    return Object.entries(specs)
+      .map(([k, v]) => [String(k || '').trim(), String(v || '').trim()] as [string, string])
+      .filter(([k, v]) => k.length > 0 && v.length > 0);
+  }
+  return [];
+}
+
 export function ProductDetailClient({ product, slug = '', relatedProducts }: ProductDetailClientProps) {
   const [activeProduct, setActiveProduct] = useState<UnifiedProduct | null>(product || null);
   const [categories, setCategories] = useState(CATEGORIES);
@@ -58,27 +73,36 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
       const allProds = getCatalogProducts();
       if (allProds && allProds.length > 0) {
         setCatalogProducts(allProds);
+        const localMatch = allProds.find((p) => p.slug === slug || p.id === slug);
+        if (localMatch) {
+          setActiveProduct(transformCatalogItemToUnified(localMatch));
+        }
       }
+
       fetchAndSyncCatalogFromServer().then((fresh) => {
         if (fresh && Array.isArray(fresh)) {
           setCatalogProducts(fresh);
           const stillExists = fresh.find((p) => p.slug === slug || p.id === slug);
-          if (!stillExists) {
-            setActiveProduct(null);
-          } else if (!product) {
+          if (stillExists) {
             setActiveProduct(transformCatalogItemToUnified(stillExists));
+          } else if (!product) {
+            setActiveProduct(null);
           }
         }
       });
-
-      if (product) {
-        setActiveProduct(product);
-      } else {
-        setActiveProduct(null);
-      }
     } catch {
       // ignore
     }
+
+    const handleCatalogUpdate = () => {
+      const all = getCatalogProducts();
+      const match = all.find((p) => p.slug === slug || p.id === slug);
+      if (match) {
+        setActiveProduct(transformCatalogItemToUnified(match));
+      }
+    };
+    window.addEventListener('smarttech_catalog_updated', handleCatalogUpdate);
+    return () => window.removeEventListener('smarttech_catalog_updated', handleCatalogUpdate);
   }, [product, slug]);
 
   useEffect(() => {
@@ -648,30 +672,11 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
 
               {/* Key Specs Preview (shows dedicated keySpecs if provided, otherwise falls back to first 4 of specs) */}
               {(() => {
-                const rawKeySpecs = activeProduct.keySpecs;
-                const rawSpecs = activeProduct.specs;
+                const keyEntries = getCleanSpecEntries(activeProduct.keySpecs);
+                const allTechEntries = getCleanSpecEntries(activeProduct.specs);
+                const displayKeySpecs = keyEntries.length > 0 ? keyEntries : allTechEntries.slice(0, 4);
 
-                let entries: [string, string][] = [];
-                if (rawKeySpecs && typeof rawKeySpecs === 'object') {
-                  if (Array.isArray(rawKeySpecs)) {
-                    entries = (rawKeySpecs as any[])
-                      .map((item: any) => [item.key || '', item.value || ''] as [string, string])
-                      .filter(([k, v]) => Boolean(k && v));
-                  } else {
-                    entries = Object.entries(rawKeySpecs).map(([k, v]) => [k, String(v)]);
-                  }
-                } else if (rawSpecs && typeof rawSpecs === 'object') {
-                  if (Array.isArray(rawSpecs)) {
-                    entries = (rawSpecs as any[])
-                      .slice(0, 4)
-                      .map((item: any) => [item.key || '', item.value || ''] as [string, string])
-                      .filter(([k, v]) => Boolean(k && v));
-                  } else {
-                    entries = Object.entries(rawSpecs).slice(0, 4).map(([k, v]) => [k, String(v)]);
-                  }
-                }
-
-                if (entries.length === 0) return null;
+                if (displayKeySpecs.length === 0) return null;
 
                 return (
                   <div className="space-y-1.5 pt-1">
@@ -679,7 +684,7 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
                       Key Specifications
                     </h3>
                     <div className="divide-y divide-border/60 text-xs">
-                      {entries.slice(0, 6).map(([k, v]) => (
+                      {displayKeySpecs.slice(0, 6).map(([k, v]) => (
                         <div key={k} className="py-1.5 flex justify-between">
                           <span className="text-muted-foreground">{k}</span>
                           <span className="font-semibold text-foreground">{v}</span>
@@ -885,17 +890,7 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
 
               {/* Full Specifications (1 Column Layout) */}
               {(() => {
-                const rawSpecs = activeProduct.specs;
-                let specEntries: [string, string][] = [];
-                if (rawSpecs && typeof rawSpecs === 'object') {
-                  if (Array.isArray(rawSpecs)) {
-                    specEntries = (rawSpecs as any[])
-                      .map((item: any) => [item.key || '', item.value || ''] as [string, string])
-                      .filter(([k, v]) => Boolean(k && v));
-                  } else {
-                    specEntries = Object.entries(rawSpecs).map(([k, v]) => [k, String(v)]);
-                  }
-                }
+                const specEntries = getCleanSpecEntries(activeProduct.specs);
 
                 if (specEntries.length === 0) return null;
 

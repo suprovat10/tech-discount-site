@@ -45,6 +45,7 @@ export interface StoreOfferFormItem {
   retailer: string;
   retailerName: string;
   price: string;
+  regularPrice?: string;
   url: string;
   inStock: boolean;
   shippingInfo: string;
@@ -56,6 +57,7 @@ const DEFAULT_PLATFORMS: StoreOfferFormItem[] = [
     retailer: 'amazon',
     retailerName: 'Amazon US',
     price: '',
+    regularPrice: '',
     url: '',
     inStock: true,
     shippingInfo: 'Free 1-Day Prime Delivery',
@@ -65,6 +67,7 @@ const DEFAULT_PLATFORMS: StoreOfferFormItem[] = [
     retailer: 'walmart',
     retailerName: 'Walmart US',
     price: '',
+    regularPrice: '',
     url: '',
     inStock: true,
     shippingInfo: 'Free 2-Day Shipping on orders $35+',
@@ -74,6 +77,7 @@ const DEFAULT_PLATFORMS: StoreOfferFormItem[] = [
     retailer: 'bestbuy',
     retailerName: 'Best Buy US',
     price: '',
+    regularPrice: '',
     url: '',
     inStock: true,
     shippingInfo: 'Free Next-Day Delivery or In-Store Pickup',
@@ -83,6 +87,7 @@ const DEFAULT_PLATFORMS: StoreOfferFormItem[] = [
     retailer: 'target',
     retailerName: 'Target US',
     price: '',
+    regularPrice: '',
     url: '',
     inStock: true,
     shippingInfo: 'Free 2-Day Delivery on $35+ or RedCard',
@@ -184,6 +189,7 @@ export default function CreateProductStudioPage() {
           retailer: preset.retailer,
           retailerName: preset.name,
           price: '',
+          regularPrice: '',
           url: '',
           inStock: true,
           shippingInfo: preset.defaultShipping,
@@ -193,6 +199,7 @@ export default function CreateProductStudioPage() {
           retailer: 'custom',
           retailerName: 'Custom Store',
           price: '',
+          regularPrice: '',
           url: '',
           inStock: true,
           shippingInfo: 'Free Standard Delivery',
@@ -558,17 +565,26 @@ export default function CreateProductStudioPage() {
     }
   };
 
-  // Dynamic Price Sync Simulation
+  // Dynamic Price Sync
   const handleSimulatePriceSync = () => {
-    const randomVariation = () => (Math.floor(Math.random() * 20) - 10);
     const firstValid = platforms.find((p) => parseFloat(p.price) > 0);
-    const base = firstValid ? parseFloat(firstValid.price) : 199.99;
+    if (!firstValid) {
+      alert('Please enter a Live Price for at least one store first.');
+      return;
+    }
+    const basePrice = parseFloat(firstValid.price);
+    const baseRegularPrice = parseFloat(firstValid.regularPrice || '') || Number((basePrice * 1.15).toFixed(2));
+
     setPlatforms((prev) =>
-      prev.map((p, idx) => {
-        if (idx === 0 && parseFloat(p.price) > 0) return p;
+      prev.map((p) => {
+        const currentPrice = parseFloat(p.price) > 0 ? parseFloat(p.price) : basePrice;
+        const currentRegPrice = parseFloat(p.regularPrice || '') > 0
+          ? parseFloat(p.regularPrice!)
+          : (parseFloat(p.price) > 0 ? Number((parseFloat(p.price) * 1.15).toFixed(2)) : baseRegularPrice);
         return {
           ...p,
-          price: Math.max(15, base + randomVariation()).toFixed(2),
+          price: currentPrice.toFixed(2),
+          regularPrice: currentRegPrice > currentPrice ? currentRegPrice.toFixed(2) : (currentPrice * 1.15).toFixed(2),
         };
       })
     );
@@ -626,6 +642,10 @@ export default function CreateProductStudioPage() {
 
     const constructedOffers = validPlatforms.map((p, idx) => {
       const priceNum = parseFloat(p.price) || 0;
+      const regPriceNum = parseFloat(p.regularPrice || '') || 0;
+      const finalRegularPrice = regPriceNum > priceNum
+        ? regPriceNum
+        : (priceNum > 0 ? Number((priceNum * 1.15).toFixed(2)) : undefined);
       const userStoreName = p.retailerName?.trim() || '';
       const cleanRetailer = (p.retailer && p.retailer !== 'custom')
         ? p.retailer.toLowerCase().replace(/[^a-z0-9]+/g, '-')
@@ -640,7 +660,7 @@ export default function CreateProductStudioPage() {
         retailerItemId: `${cleanRetailer}-${Date.now()}-${idx}`,
         productUrl: p.url.trim(),
         price: priceNum,
-        regularPrice: priceNum > 0 ? Number((priceNum * 1.15).toFixed(2)) : undefined,
+        regularPrice: finalRegularPrice,
         isInStock: p.inStock,
         availabilityStatus: (p.inStock ? 'In Stock' : 'Out of Stock') as 'In Stock' | 'Out of Stock',
         shippingInfo: p.shippingInfo.trim() || 'Free Standard Delivery',
@@ -1855,7 +1875,7 @@ export default function CreateProductStudioPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="font-semibold block mb-1">Live Price ($ USD) *</label>
                     <Input
@@ -1864,6 +1884,24 @@ export default function CreateProductStudioPage() {
                       placeholder="199.99"
                       value={p.price}
                       onChange={(e) => handleUpdatePlatform(p.id, 'price', e.target.value)}
+                      className="h-9 text-xs"
+                    />
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="font-semibold">Regular Price ($)</label>
+                      {parseFloat(p.regularPrice || '0') > parseFloat(p.price || '0') && parseFloat(p.price || '0') > 0 && (
+                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 px-1 py-0.5 rounded">
+                          Save ${(parseFloat(p.regularPrice!) - parseFloat(p.price)).toFixed(2)} ({Math.round(((parseFloat(p.regularPrice!) - parseFloat(p.price)) / parseFloat(p.regularPrice!)) * 100)}% OFF)
+                        </span>
+                      )}
+                    </div>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder={p.price ? (parseFloat(p.price) * 1.15).toFixed(2) : '249.99'}
+                      value={p.regularPrice || ''}
+                      onChange={(e) => handleUpdatePlatform(p.id, 'regularPrice', e.target.value)}
                       className="h-9 text-xs"
                     />
                   </div>

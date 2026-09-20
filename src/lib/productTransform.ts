@@ -103,7 +103,7 @@ export function transformCatalogItemToUnified(item: any): UnifiedProduct {
     offers,
     rating: item.rating || 4.8,
     ratingCount: item.reviewCount || 100,
-    createdAt: item.createdAt || dynTimestamp,
-    updatedAt: item.updatedAt || item.createdAt || dynTimestamp || new Date().toISOString(),
+    createdAt: item.createdAt || dynTimestamp || undefined,
+    updatedAt: item.updatedAt || item.createdAt || dynTimestamp || undefined,
   };
 }
