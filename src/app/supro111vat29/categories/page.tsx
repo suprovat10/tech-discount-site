@@ -54,12 +54,14 @@ export default function AdminCategoriesPage() {
   const [newCatImage, setNewCatImage] = useState('');
   const [newCatIsFeatured, setNewCatIsFeatured] = useState(false);
   const [newCatShowSlider, setNewCatShowSlider] = useState(true);
+  const [newCatShowExploreDeals, setNewCatShowExploreDeals] = useState(true);
 
   // New Subcategory Form State
   const [newSubName, setNewSubName] = useState('');
   const [newSubSlug, setNewSubSlug] = useState('');
   const [newSubImage, setNewSubImage] = useState('');
   const [newSubShowSlider, setNewSubShowSlider] = useState(true);
+  const [newSubShowExploreDeals, setNewSubShowExploreDeals] = useState(false);
 
   // Edit Modals
   const [editingCategory, setEditingCategory] = useState<CategoryDefinition | null>(null);
@@ -133,6 +135,7 @@ export default function AdminCategoriesPage() {
       imageUrl: newCatImage.trim() || undefined,
       isFeaturedOnHome: newCatIsFeatured,
       showInTopSlider: newCatShowSlider,
+      showInExploreDeals: newCatShowExploreDeals,
       subcategories: [],
     };
 
@@ -145,6 +148,7 @@ export default function AdminCategoriesPage() {
     setNewCatImage('');
     setNewCatIsFeatured(false);
     setNewCatShowSlider(true);
+    setNewCatShowExploreDeals(true);
     showNotification(`Category "${newCategory.name}" added successfully!`);
   };
 
@@ -171,6 +175,7 @@ export default function AdminCategoriesPage() {
       slug,
       imageUrl: newSubImage.trim() || undefined,
       showInTopSlider: newSubShowSlider,
+      showInExploreDeals: newSubShowExploreDeals,
     };
 
     const updated = addSubcategory(activeCategory.id, newSub);
@@ -179,6 +184,7 @@ export default function AdminCategoriesPage() {
     setNewSubSlug('');
     setNewSubImage('');
     setNewSubShowSlider(true);
+    setNewSubShowExploreDeals(false);
     showNotification(`Subcategory "${newSub.name}" added to ${activeCategory.name}!`);
   };
 
@@ -347,6 +353,11 @@ export default function AdminCategoriesPage() {
                               Slider
                             </span>
                           )}
+                          {cat.showInExploreDeals !== false && (
+                            <span className="px-1.5 py-0.2 text-[9px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/30">
+                              Deals
+                            </span>
+                          )}
                         </div>
                         <p className="text-[10px] text-muted-foreground font-semibold mt-0.5">
                           slug: /{cat.slug} • {cat.subcategories.length} subs
@@ -498,6 +509,15 @@ export default function AdminCategoriesPage() {
                   />
                   <span>Show in Top Slider</span>
                 </label>
+                <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={newCatShowExploreDeals}
+                    onChange={(e) => setNewCatShowExploreDeals(e.target.checked)}
+                    className="rounded-none"
+                  />
+                  <span>Show in Explore Deals Column (Footer)</span>
+                </label>
               </div>
 
               <Button
@@ -607,6 +627,11 @@ export default function AdminCategoriesPage() {
                                 In Top Slider
                               </span>
                             )}
+                            {sub.showInExploreDeals && (
+                              <span className="inline-block mt-0.5 ml-1 text-[9px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-1 py-0.2 border border-emerald-200 dark:border-emerald-800">
+                                In Explore Deals
+                              </span>
+                            )}
                           </div>
                         </div>
 
@@ -714,20 +739,31 @@ export default function AdminCategoriesPage() {
                   )}
                 </div>
 
-                <div className="flex items-center justify-between pt-2">
-                  <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={newSubShowSlider}
-                      onChange={(e) => setNewSubShowSlider(e.target.checked)}
-                      className="rounded-none"
-                    />
-                    <span>Show in Homepage Top Slider</span>
-                  </label>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+                  <div className="space-y-1.5">
+                    <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={newSubShowSlider}
+                        onChange={(e) => setNewSubShowSlider(e.target.checked)}
+                        className="rounded-none"
+                      />
+                      <span>Show in Homepage Top Slider</span>
+                    </label>
+                    <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={newSubShowExploreDeals}
+                        onChange={(e) => setNewSubShowExploreDeals(e.target.checked)}
+                        className="rounded-none"
+                      />
+                      <span>Show in Explore Deals Column (Footer)</span>
+                    </label>
+                  </div>
 
                   <Button
                     type="submit"
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-none h-9 px-4"
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-none h-9 px-4 shrink-0"
                   >
                     <Plus className="w-4 h-4 mr-1" />
                     <span>Attach Subcategory</span>
@@ -866,6 +902,17 @@ export default function AdminCategoriesPage() {
                   />
                   <span>Show in Homepage Top Slider</span>
                 </label>
+                <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={editingCategory.showInExploreDeals !== false}
+                    onChange={(e) =>
+                      setEditingCategory({ ...editingCategory, showInExploreDeals: e.target.checked })
+                    }
+                    className="rounded-none"
+                  />
+                  <span>Show in Explore Deals Column (Footer)</span>
+                </label>
               </div>
 
               <div className="flex justify-end gap-2 pt-3 border-t border-border">
@@ -1003,7 +1050,7 @@ export default function AdminCategoriesPage() {
                 )}
               </div>
 
-              <div className="pt-2 border-t border-border">
+              <div className="pt-2 border-t border-border space-y-2">
                 <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
                   <input
                     type="checkbox"
@@ -1017,6 +1064,20 @@ export default function AdminCategoriesPage() {
                     className="rounded-none"
                   />
                   <span>Show in Homepage Top Slider</span>
+                </label>
+                <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={editingSub.sub.showInExploreDeals === true}
+                    onChange={(e) =>
+                      setEditingSub({
+                        ...editingSub,
+                        sub: { ...editingSub.sub, showInExploreDeals: e.target.checked },
+                      })
+                    }
+                    className="rounded-none"
+                  />
+                  <span>Show in Explore Deals Column (Footer)</span>
                 </label>
               </div>
 

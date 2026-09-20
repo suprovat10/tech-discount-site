@@ -9,6 +9,7 @@ export interface SitePage {
   content: string;
   lastUpdated: string;
   isSystem?: boolean;
+  showInExploreDeals?: boolean;
 }
 
 export const DEFAULT_PAGES: SitePage[] = [

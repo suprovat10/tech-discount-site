@@ -32,6 +32,7 @@ export default function AdminPageEditor() {
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
   const [content, setContent] = useState('');
+  const [showInExploreDeals, setShowInExploreDeals] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -49,6 +50,7 @@ export default function AdminPageEditor() {
       setMetaTitle(found.metaTitle || '');
       setMetaDescription(found.metaDescription || '');
       setContent(found.content);
+      setShowInExploreDeals(!!found.showInExploreDeals);
     }
   }, [id]);
 
@@ -71,6 +73,7 @@ export default function AdminPageEditor() {
       metaTitle: metaTitle.trim() || undefined,
       metaDescription: metaDescription.trim() || undefined,
       content,
+      showInExploreDeals,
     };
 
     savePage(updated);
@@ -266,6 +269,18 @@ export default function AdminPageEditor() {
                 placeholder="Description shown on Google search..."
                 className="h-9 text-xs"
               />
+            </div>
+
+            <div className="pt-2 border-t border-border">
+              <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showInExploreDeals}
+                  onChange={(e) => setShowInExploreDeals(e.target.checked)}
+                  className="rounded-none"
+                />
+                <span>Show in Explore Deals Column (Footer)</span>
+              </label>
             </div>
           </div>
         </div>

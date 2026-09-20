@@ -56,6 +56,8 @@ export function getCategories(): CategoryDefinition[] {
               cat.isFeaturedOnHome !== undefined ? cat.isFeaturedOnHome : defaultCat.isFeaturedOnHome,
             showInTopSlider:
               cat.showInTopSlider !== undefined ? cat.showInTopSlider : defaultCat.showInTopSlider,
+            showInExploreDeals:
+              cat.showInExploreDeals !== undefined ? cat.showInExploreDeals : (defaultCat.showInExploreDeals ?? true),
             subcategories: (cat.subcategories || []).map((sub) => {
               const defaultSub = defaultCat.subcategories?.find((ds) => ds.id === sub.id);
               if (!defaultSub) return sub;
@@ -65,6 +67,8 @@ export function getCategories(): CategoryDefinition[] {
                 imageUrl: sub.imageUrl || defaultSub.imageUrl,
                 showInTopSlider:
                   sub.showInTopSlider !== undefined ? sub.showInTopSlider : defaultSub.showInTopSlider,
+                showInExploreDeals:
+                  sub.showInExploreDeals !== undefined ? sub.showInExploreDeals : (defaultSub.showInExploreDeals ?? false),
               };
             }),
           };
@@ -229,6 +233,38 @@ export function toggleTopSlider(categoryId: string, subcategoryId?: string): Cat
       };
     }
     return cat;
+  });
+  saveCategories(updated);
+  return updated;
+}
+
+/**
+ * Toggle whether a category shows in Explore Deals (Footer)
+ */
+export function toggleExploreDeals(categoryId: string): CategoryDefinition[] {
+  const current = getCategories();
+  const updated = current.map((cat) => {
+    if (cat.id !== categoryId) return cat;
+    const currentVal = cat.showInExploreDeals !== undefined ? cat.showInExploreDeals : true;
+    return { ...cat, showInExploreDeals: !currentVal };
+  });
+  saveCategories(updated);
+  return updated;
+}
+
+/**
+ * Toggle whether a subcategory shows in Explore Deals (Footer)
+ */
+export function toggleSubcategoryExploreDeals(categoryId: string, subcategoryId: string): CategoryDefinition[] {
+  const current = getCategories();
+  const updated = current.map((cat) => {
+    if (cat.id !== categoryId) return cat;
+    const updatedSubs = cat.subcategories.map((sub) => {
+      if (sub.id !== subcategoryId) return sub;
+      const currentVal = sub.showInExploreDeals !== undefined ? sub.showInExploreDeals : false;
+      return { ...sub, showInExploreDeals: !currentVal };
+    });
+    return { ...cat, subcategories: updatedSubs };
   });
   saveCategories(updated);
   return updated;

@@ -4,7 +4,9 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useBranding } from '@/hooks/useBranding';
 import { getCategories } from '@/lib/categoryStore';
+import { getPages } from '@/lib/pageStore';
 import { CategoryDefinition } from '@/data/catalog';
+import { SitePage } from '@/data/defaultPages';
 import {
   ShieldCheck,
   Mail,
@@ -18,15 +20,42 @@ export function Footer() {
   const branding = useBranding();
   const currentYear = new Date().getFullYear();
   const [categories, setCategories] = useState<CategoryDefinition[]>([]);
+  const [pages, setPages] = useState<SitePage[]>([]);
 
   useEffect(() => {
     setCategories(getCategories());
-    const handleUpdate = () => {
+    setPages(getPages());
+
+    const handleCatUpdate = () => {
       setCategories(getCategories());
     };
-    window.addEventListener('smarttech_categories_updated', handleUpdate);
-    return () => window.removeEventListener('smarttech_categories_updated', handleUpdate);
+    const handlePageUpdate = () => {
+      setPages(getPages());
+    };
+
+    window.addEventListener('smarttech_categories_updated', handleCatUpdate);
+    window.addEventListener('smarttech_pages_updated', handlePageUpdate);
+    return () => {
+      window.removeEventListener('smarttech_categories_updated', handleCatUpdate);
+      window.removeEventListener('smarttech_pages_updated', handlePageUpdate);
+    };
   }, []);
+
+  // Items configured to show in "Explore Deals" column
+  const exploreCategories = categories.filter((c) => c.showInExploreDeals !== false);
+  const exploreSubcategories: { id: string; name: string; href: string }[] = [];
+  categories.forEach((cat) => {
+    (cat.subcategories || []).forEach((sub) => {
+      if (sub.showInExploreDeals) {
+        exploreSubcategories.push({
+          id: `${cat.id}-${sub.id}`,
+          name: sub.name,
+          href: `/products/${cat.slug}/${sub.slug}`,
+        });
+      }
+    });
+  });
+  const explorePages = pages.filter((p) => p.showInExploreDeals);
 
   return (
     <footer className="w-full border-t border-border/70 bg-card/50 text-muted-foreground text-xs transition-all mt-20">
@@ -186,33 +215,35 @@ export function Footer() {
                   Tech Buying Guides & Blog
                 </Link>
               </li>
-              {categories.length > 0 ? (
-                categories.slice(0, 6).map((cat) => (
-                  <li key={cat.id}>
-                    <Link href={`/products/${cat.slug}`} className="hover:text-foreground transition-colors">
-                      {cat.name}
-                    </Link>
-                  </li>
-                ))
-              ) : (
-                <>
-                  <li>
-                    <Link href="/products/laptops" className="hover:text-foreground transition-colors">
-                      Laptops & Computers
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/products/audio" className="hover:text-foreground transition-colors">
-                      Audio & Headphones
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/products/mobile" className="hover:text-foreground transition-colors">
-                      Smartphones & Watches
-                    </Link>
-                  </li>
-                </>
-              )}
+              {/* Dynamic categories enabled for Explore Deals */}
+              {exploreCategories.map((cat) => (
+                <li key={cat.id}>
+                  <Link href={`/products/${cat.slug}`} className="hover:text-foreground transition-colors">
+                    {cat.name}
+                  </Link>
+                </li>
+              ))}
+
+              {/* Dynamic subcategories enabled for Explore Deals */}
+              {exploreSubcategories.map((sub) => (
+                <li key={sub.id}>
+                  <Link href={sub.href} className="hover:text-foreground transition-colors">
+                    {sub.name}
+                  </Link>
+                </li>
+              ))}
+
+              {/* Dynamic pages enabled for Explore Deals */}
+              {explorePages.map((page) => (
+                <li key={page.id}>
+                  <Link
+                    href={page.isSystem ? `/${page.slug}` : `/page/${page.slug}`}
+                    className="hover:text-foreground transition-colors"
+                  >
+                    {page.title}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 

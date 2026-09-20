@@ -6,6 +6,7 @@ export interface SubcategoryDefinition {
   slug: string;
   imageUrl?: string;
   showInTopSlider?: boolean;
+  showInExploreDeals?: boolean;
 }
 
 export interface CategoryDefinition {
@@ -17,6 +18,7 @@ export interface CategoryDefinition {
   description?: string;
   isFeaturedOnHome?: boolean;
   showInTopSlider?: boolean;
+  showInExploreDeals?: boolean;
   subcategories: SubcategoryDefinition[];
 }
 

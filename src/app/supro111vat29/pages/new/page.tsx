@@ -26,6 +26,7 @@ export default function AdminNewPage() {
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
   const [content, setContent] = useState('');
+  const [showInExploreDeals, setShowInExploreDeals] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSave = (e: React.FormEvent) => {
@@ -52,6 +53,7 @@ export default function AdminNewPage() {
       content,
       lastUpdated: new Date().toISOString().split('T')[0],
       isSystem: false,
+      showInExploreDeals,
     };
 
     savePage(newPage);
@@ -193,6 +195,18 @@ export default function AdminNewPage() {
                 placeholder="Description shown on Google search..."
                 className="h-9 text-xs"
               />
+            </div>
+
+            <div className="pt-2 border-t border-border">
+              <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showInExploreDeals}
+                  onChange={(e) => setShowInExploreDeals(e.target.checked)}
+                  className="rounded-none"
+                />
+                <span>Show in Explore Deals Column (Footer)</span>
+              </label>
             </div>
           </div>
         </div>

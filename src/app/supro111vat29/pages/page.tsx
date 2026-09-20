@@ -198,9 +198,16 @@ export default function AdminPagesListPage() {
           >
             <div className="space-y-2.5">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-xs bg-blue-500/10 text-blue-600 dark:text-blue-400">
-                  {page.badge || (page.isSystem ? 'System Page' : 'Custom Page')}
-                </span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-xs bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                    {page.badge || (page.isSystem ? 'System Page' : 'Custom Page')}
+                  </span>
+                  {page.showInExploreDeals && (
+                    <span className="text-[10px] font-bold px-1.5 py-0.2 bg-emerald-500/10 text-emerald-600 border border-emerald-500/30">
+                      Deals
+                    </span>
+                  )}
+                </div>
                 <span className="text-[10px] text-muted-foreground font-mono">
                   /{page.slug}
                 </span>
