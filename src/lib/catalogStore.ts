@@ -79,6 +79,20 @@ export async function fetchAndSyncCatalogFromServer(): Promise<CatalogItem[]> {
       const json = await res.json();
       if (json.success && Array.isArray(json.data)) {
         const deleted = getDeletedProductIds();
+
+        // If the browser has deleted IDs that still exist in the server database,
+        // automatically sync the deletion to the server so MongoDB deletes them too!
+        if (deleted.size > 0) {
+          const toDeleteOnServer = json.data.filter(
+            (p: CatalogItem) => deleted.has(p.id) || (p.slug && deleted.has(p.slug))
+          );
+          if (toDeleteOnServer.length > 0) {
+            for (const item of toDeleteOnServer) {
+              fetch(`/api/products?id=${encodeURIComponent(item.id)}`, { method: 'DELETE' }).catch(() => {});
+            }
+          }
+        }
+
         const filtered = deleted.size > 0
           ? json.data.filter((p: CatalogItem) => !deleted.has(p.id) && !deleted.has(p.slug))
           : json.data;
