@@ -14,7 +14,7 @@ import {
   getSubcategorySlug,
 } from '@/lib/categoryStore';
 import { getBrands, BrandItem } from '@/lib/brandStore';
-import { transformCatalogItemToUnified } from '@/lib/adapters';
+import { transformCatalogItemToUnified } from '@/lib/productTransform';
 import { DealCard } from '@/components/deals/DealCard';
 import {
   Loader2,

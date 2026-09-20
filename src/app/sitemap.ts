@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next';
 import { getServerSettings } from '@/lib/settingsServer';
-import { getDatabaseCategories } from '@/lib/categoryStore';
+import { getDatabaseCategories } from '@/lib/categoryServer';
 import { getDatabaseProducts } from '@/lib/catalogDb';
 import { BLOG_POSTS } from '@/data/blogs';
 import { DEFAULT_BRANDS } from '@/data/brands';

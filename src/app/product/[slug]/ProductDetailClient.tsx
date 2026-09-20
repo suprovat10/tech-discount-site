@@ -32,7 +32,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-import { transformCatalogItemToUnified } from '@/lib/adapters';
+import { transformCatalogItemToUnified } from '@/lib/productTransform';
 
 interface ProductDetailClientProps {
   product?: UnifiedProduct | null;

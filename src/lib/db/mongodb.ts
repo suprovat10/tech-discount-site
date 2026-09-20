@@ -1,21 +1,11 @@
-import type { Db } from 'mongodb';
+import { MongoClient, Db } from 'mongodb';
 
+let cachedClient: MongoClient | null = null;
 let cachedDb: Db | null = null;
 let lastMongoError: string | null = null;
 
 export function getLastMongoError(): string | null {
   return lastMongoError;
-}
-
-function getMongoDriver(): any {
-  if (typeof window === 'undefined') {
-    try {
-      return eval('require')('mongodb');
-    } catch {
-      return null;
-    }
-  }
-  return null;
 }
 
 function getMongoUri(): string {
@@ -54,25 +44,20 @@ export async function getMongoDb(): Promise<Db | null> {
     return null;
   }
 
-  const mongoModule = getMongoDriver();
-  if (!mongoModule) {
-    lastMongoError = 'getMongoDriver() returned null';
-    return null;
-  }
-
   try {
-    const { MongoClient } = mongoModule;
     const uri = getMongoUri();
     const dbName = (process.env.MONGODB_DB_NAME || 'techpricedrop').replace(/^["']|["']$/g, '').trim();
 
-    const client = new MongoClient(uri, {
-      maxPoolSize: 10,
-      serverSelectionTimeoutMS: 5000,
-      connectTimeoutMS: 10000,
-    });
+    if (!cachedClient) {
+      cachedClient = new MongoClient(uri, {
+        maxPoolSize: 10,
+        serverSelectionTimeoutMS: 5000,
+        connectTimeoutMS: 10000,
+      });
+      await cachedClient.connect();
+    }
 
-    const connectedClient = await client.connect();
-    cachedDb = connectedClient.db(dbName);
+    cachedDb = cachedClient.db(dbName);
     lastMongoError = null;
     return cachedDb;
   } catch (error: any) {
@@ -80,6 +65,7 @@ export async function getMongoDb(): Promise<Db | null> {
     lastMongoError = `[${error?.name || 'Error'}] ${msg}`;
     console.error('[MongoDB] Connection failed:', lastMongoError);
     cachedDb = null;
+    cachedClient = null;
     return null;
   }
 }

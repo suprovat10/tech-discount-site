@@ -7,7 +7,7 @@ interface CustomPageRouteProps {
 }
 
 import { getServerSettings } from '@/lib/settingsServer';
-import { getDatabasePageBySlug } from '@/lib/pageStore';
+import { getDatabasePageBySlug } from '@/lib/pageServer';
 
 export async function generateMetadata({ params }: CustomPageRouteProps): Promise<Metadata> {
   const { slug } = await params;

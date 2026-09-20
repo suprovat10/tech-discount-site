@@ -4,23 +4,6 @@ const CATEGORIES_STORAGE_KEY = 'smarttech_categories_catalog';
 let isInitialCategoryFetchTriggered = false;
 
 /**
- * Get all categories from MongoDB Atlas (with fallback to DEFAULT_CATEGORIES).
- * Server-side single source of truth for categories.
- */
-export async function getDatabaseCategories(): Promise<CategoryDefinition[]> {
-  try {
-    const { getSiteKV } = await import('@/lib/db/kv');
-    const cloud = await getSiteKV<CategoryDefinition[]>('categories_catalog');
-    if (cloud && Array.isArray(cloud) && cloud.length > 0) {
-      return cloud;
-    }
-  } catch (err) {
-    console.warn('Error loading categories from database:', err);
-  }
-  return [...DEFAULT_CATEGORIES];
-}
-
-/**
  * Sync fresh categories from server/database into client localStorage
  */
 export async function fetchAndSyncCategoriesFromServer(): Promise<CategoryDefinition[]> {

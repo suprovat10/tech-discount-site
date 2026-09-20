@@ -6,7 +6,7 @@ import { TopCategorySlider } from '@/components/home/TopCategorySlider';
 import { FeaturedCategorySections } from '@/components/home/FeaturedCategorySections';
 import { BrandShowcaseSection } from '@/components/home/BrandShowcaseSection';
 import { getDatabaseProducts } from '@/lib/catalogDb';
-import { getDatabaseCategories } from '@/lib/categoryStore';
+import { getDatabaseCategories } from '@/lib/categoryServer';
 import { transformCatalogItemToUnified } from '@/lib/adapters';
 import { UnifiedProduct } from '@/types/product';
 import { ArrowRight } from 'lucide-react';

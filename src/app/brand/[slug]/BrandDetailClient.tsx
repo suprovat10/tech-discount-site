@@ -6,7 +6,7 @@ import { UnifiedProduct } from '@/types/product';
 import { BrandItem, DEFAULT_BRANDS } from '@/data/brands';
 import { getBrands, getBrandBySlug } from '@/lib/brandStore';
 import { getCatalogProducts, fetchAndSyncCatalogFromServer } from '@/lib/catalogStore';
-import { transformCatalogItemToUnified } from '@/lib/adapters';
+import { transformCatalogItemToUnified } from '@/lib/productTransform';
 import { DealCard } from '@/components/deals/DealCard';
 import { ChevronRight, ChevronLeft, ExternalLink, ShieldCheck, ArrowLeft, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
