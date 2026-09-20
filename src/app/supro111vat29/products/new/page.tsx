@@ -440,20 +440,20 @@ export default function CreateProductStudioPage() {
         formData.append('folder', 'products');
         const res = await fetch('/api/upload', { method: 'POST', body: formData });
         const data = await res.json();
-        if (data.success && data.url) {
+        if (data.success && data.url && !data.url.startsWith('data:')) {
           setImages((prev) => [data.url, ...prev.slice(1)]);
           return;
+        } else if (data.url && !data.url.startsWith('data:')) {
+          setImages((prev) => [data.url, ...prev.slice(1)]);
+          return;
+        } else {
+          alert(data.error || 'Failed to upload image to Cloudinary. Please verify your Cloudinary settings in Vercel.');
+          return;
         }
-      } catch (err) {
-        console.warn('Upload API failed, falling back to local preview:', err);
+      } catch (err: any) {
+        console.error('Upload API failed:', err);
+        alert('Image upload failed: ' + (err.message || 'Network error'));
       }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          setImages((prev) => [reader.result as string, ...prev.slice(1)]);
-        }
-      };
-      reader.readAsDataURL(file);
     }
   };
 
@@ -469,22 +469,17 @@ export default function CreateProductStudioPage() {
         formData.append('folder', 'products');
         const res = await fetch('/api/upload', { method: 'POST', body: formData });
         const data = await res.json();
-        if (data.success && data.url) {
+        if (data.success && data.url && !data.url.startsWith('data:')) {
           setImages((prev) => [...prev, data.url]);
           setImageAlts((prev) => [...prev, file.name.replace(/\.[^/.]+$/, '')]);
           continue;
+        } else {
+          alert(data.error || `Failed to upload ${file.name} to Cloudinary.`);
         }
-      } catch (err) {
-        console.warn('Upload API failed, falling back to local preview:', err);
+      } catch (err: any) {
+        console.error('Upload API failed:', err);
+        alert(`Failed to upload ${file.name}: ` + (err.message || 'Network error'));
       }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          setImages((prev) => [...prev, reader.result as string]);
-          setImageAlts((prev) => [...prev, file.name.replace(/\.[^/.]+$/, '')]);
-        }
-      };
-      reader.readAsDataURL(file);
     }
   };
 

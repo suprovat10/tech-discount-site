@@ -42,7 +42,15 @@ export async function POST(req: NextRequest) {
           message: 'Image uploaded to Cloudinary successfully',
         });
       } else {
-        console.warn('Cloudinary upload warning, falling back:', cloudRes.error);
+        console.error('Cloudinary upload error:', cloudRes.error);
+        return NextResponse.json(
+          {
+            success: false,
+            error: cloudRes.error || 'Failed to upload image to Cloudinary',
+            provider: 'cloudinary',
+          },
+          { status: 400 }
+        );
       }
     }
 

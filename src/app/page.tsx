@@ -12,20 +12,19 @@ import { UnifiedProduct } from '@/types/product';
 import { ArrowRight } from 'lucide-react';
 import { getServerSettings } from '@/lib/settingsServer';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const revalidate = 10;
 
 export default async function HomePage() {
-  const settings = await getServerSettings();
-  const categories = await getDatabaseCategories();
-  let allProducts: UnifiedProduct[] = [];
-  try {
-    const catalog = await getDatabaseProducts();
-    allProducts = catalog.map((item) => transformCatalogItemToUnified(item));
-  } catch (e) {
-    console.error('Failed to load initial products:', e);
-  }
+  const [settings, categories, catalog] = await Promise.all([
+    getServerSettings(),
+    getDatabaseCategories(),
+    getDatabaseProducts().catch((e) => {
+      console.error('Failed to load initial products:', e);
+      return [];
+    }),
+  ]);
 
+  const allProducts: UnifiedProduct[] = catalog.map((item) => transformCatalogItemToUnified(item));
   const featuredDeals = allProducts.slice(0, 8);
 
 

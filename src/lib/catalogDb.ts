@@ -11,10 +11,13 @@ export const DB_CATALOG_KEY = 'products_catalog';
  */
 export async function getDatabaseProducts(): Promise<CatalogItem[]> {
   try {
-    const oldDeleted = (await getSiteKV<string[]>('deleted_product_ids')) || [];
+    const [oldDeletedRaw, cloud] = await Promise.all([
+      getSiteKV<string[]>('deleted_product_ids'),
+      getSiteKV<CatalogItem[]>(DB_CATALOG_KEY),
+    ]);
+    const oldDeleted = oldDeletedRaw || [];
     const delSet = new Set(oldDeleted);
 
-    const cloud = await getSiteKV<CatalogItem[]>(DB_CATALOG_KEY);
     if (cloud !== null && Array.isArray(cloud)) {
       if (delSet.size > 0) {
         return cloud.filter((p) => !delSet.has(p.id) && !delSet.has(p.slug));

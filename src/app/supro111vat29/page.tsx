@@ -37,7 +37,7 @@ export default function AdminDashboardPage() {
     try {
       // 1. Load products from local & server
       const localProducts = getCatalogProducts();
-      setProducts(localProducts);
+      setProducts((prev) => (prev.length === 0 ? localProducts : prev));
 
       const freshProducts = await fetchAndSyncCatalogFromServer();
       if (Array.isArray(freshProducts)) {

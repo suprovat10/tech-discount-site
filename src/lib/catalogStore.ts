@@ -78,9 +78,13 @@ export async function fetchAndSyncCatalogFromServer(): Promise<CatalogItem[]> {
     if (res.ok) {
       const json = await res.json();
       if (json.success && Array.isArray(json.data)) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(json.data));
+        const deleted = getDeletedProductIds();
+        const filtered = deleted.size > 0
+          ? json.data.filter((p: CatalogItem) => !deleted.has(p.id) && !deleted.has(p.slug))
+          : json.data;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
         window.dispatchEvent(new Event('smarttech_catalog_updated'));
-        return json.data;
+        return filtered;
       }
     }
   } catch (e) {

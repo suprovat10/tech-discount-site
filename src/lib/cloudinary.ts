@@ -23,6 +23,14 @@ export function getCloudinaryConfig(): CloudinaryConfig | null {
     cloudinaryUrl = cloudinaryUrl.replace(/^["']|["']$/g, '').trim();
 
     if (cloudinaryUrl.startsWith('cloudinary://')) {
+      const match = cloudinaryUrl.match(/^cloudinary:\/\/([^:]+):(.+)@([^@/]+)\/?.*$/);
+      if (match) {
+        return {
+          apiKey: match[1].trim(),
+          apiSecret: match[2].trim(),
+          cloudName: match[3].trim(),
+        };
+      }
       try {
         const parsed = new URL(cloudinaryUrl);
         const apiKey = parsed.username;
@@ -72,7 +80,7 @@ export async function uploadToCloudinary(
 
   try {
     const timestamp = Math.floor(Date.now() / 1000);
-    const folder = options.folder || 'techpricedrop';
+    const folder = (options.folder || 'techpricedrop').replace(/^\/+|\/+$/g, '');
 
     // Cloudinary signature parameters must be sorted alphabetically
     const paramsToSign: Record<string, string> = {
@@ -89,8 +97,8 @@ export async function uploadToCloudinary(
     const signature = crypto.createHash('sha1').update(signatureString).digest('hex');
 
     const formData = new FormData();
-    const base64Data = `data:${options.mimeType || 'image/png'};base64,${buffer.toString('base64')}`;
-    formData.append('file', base64Data);
+    const blob = new Blob([new Uint8Array(buffer)], { type: options.mimeType || 'image/png' });
+    formData.append('file', blob, options.filename || 'image.png');
     formData.append('api_key', config.apiKey);
     formData.append('timestamp', String(timestamp));
     formData.append('signature', signature);
