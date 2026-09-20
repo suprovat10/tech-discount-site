@@ -252,17 +252,9 @@ export function SearchResultsClient({
         if (segments.length > 1) {
           pathSubSlug = segments[1];
         }
-      } else if (
-        pathname === '/products' ||
-        pathname === '/products/' ||
-        pathname === '/search' ||
-        pathname === '/search/'
-      ) {
+      } else {
         pathCatSlug = '';
         pathSubSlug = '';
-      } else {
-        pathCatSlug = initialCategorySlug || '';
-        pathSubSlug = initialSubcategorySlug || '';
       }
 
       const catParam = pathCatSlug || params.get('category') || '';
@@ -401,7 +393,12 @@ export function SearchResultsClient({
     loadBrands();
     const handleClearEvent = () => {
       setSearchQuery('');
+      setSelectedCategory('all');
+      setSelectedSubcategory('all');
       setCurrentPage(1);
+      if (initialProducts.length > 0 && catalogVersion === 0) {
+        setProducts(initialProducts);
+      }
     };
     window.addEventListener('smarttech_categories_updated', loadCategories);
     window.addEventListener('smarttech_brands_updated', loadBrands);
@@ -414,7 +411,7 @@ export function SearchResultsClient({
       window.removeEventListener('smarttech_catalog_updated', handleCatalogUpdate);
       window.removeEventListener('tech_clear_search', handleClearEvent);
     };
-  }, []);
+  }, [initialProducts, catalogVersion]);
 
   const handleSortChange = (newSort: string) => {
     setSortBy(newSort);
@@ -469,9 +466,12 @@ export function SearchResultsClient({
     let isMounted = true;
 
     async function fetchResults() {
-      if (!searchQuery.trim() && initialProducts.length > 0 && products.length > 0 && catalogVersion === 0) {
-        setIsLoading(false);
-        return;
+      if (!searchQuery.trim()) {
+        if (initialProducts.length > 0 && catalogVersion === 0) {
+          setProducts(initialProducts);
+          setIsLoading(false);
+          return;
+        }
       }
       setIsLoading(products.length === 0);
       setError(null);
@@ -737,6 +737,10 @@ export function SearchResultsClient({
     setSelectedSubcategory('all');
     setCurrentPage(1);
     syncToUrl({ category: 'all', sub: 'all', page: 1 });
+    if (window.location.pathname !== '/products') {
+      window.history.replaceState(null, '', '/products');
+      router.push('/products');
+    }
   };
 
   const handleSelectCategory = (catName: string) => {
@@ -800,9 +804,15 @@ export function SearchResultsClient({
 
   const handleClearSearch = () => {
     setSearchQuery('');
+    setSelectedCategory('all');
+    setSelectedSubcategory('all');
     setCurrentPage(1);
+    if (initialProducts.length > 0 && catalogVersion === 0) {
+      setProducts(initialProducts);
+    }
+    syncToUrl({ search: '', category: 'all', sub: 'all', page: 1 });
     window.dispatchEvent(new CustomEvent('tech_clear_search'));
-    if (window.location.pathname.startsWith('/search') || window.location.search) {
+    if (window.location.pathname !== '/products' || window.location.search) {
       window.history.replaceState(null, '', '/products');
       router.push('/products');
     }
@@ -821,9 +831,27 @@ export function SearchResultsClient({
     setSortBy('latest');
     setSearchQuery('');
     setCurrentPage(1);
+    if (initialProducts.length > 0 && catalogVersion === 0) {
+      setProducts(initialProducts);
+    }
     window.dispatchEvent(new CustomEvent('tech_clear_search'));
-    window.history.replaceState(null, '', '/products');
-    router.push('/products');
+    syncToUrl({
+      search: '',
+      category: 'all',
+      sub: 'all',
+      stores: [],
+      brands: [],
+      minPrice: 0,
+      maxPrice: dynamicMaxPrice,
+      rating: 0,
+      inStock: false,
+      sort: 'latest',
+      page: 1,
+    });
+    if (window.location.pathname !== '/products' || window.location.search) {
+      window.history.replaceState(null, '', '/products');
+      router.push('/products');
+    }
   };
 
   const pageTitle = searchQuery
@@ -1377,6 +1405,145 @@ export function SearchResultsClient({
               <ChevronDown className="w-3.5 h-3.5 text-muted-foreground absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </div>
+
+          {/* Active Filter Chips Bar */}
+          {(activeFiltersCount > 0 || !!searchQuery.trim()) && (
+            <div className="flex items-center flex-wrap gap-2 pt-1 pb-1">
+              <span className="text-xs font-semibold text-muted-foreground mr-1 flex items-center gap-1">
+                <Filter className="w-3.5 h-3.5 text-blue-600" />
+                Active filters:
+              </span>
+
+              {/* Search chip */}
+              {searchQuery.trim() && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors rounded-none cursor-pointer group"
+                  title="Remove search query"
+                >
+                  <span>Search: &ldquo;{searchQuery}&rdquo;</span>
+                  <X className="w-3 h-3 text-blue-600 group-hover:text-blue-800 dark:group-hover:text-blue-200" />
+                </button>
+              )}
+
+              {/* Category chip */}
+              {selectedCategory !== 'all' && (
+                <button
+                  type="button"
+                  onClick={handleSelectAllCategories}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-muted text-foreground border border-border hover:bg-muted/80 transition-colors rounded-none cursor-pointer group"
+                  title="Remove category filter"
+                >
+                  <span>Category: {selectedCategory}</span>
+                  <X className="w-3 h-3 text-muted-foreground group-hover:text-foreground" />
+                </button>
+              )}
+
+              {/* Subcategory chip */}
+              {selectedSubcategory !== 'all' && (
+                <button
+                  type="button"
+                  onClick={() => handleSelectSubcategory(selectedCategory, 'all')}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-muted text-foreground border border-border hover:bg-muted/80 transition-colors rounded-none cursor-pointer group"
+                  title="Remove subcategory filter"
+                >
+                  <span>Subcategory: {selectedSubcategory}</span>
+                  <X className="w-3 h-3 text-muted-foreground group-hover:text-foreground" />
+                </button>
+              )}
+
+              {/* Store chips */}
+              {selectedPlatforms.map((storeId) => {
+                const storeObj = availablePlatforms.find(
+                  (p) => p.id.toLowerCase() === storeId.toLowerCase()
+                );
+                const storeName = storeObj ? storeObj.name : storeId;
+                return (
+                  <button
+                    key={storeId}
+                    type="button"
+                    onClick={() => togglePlatform(storeId)}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-muted text-foreground border border-border hover:bg-muted/80 transition-colors rounded-none cursor-pointer group"
+                    title={`Remove store: ${storeName}`}
+                  >
+                    <span>Store: {storeName}</span>
+                    <X className="w-3 h-3 text-muted-foreground group-hover:text-foreground" />
+                  </button>
+                );
+              })}
+
+              {/* Brand chips */}
+              {selectedBrands.map((brandName) => (
+                <button
+                  key={brandName}
+                  type="button"
+                  onClick={() => toggleBrand(brandName)}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-muted text-foreground border border-border hover:bg-muted/80 transition-colors rounded-none cursor-pointer group"
+                  title={`Remove brand: ${brandName}`}
+                >
+                  <span>Brand: {brandName}</span>
+                  <X className="w-3 h-3 text-muted-foreground group-hover:text-foreground" />
+                </button>
+              ))}
+
+              {/* Price chip */}
+              {(minPrice > 0 || (hasCustomMaxPrice && maxPrice < dynamicMaxPrice)) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMinPrice(0);
+                    setMaxPrice(dynamicMaxPrice);
+                    setHasCustomMaxPrice(false);
+                    setCurrentPage(1);
+                    syncToUrl({ minPrice: 0, maxPrice: dynamicMaxPrice, page: 1 });
+                  }}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-muted text-foreground border border-border hover:bg-muted/80 transition-colors rounded-none cursor-pointer group"
+                  title="Reset price filter"
+                >
+                  <span>
+                    Price: ${minPrice} - ${maxPrice}
+                  </span>
+                  <X className="w-3 h-3 text-muted-foreground group-hover:text-foreground" />
+                </button>
+              )}
+
+              {/* Rating chip */}
+              {minRating > 0 && (
+                <button
+                  type="button"
+                  onClick={() => handleRatingChange(minRating)}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-muted text-foreground border border-border hover:bg-muted/80 transition-colors rounded-none cursor-pointer group"
+                  title="Remove rating filter"
+                >
+                  <span>Rating: {minRating}★+</span>
+                  <X className="w-3 h-3 text-muted-foreground group-hover:text-foreground" />
+                </button>
+              )}
+
+              {/* In Stock chip */}
+              {inStockOnly && (
+                <button
+                  type="button"
+                  onClick={() => handleInStockChange(false)}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-muted text-foreground border border-border hover:bg-muted/80 transition-colors rounded-none cursor-pointer group"
+                  title="Remove in-stock filter"
+                >
+                  <span>In Stock Only</span>
+                  <X className="w-3 h-3 text-muted-foreground group-hover:text-foreground" />
+                </button>
+              )}
+
+              {/* Clear all button */}
+              <button
+                type="button"
+                onClick={handleReset}
+                className="text-xs text-red-600 dark:text-red-400 hover:underline font-semibold ml-1 cursor-pointer py-1"
+              >
+                Reset all
+              </button>
+            </div>
+          )}
 
           {/* Product Grid (with 5:4 aspect ratio cards) */}
           {isLoading ? (
