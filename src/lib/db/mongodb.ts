@@ -43,29 +43,29 @@ export async function getMongoDb(): Promise<Db | null> {
   }
 
   if (cachedDb) return cachedDb;
-  if (!isMongoConfigured()) return null;
+  if (!isMongoConfigured()) {
+    lastMongoError = 'isMongoConfigured() returned false - no URI';
+    return null;
+  }
 
   try {
     const uri = getMongoUri();
     const dbName = (process.env.MONGODB_DB_NAME || 'techpricedrop').replace(/^["']|["']$/g, '').trim();
 
-    if (!global._mongoClientPromise) {
-      const client = new MongoClient(uri, {
-        maxPoolSize: 10,
-        serverSelectionTimeoutMS: 5000,
-        connectTimeoutMS: 10000,
-      });
-      global._mongoClientPromise = client.connect();
-    }
+    const client = new MongoClient(uri, {
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 5000,
+      connectTimeoutMS: 10000,
+    });
 
-    const client = await global._mongoClientPromise;
-    cachedDb = client.db(dbName);
+    const connectedClient = await client.connect();
+    cachedDb = connectedClient.db(dbName);
     lastMongoError = null;
     return cachedDb;
   } catch (error: any) {
-    lastMongoError = error?.message || String(error);
-    console.error('[MongoDB] Connection failed:', error);
-    global._mongoClientPromise = undefined;
+    const msg = error?.message || (typeof error === 'object' ? JSON.stringify(error) : String(error));
+    lastMongoError = `[${error?.name || 'Error'}] ${msg}`;
+    console.error('[MongoDB] Connection failed:', lastMongoError, error?.stack);
     cachedDb = null;
     return null;
   }
