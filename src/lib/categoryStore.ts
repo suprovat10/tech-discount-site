@@ -1,5 +1,4 @@
 import { CATEGORIES as DEFAULT_CATEGORIES, CategoryDefinition } from '@/data/catalog';
-import { getSiteKV } from '@/lib/db/kv';
 
 const CATEGORIES_STORAGE_KEY = 'smarttech_categories_catalog';
 let isInitialCategoryFetchTriggered = false;
@@ -10,6 +9,7 @@ let isInitialCategoryFetchTriggered = false;
  */
 export async function getDatabaseCategories(): Promise<CategoryDefinition[]> {
   try {
+    const { getSiteKV } = await import('@/lib/db/kv');
     const cloud = await getSiteKV<CategoryDefinition[]>('categories_catalog');
     if (cloud && Array.isArray(cloud) && cloud.length > 0) {
       return cloud;

@@ -1,5 +1,4 @@
 import { DEFAULT_PAGES, SitePage } from '@/data/defaultPages';
-import { getSiteKV } from '@/lib/db/kv';
 
 const PAGES_STORAGE_KEY = 'smarttech_site_pages';
 let isInitialPagesFetchTriggered = false;
@@ -10,6 +9,7 @@ let isInitialPagesFetchTriggered = false;
  */
 export async function getDatabasePages(): Promise<SitePage[]> {
   try {
+    const { getSiteKV } = await import('@/lib/db/kv');
     const cloud = await getSiteKV<SitePage[]>('site_pages');
     if (cloud && Array.isArray(cloud) && cloud.length > 0) {
       return cloud;
