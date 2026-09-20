@@ -111,7 +111,7 @@ export async function POST(request: Request) {
       updatedAt: new Date().toISOString(),
     };
 
-    // Save permanently to Supabase cloud database
+    // Save permanently to database
     await saveDatabaseProduct(newProduct);
 
     purgeServerCaches(newProduct.slug);
@@ -161,7 +161,7 @@ export async function DELETE(request: Request) {
       }
     }
 
-    // Permanently remove from Supabase cloud database
+    // Permanently remove from database
     await deleteDatabaseProduct(id);
 
     purgeServerCaches(existing?.slug);

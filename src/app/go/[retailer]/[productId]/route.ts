@@ -32,7 +32,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     verification.itemId
   );
 
-  // Track click asynchronously in Supabase
+  // Track click asynchronously in database
   trackAffiliateClick({
     retailer: verification.retailer,
     retailerItemId: verification.itemId,

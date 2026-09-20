@@ -37,7 +37,7 @@ export class AdapterRegistry {
     const q = (options.query || '').trim().toLowerCase();
     const cat = (options.category || '').trim().toLowerCase();
 
-    // 1. Fetch live products from Supabase cloud database (authoritative source)
+    // 1. Fetch live products from persistent database (authoritative source)
     let allCatalogItems: CatalogItem[] = [];
     try {
       const { getDatabaseProducts } = await import('@/lib/catalogDb');

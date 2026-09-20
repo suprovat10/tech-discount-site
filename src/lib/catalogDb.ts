@@ -4,7 +4,7 @@ import { PRODUCTS_CATALOG, CatalogItem } from '@/data/catalog';
 export const DB_CATALOG_KEY = 'products_catalog';
 
 /**
- * Get all products from the Supabase cloud database.
+ * Get all products from the persistent database.
  * This is the SINGLE SOURCE OF TRUTH for all products on the website.
  * If the database hasn't been initialized yet, it seeds once with the initial products.
  * From then on, ONLY products in the database are returned.

@@ -118,7 +118,7 @@ export async function fetchProductByIdOrSlug(idOrSlug: string): Promise<CatalogI
 }
 
 /**
- * Add or update product in catalog and persist immediately to Supabase
+ * Add or update product in catalog and persist immediately to database
  */
 export async function upsertCatalogProduct(product: CatalogItem): Promise<boolean> {
   unmarkProductDeleted(product.id);
@@ -149,7 +149,7 @@ export async function upsertCatalogProduct(product: CatalogItem): Promise<boolea
 }
 
 /**
- * Delete product by id and remove immediately from Supabase
+ * Delete product by id and remove immediately from database
  */
 export async function deleteCatalogProduct(id: string): Promise<boolean> {
   markProductDeleted(id);

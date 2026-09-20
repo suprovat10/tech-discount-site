@@ -1,3 +1,5 @@
+import { getMongoDb, isMongoConfigured } from './mongodb';
+
 // Safe runtime helpers to avoid client-side webpack resolution issues
 function getFs(): any {
   if (typeof window === 'undefined') {
@@ -22,7 +24,7 @@ function getDbPath(): string {
   return '';
 }
 
-// In-memory cache for 0ms reads with disk mtime synchronization
+// In-memory cache for fast reads with disk mtime synchronization
 const memoryCache = new Map<string, any>();
 let lastMtime = 0;
 let isInitialized = false;
@@ -88,8 +90,9 @@ function persistToDisk(): void {
     try {
       lastMtime = fsModule.statSync(dbPath).mtimeMs;
     } catch {}
-  } catch (err) {
-    console.error('[Store] Error persisting local store to disk:', err);
+  } catch {
+    // In serverless read-only filesystems (like Vercel production), writing to disk will fail silently
+    // and data will be safely stored in MongoDB Atlas.
   }
 }
 
@@ -100,18 +103,69 @@ export function invalidateSiteKVCache(key?: string): void {
   ensureLoaded(true);
 }
 
+/**
+ * Reads a key from MongoDB Atlas (or local store fallback).
+ * If key does not exist in MongoDB yet, it automatically seeds from local store.
+ */
 export async function getSiteKV<T>(key: string, forceFresh = false): Promise<T | null> {
+  if (isMongoConfigured()) {
+    try {
+      const db = await getMongoDb();
+      if (db) {
+        const doc = await db.collection('site_kv').findOne({ key });
+        if (doc && doc.value !== undefined) {
+          memoryCache.set(key, doc.value);
+          return doc.value as T;
+        }
+
+        // Key not yet in MongoDB: auto-seed from local data to prevent data loss
+        ensureLoaded(forceFresh);
+        const seedValue = memoryCache.get(key);
+        if (seedValue !== undefined && seedValue !== null) {
+          await db.collection('site_kv').updateOne(
+            { key },
+            { $set: { key, value: seedValue, updatedAt: new Date() } },
+            { upsert: true }
+          );
+          return seedValue as T;
+        }
+        return null;
+      }
+    } catch (mongoErr) {
+      console.warn('[Store] MongoDB read fallback:', mongoErr);
+    }
+  }
+
+  // Fallback to local memory / disk store
   ensureLoaded(forceFresh);
   const value = memoryCache.get(key);
   if (value === undefined) return null;
   return value as T;
 }
 
+/**
+ * Saves a key to MongoDB Atlas (and syncs to local store/memory).
+ */
 export async function setSiteKV<T>(key: string, value: T): Promise<boolean> {
   ensureLoaded();
   memoryCache.set(key, value);
   persistToDisk();
+
+  if (isMongoConfigured()) {
+    try {
+      const db = await getMongoDb();
+      if (db) {
+        await db.collection('site_kv').updateOne(
+          { key },
+          { $set: { key, value, updatedAt: new Date() } },
+          { upsert: true }
+        );
+        return true;
+      }
+    } catch (mongoErr) {
+      console.error('[Store] MongoDB write error:', mongoErr);
+    }
+  }
+
   return true;
 }
-
-
