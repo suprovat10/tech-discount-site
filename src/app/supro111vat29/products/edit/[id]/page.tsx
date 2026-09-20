@@ -556,9 +556,22 @@ export default function EditProductStudioPage({
     });
   };
 
-  const handleReplaceCoverLocal = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleReplaceCoverLocal = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('folder', 'products');
+        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.success && data.url) {
+          setImages((prev) => [data.url, ...prev.slice(1)]);
+          return;
+        }
+      } catch (err) {
+        console.warn('Upload API failed, falling back to local preview:', err);
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         if (typeof reader.result === 'string') {
@@ -570,11 +583,25 @@ export default function EditProductStudioPage({
     }
   };
 
-  const handleLocalGalleryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLocalGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
-    files.forEach((file) => {
+    for (const file of files) {
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('folder', 'products');
+        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.success && data.url) {
+          setImages((prev) => [...prev, data.url]);
+          setImageAlts((prev) => [...prev, file.name.replace(/\.[^/.]+$/, '')]);
+          continue;
+        }
+      } catch (err) {
+        console.warn('Upload API failed, falling back to local preview:', err);
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         if (typeof reader.result === 'string') {
@@ -583,7 +610,7 @@ export default function EditProductStudioPage({
         }
       };
       reader.readAsDataURL(file);
-    });
+    }
   };
 
   const handleAddImageUrl = () => {

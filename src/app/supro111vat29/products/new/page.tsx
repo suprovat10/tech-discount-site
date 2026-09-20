@@ -431,14 +431,26 @@ export default function CreateProductStudioPage() {
 
   // Image Management: Cover & Gallery
   // 1. Direct replace cover with local upload
-  const handleReplaceCoverLocal = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleReplaceCoverLocal = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('folder', 'products');
+        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.success && data.url) {
+          setImages((prev) => [data.url, ...prev.slice(1)]);
+          return;
+        }
+      } catch (err) {
+        console.warn('Upload API failed, falling back to local preview:', err);
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         if (typeof reader.result === 'string') {
-          const newCover = reader.result;
-          setImages((prev) => [newCover, ...prev.slice(1)]);
+          setImages((prev) => [reader.result as string, ...prev.slice(1)]);
         }
       };
       reader.readAsDataURL(file);
@@ -446,11 +458,25 @@ export default function CreateProductStudioPage() {
   };
 
   // 3. Add multiple gallery images from local computer
-  const handleLocalGalleryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLocalGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
-    files.forEach((file) => {
+    for (const file of files) {
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('folder', 'products');
+        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.success && data.url) {
+          setImages((prev) => [...prev, data.url]);
+          setImageAlts((prev) => [...prev, file.name.replace(/\.[^/.]+$/, '')]);
+          continue;
+        }
+      } catch (err) {
+        console.warn('Upload API failed, falling back to local preview:', err);
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         if (typeof reader.result === 'string') {
@@ -459,7 +485,7 @@ export default function CreateProductStudioPage() {
         }
       };
       reader.readAsDataURL(file);
-    });
+    }
   };
 
   // 4. Add image by URL with SEO Alt Text

@@ -24,7 +24,29 @@ export async function POST(req: NextRequest) {
     const timestamp = Date.now();
     const filename = `${folder}-${cleanName || 'image'}-${timestamp}${ext}`;
 
-    // Write directly to local public/uploads (standard Node.js / Hostinger VPS)
+    // 1. If Cloudinary is configured, upload directly to Cloudinary CDN
+    const { isCloudinaryConfigured, uploadToCloudinary } = await import('@/lib/cloudinary');
+    if (isCloudinaryConfigured()) {
+      const cloudRes = await uploadToCloudinary(buffer, {
+        folder: `techpricedrop/${folder}`,
+        filename,
+        mimeType,
+      });
+
+      if (cloudRes.success && cloudRes.url) {
+        return NextResponse.json({
+          success: true,
+          url: cloudRes.url,
+          filename,
+          provider: 'cloudinary',
+          message: 'Image uploaded to Cloudinary successfully',
+        });
+      } else {
+        console.warn('Cloudinary upload warning, falling back:', cloudRes.error);
+      }
+    }
+
+    // 2. Write directly to local public/uploads (standard Node.js / Hostinger VPS)
     let localSaved = false;
     try {
       const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
