@@ -73,9 +73,20 @@ export default async function BlogDetailPage({ params }: BlogDetailProps) {
 
   const allBlogs = await getServerBlogs();
   const post = allBlogs.find((p) => p.slug === slug || p.id === slug) || null;
-  const relatedPosts = post
-    ? allBlogs.filter((p) => p.slug !== post.slug).slice(0, 2)
-    : allBlogs.slice(0, 2);
+
+  let relatedPosts: typeof allBlogs = [];
+  if (post) {
+    const currentCategory = (post.category || '').trim().toLowerCase();
+    const sameCatPosts = currentCategory
+      ? allBlogs.filter((p) => p.slug !== post.slug && (p.category || '').trim().toLowerCase() === currentCategory)
+      : [];
+    const otherPosts = allBlogs.filter(
+      (p) => p.slug !== post.slug && (p.category || '').trim().toLowerCase() !== currentCategory
+    );
+    relatedPosts = [...sameCatPosts, ...otherPosts].slice(0, 2);
+  } else {
+    relatedPosts = allBlogs.slice(0, 2);
+  }
 
   return (
     <div className="container max-w-[1200px] mx-auto px-4 sm:px-6 py-6">

@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DeleteConfirmModal } from '@/components/admin/DeleteConfirmModal';
 
 export default function AdminProductsManager() {
   const [products, setProducts] = useState<CatalogItem[]>([]);
@@ -36,6 +37,8 @@ export default function AdminProductsManager() {
   const [filterCategory, setFilterCategory] = useState('all');
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Pagination (50 per page so all catalog items show on page 1)
   const [productsPerPage, setProductsPerPage] = useState<number>(50);
@@ -110,13 +113,23 @@ export default function AdminProductsManager() {
     }
   };
 
-  // Delete Action - Permanently remove from DB and state
-  const handleDeleteProduct = async (id: string, title: string) => {
-    if (window.confirm(`Are you sure you want to permanently delete "${title}"? This cannot be undone.`)) {
+  // Delete Action - Open custom DeleteConfirmModal
+  const handleDeleteProduct = (id: string, title: string) => {
+    setDeleteTarget({ id, title });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      const { id, title } = deleteTarget;
       setProducts((prev) => prev.filter((p) => p.id !== id && p.slug !== id));
       await deleteCatalogProduct(id);
       setSuccessMessage(`Product "${title}" deleted permanently from database.`);
       setTimeout(() => setSuccessMessage(null), 3500);
+      setDeleteTarget(null);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -501,6 +514,16 @@ export default function AdminProductsManager() {
             </div>
           </div>
       </div>
+
+      <DeleteConfirmModal
+        isOpen={!!deleteTarget}
+        title="Delete Product"
+        itemType="product"
+        itemName={deleteTarget?.title}
+        isDeleting={isDeleting}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

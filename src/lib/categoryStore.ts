@@ -188,7 +188,7 @@ export function deleteSubcategory(categoryId: string, subcategoryId: string): Ca
 }
 
 /**
- * Toggle feature category on homepage (MAX 4 categories allowed)
+ * Toggle feature category on homepage
  */
 export function toggleFeaturedOnHome(categoryId: string): {
   success: boolean;
@@ -200,16 +200,6 @@ export function toggleFeaturedOnHome(categoryId: string): {
   if (!target) return { success: false, categories: current, error: 'Category not found' };
 
   const isCurrentlyFeatured = !!target.isFeaturedOnHome;
-  if (!isCurrentlyFeatured) {
-    const featuredCount = current.filter((c) => c.isFeaturedOnHome).length;
-    if (featuredCount >= 4) {
-      return {
-        success: false,
-        categories: current,
-        error: 'Maximum 4 categories can be featured on the homepage. Please unfeature another category first.',
-      };
-    }
-  }
 
   const updated = current.map((c) =>
     c.id === categoryId ? { ...c, isFeaturedOnHome: !isCurrentlyFeatured } : c

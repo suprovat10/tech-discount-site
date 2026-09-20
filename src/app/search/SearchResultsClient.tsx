@@ -60,27 +60,26 @@ export function SearchResultsClient({
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>('all');
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
 
-  // Dynamic maximum price computed from current products and catalog
+  // Dynamic maximum price computed from current products and catalog (Highest Sale Price)
   const dynamicMaxPrice = useMemo(() => {
     let highest = 0;
 
     if (products && products.length > 0) {
       for (const p of products) {
-        if (p.lowestPrice && p.lowestPrice > highest) highest = p.lowestPrice;
-        if (p.highestPrice && p.highestPrice > highest) highest = p.highestPrice;
-        if (p.regularPrice && p.regularPrice > highest) highest = p.regularPrice;
+        // Only consider the live selling / sale price, not regular/discount price
+        const salePrice = p.lowestPrice || 0;
+        if (salePrice > highest) highest = salePrice;
       }
     }
 
-
-    if (highest <= 0) return 3500;
-    const rounded = Math.ceil(highest / 50) * 50;
-    return Math.max(rounded, 3500);
+    if (highest <= 0) return 1000;
+    // Round up to nearest 10 or 50
+    return Math.ceil(highest / 10) * 10;
   }, [products]);
 
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [minPrice, setMinPrice] = useState<number>(0);
-  const [maxPrice, setMaxPrice] = useState<number>(3500);
+  const [maxPrice, setMaxPrice] = useState<number>(() => dynamicMaxPrice);
   const [hasCustomMaxPrice, setHasCustomMaxPrice] = useState<boolean>(false);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [minRating, setMinRating] = useState<number>(0);

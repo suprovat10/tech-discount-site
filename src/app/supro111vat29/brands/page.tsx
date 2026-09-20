@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DeleteConfirmModal } from '@/components/admin/DeleteConfirmModal';
 import { BrandItem } from '@/data/brands';
 import {
   getBrands,
@@ -48,6 +49,7 @@ export default function AdminBrandsPage() {
   const [isActive, setIsActive] = useState(true);
 
   const [notification, setNotification] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   const refreshBrands = () => {
     setBrands(getBrands());
@@ -166,11 +168,15 @@ export default function AdminBrandsPage() {
   };
 
   const handleDelete = (id: string, brandName: string) => {
-    if (confirm(`Are you sure you want to delete brand "${brandName}"?`)) {
-      deleteBrand(id);
-      setNotification(`Brand "${brandName}" removed.`);
-      setTimeout(() => setNotification(null), 3000);
-    }
+    setDeleteTarget({ id, name: brandName });
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deleteTarget) return;
+    deleteBrand(deleteTarget.id);
+    setNotification(`Brand "${deleteTarget.name}" removed.`);
+    setTimeout(() => setNotification(null), 3000);
+    setDeleteTarget(null);
   };
 
   return (
@@ -584,6 +590,15 @@ export default function AdminBrandsPage() {
           </table>
         </div>
       </div>
+
+      <DeleteConfirmModal
+        isOpen={!!deleteTarget}
+        title="Delete Brand Partner"
+        itemType="brand"
+        itemName={deleteTarget?.name}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

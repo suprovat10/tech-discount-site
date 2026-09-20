@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DeleteConfirmModal } from '@/components/admin/DeleteConfirmModal';
 import { getPages, resetPagesToDefault, deletePage } from '@/lib/pageStore';
 import { SitePage } from '@/data/defaultPages';
 
@@ -25,6 +26,7 @@ export default function AdminPagesListPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'affiliate' | 'company' | 'custom'>('all');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
 
   const loadPages = () => {
     setPages(getPages());
@@ -50,11 +52,15 @@ export default function AdminPagesListPage() {
   };
 
   const handleDelete = (id: string, title: string) => {
-    if (confirm(`Are you sure you want to delete the custom page "${title}"?`)) {
-      deletePage(id);
-      loadPages();
-      showToast(`Page "${title}" deleted.`);
-    }
+    setDeleteTarget({ id, title });
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deleteTarget) return;
+    deletePage(deleteTarget.id);
+    loadPages();
+    showToast(`Page "${deleteTarget.title}" deleted.`);
+    setDeleteTarget(null);
   };
 
   // Filtered pages
@@ -255,6 +261,15 @@ export default function AdminPagesListPage() {
           <p className="text-xs font-bold">No pages found matching your search query.</p>
         </div>
       )}
+
+      <DeleteConfirmModal
+        isOpen={!!deleteTarget}
+        title="Delete Custom Page"
+        itemType="custom page"
+        itemName={deleteTarget?.title}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

@@ -57,8 +57,16 @@ export function BlogDetailClient({
           .catch(() => {});
       }
       const all = getBlogs();
-      const currentSlug = found?.slug || slug;
-      const related = all.filter((p) => p.slug !== currentSlug).slice(0, 2);
+      const currentSlug = found?.slug || initialPost?.slug || slug;
+      const currentCat = (found?.category || initialPost?.category || '').trim().toLowerCase();
+
+      const sameCat = currentCat
+        ? all.filter((p) => p.slug !== currentSlug && (p.category || '').trim().toLowerCase() === currentCat)
+        : [];
+      const other = all.filter(
+        (p) => p.slug !== currentSlug && (p.category || '').trim().toLowerCase() !== currentCat
+      );
+      const related = [...sameCat, ...other].slice(0, 2);
       if (related.length > 0) {
         setRelatedPosts(related);
       }

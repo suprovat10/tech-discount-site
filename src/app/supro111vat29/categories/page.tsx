@@ -33,12 +33,19 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DeleteConfirmModal } from '@/components/admin/DeleteConfirmModal';
 
 export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<CategoryDefinition[]>([]);
   const [selectedCatId, setSelectedCatId] = useState<string>('');
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    type: 'category' | 'subcategory';
+    id: string;
+    catId?: string;
+    name: string;
+  } | null>(null);
 
   // New Category Form State
   const [newCatName, setNewCatName] = useState('');
@@ -117,14 +124,6 @@ export default function AdminCategoriesPage() {
     e.preventDefault();
     if (!newCatName.trim()) return;
 
-    if (newCatIsFeatured && featuredCount >= 4) {
-      showNotification(
-        'Maximum 4 categories can be featured on the homepage. Uncheck "Feature on Homepage" or unfeature another category first.',
-        true
-      );
-      return;
-    }
-
     const slug = newCatSlug.trim() || newCatName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
     const newCategory: CategoryDefinition = {
       id: `cat-${Date.now()}`,
@@ -153,14 +152,6 @@ export default function AdminCategoriesPage() {
   const handleSaveCategoryEdit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingCategory) return;
-
-    if (editingCategory.isFeaturedOnHome) {
-      const currentFeatured = categories.filter((c) => c.isFeaturedOnHome && c.id !== editingCategory.id).length;
-      if (currentFeatured >= 4) {
-        showNotification('Maximum 4 categories can be featured on the homepage. Unfeature another category first.', true);
-        return;
-      }
-    }
 
     const updated = updateCategory(editingCategory);
     setCategories(updated);
@@ -202,25 +193,38 @@ export default function AdminCategoriesPage() {
     showNotification(`Subcategory "${editingSub.sub.name}" updated successfully!`);
   };
 
-  // Delete Category
-  const handleDeleteCategory = (id: string) => {
-    if (categories.length <= 1) {
-      alert('You must have at least one category.');
-      return;
-    }
-    const updated = deleteCategory(id);
-    setCategories(updated);
-    if (selectedCatId === id) {
-      setSelectedCatId(updated[0]?.id || '');
-    }
-    showNotification('Category removed successfully.');
+  // Delete Category - Trigger DeleteConfirmModal
+  const handleDeleteCategory = (id: string, name: string) => {
+    setDeleteTarget({ type: 'category', id, name });
   };
 
-  // Delete Subcategory
-  const handleDeleteSubcategory = (catId: string, subId: string) => {
-    const updated = deleteSubcategory(catId, subId);
-    setCategories(updated);
-    showNotification('Subcategory removed.');
+  // Delete Subcategory - Trigger DeleteConfirmModal
+  const handleDeleteSubcategory = (catId: string, subId: string, name: string) => {
+    setDeleteTarget({ type: 'subcategory', id: subId, catId, name });
+  };
+
+  // Confirm and execute delete from modal
+  const handleConfirmDelete = () => {
+    if (!deleteTarget) return;
+
+    if (deleteTarget.type === 'category') {
+      if (categories.length <= 1) {
+        showNotification('You must have at least one category.', true);
+        setDeleteTarget(null);
+        return;
+      }
+      const updated = deleteCategory(deleteTarget.id);
+      setCategories(updated);
+      if (selectedCatId === deleteTarget.id) {
+        setSelectedCatId(updated[0]?.id || '');
+      }
+      showNotification(`Category "${deleteTarget.name}" removed successfully.`);
+    } else if (deleteTarget.type === 'subcategory' && deleteTarget.catId) {
+      const updated = deleteSubcategory(deleteTarget.catId, deleteTarget.id);
+      setCategories(updated);
+      showNotification(`Subcategory "${deleteTarget.name}" removed.`);
+    }
+    setDeleteTarget(null);
   };
 
   // Toggle Featured On Home
@@ -369,7 +373,7 @@ export default function AdminCategoriesPage() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleDeleteCategory(cat.id);
+                          handleDeleteCategory(cat.id, cat.name);
                         }}
                         className="p-1.5 text-muted-foreground hover:text-rose-600 border border-transparent hover:border-border hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
                         title="Delete Category"
@@ -483,7 +487,7 @@ export default function AdminCategoriesPage() {
                     onChange={(e) => setNewCatIsFeatured(e.target.checked)}
                     className="rounded-none"
                   />
-                  <span>Feature on Homepage Section (Max 4 categories)</span>
+                  <span>Feature on Homepage Section</span>
                 </label>
                 <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
                   <input
@@ -617,7 +621,7 @@ export default function AdminCategoriesPage() {
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
                           <button
-                            onClick={() => handleDeleteSubcategory(activeCategory.id, sub.id)}
+                            onClick={() => handleDeleteSubcategory(activeCategory.id, sub.id, sub.name)}
                             className="p-1.5 text-muted-foreground hover:text-rose-600 border border-transparent hover:border-border hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
                             title="Remove Subcategory"
                           >
@@ -849,7 +853,7 @@ export default function AdminCategoriesPage() {
                     }
                     className="rounded-none"
                   />
-                  <span>Feature on Homepage Section (Max 4 categories)</span>
+                  <span>Feature on Homepage Section</span>
                 </label>
                 <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
                   <input
@@ -1036,6 +1040,15 @@ export default function AdminCategoriesPage() {
           </div>
         </div>
       )}
+
+      <DeleteConfirmModal
+        isOpen={!!deleteTarget}
+        title={deleteTarget?.type === 'category' ? 'Delete Category' : 'Delete Subcategory'}
+        itemType={deleteTarget?.type === 'category' ? 'category' : 'subcategory'}
+        itemName={deleteTarget?.name}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

@@ -32,10 +32,9 @@ export function FeaturedCategorySections({
     return () => window.removeEventListener('smarttech_categories_updated', handleUpdate);
   }, []);
 
-  // Filter only categories featured on home (limit to max 4)
+  // Filter all categories featured on home
   const featuredCategories = categories
-    .filter((cat) => cat.isFeaturedOnHome)
-    .slice(0, 4);
+    .filter((cat) => cat.isFeaturedOnHome);
 
   if (featuredCategories.length === 0) {
     return null;

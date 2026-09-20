@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DeleteConfirmModal } from '@/components/admin/DeleteConfirmModal';
 import { CouponItem, DEFAULT_COUPONS } from '@/data/coupons';
 import {
   getCoupons,
@@ -34,6 +35,8 @@ import {
 
 export default function AdminCouponsPage() {
   const [coupons, setCoupons] = useState<CouponItem[]>([]);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStoreFilter, setSelectedStoreFilter] = useState('All');
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -173,10 +176,17 @@ export default function AdminCouponsPage() {
     }
   };
 
-  const handleDelete = async (id: string, itemTitle: string) => {
-    if (confirm(`Are you sure you want to delete coupon: "${itemTitle}"?`)) {
+  const handleDelete = (id: string, itemTitle: string) => {
+    setDeleteTarget({ id, title: itemTitle });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      const { id, title } = deleteTarget;
       deleteCoupon(id);
-      showToast('Coupon deleted.');
+      showToast(`Coupon "${title}" deleted.`);
 
       try {
         await fetch(`/api/coupons?id=${encodeURIComponent(id)}`, {
@@ -185,6 +195,9 @@ export default function AdminCouponsPage() {
       } catch (err) {
         console.warn('Coupons server delete error:', err);
       }
+      setDeleteTarget(null);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -703,6 +716,16 @@ export default function AdminCouponsPage() {
           </div>
         </div>
       )}
+
+      <DeleteConfirmModal
+        isOpen={!!deleteTarget}
+        title="Delete Coupon"
+        itemType="coupon"
+        itemName={deleteTarget?.title}
+        isDeleting={isDeleting}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }
