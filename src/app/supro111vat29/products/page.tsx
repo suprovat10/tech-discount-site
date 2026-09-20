@@ -37,8 +37,8 @@ export default function AdminProductsManager() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
 
-  // Pagination (20 per page)
-  const PRODUCTS_PER_PAGE = 20;
+  // Pagination (50 per page so all catalog items show on page 1)
+  const [productsPerPage, setProductsPerPage] = useState<number>(50);
   const [currentPage, setCurrentPage] = useState(1);
 
   const [isLoading, setIsLoading] = useState(true);
@@ -91,10 +91,10 @@ export default function AdminProductsManager() {
     setCurrentPage(1);
   }, [searchQuery, filterCategory]);
 
-  const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE) || 1;
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage) || 1;
   const paginatedProducts = filteredProducts.slice(
-    (currentPage - 1) * PRODUCTS_PER_PAGE,
-    currentPage * PRODUCTS_PER_PAGE
+    (currentPage - 1) * productsPerPage,
+    currentPage * productsPerPage
   );
 
   const categories = Array.from(new Set(products.map((p) => p.category)));
@@ -404,21 +404,42 @@ export default function AdminProductsManager() {
           </table>
         </div>
 
-        {/* Pagination Controls (20 per page) */}
-        {totalPages > 1 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-border">
-            <div className="text-xs text-muted-foreground font-medium">
+        {/* Pagination Controls */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-border">
+          <div className="flex items-center gap-3 text-xs text-muted-foreground font-medium">
+            <span>
               Showing{' '}
               <span className="font-bold text-foreground">
-                {(currentPage - 1) * PRODUCTS_PER_PAGE + 1}
+                {filteredProducts.length === 0 ? 0 : (currentPage - 1) * productsPerPage + 1}
               </span>{' '}
               to{' '}
               <span className="font-bold text-foreground">
-                {Math.min(currentPage * PRODUCTS_PER_PAGE, filteredProducts.length)}
+                {Math.min(currentPage * productsPerPage, filteredProducts.length)}
               </span>{' '}
               of <span className="font-bold text-foreground">{filteredProducts.length}</span>{' '}
               products
+            </span>
+
+            <div className="flex items-center gap-1 text-xs">
+              <span className="text-[11px] text-muted-foreground">Per page:</span>
+              {[20, 50, 100].map((size) => (
+                <button
+                  key={size}
+                  onClick={() => {
+                    setProductsPerPage(size);
+                    setCurrentPage(1);
+                  }}
+                  className={`px-2 py-0.5 text-xs font-bold border ${
+                    productsPerPage === size
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-card text-foreground border-border hover:bg-muted'
+                  }`}
+                >
+                  {size}
+                </button>
+              ))}
             </div>
+          </div>
 
             <div className="flex items-center gap-1.5">
               <Button
@@ -479,7 +500,6 @@ export default function AdminProductsManager() {
               </Button>
             </div>
           </div>
-        )}
       </div>
     </div>
   );

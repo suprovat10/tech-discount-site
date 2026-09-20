@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { deleteFromCloudinary } from './cloudinary';
 
 /**
  * Safely delete uploaded files from public/uploads or cloud storage when a product or blog is deleted.
@@ -10,7 +11,18 @@ export async function deleteUploadedFiles(fileUrlsOrPaths: (string | undefined |
   for (const item of fileUrlsOrPaths) {
     if (!item || typeof item !== 'string') continue;
 
-    // Check if it's a local public/uploads file
+    // 1. Check if it's a Cloudinary URL
+    if (item.includes('cloudinary.com')) {
+      try {
+        await deleteFromCloudinary(item);
+        console.log(`[Cleanup] Deleted Cloudinary image: ${item}`);
+      } catch (err: any) {
+        console.warn(`[Cleanup] Failed to delete Cloudinary image:`, err.message);
+      }
+      continue;
+    }
+
+    // 2. Check if it's a local public/uploads file
     if (item.includes('/uploads/') || item.startsWith('uploads/')) {
       try {
         const cleanPath = item.replace(/^\/?(uploads\/)/, 'uploads/');
@@ -26,7 +38,5 @@ export async function deleteUploadedFiles(fileUrlsOrPaths: (string | undefined |
         console.warn(`[Cleanup] Failed to delete local file ${item}:`, err.message);
       }
     }
-
-    // Local cleanup completed
   }
 }

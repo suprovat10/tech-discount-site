@@ -136,3 +136,79 @@ export async function uploadToCloudinary(
     };
   }
 }
+
+/**
+ * Deletes an image from Cloudinary using their REST API image/destroy.
+ * Accepts either a public_id or a full Cloudinary URL.
+ */
+export async function deleteFromCloudinary(publicIdOrUrl: string): Promise<{ success: boolean; error?: string }> {
+  const config = getCloudinaryConfig();
+  if (!config) {
+    return { success: false, error: 'Cloudinary credentials not configured' };
+  }
+
+  let publicId = publicIdOrUrl;
+  // If a full Cloudinary URL was passed, extract public_id
+  if (publicIdOrUrl.includes('cloudinary.com')) {
+    try {
+      const uploadIdx = publicIdOrUrl.indexOf('/upload/');
+      if (uploadIdx !== -1) {
+        const afterUpload = publicIdOrUrl.substring(uploadIdx + '/upload/'.length);
+        const parts = afterUpload.split('/');
+        const cleanParts: string[] = [];
+        for (const part of parts) {
+          if (part.startsWith('v') && /^\d+$/.test(part.substring(1))) {
+            continue; // skip version like v1789898690
+          }
+          if (part.includes(',') || part.startsWith('f_') || part.startsWith('q_') || part.startsWith('w_')) {
+            continue; // skip transformation like f_auto,q_auto
+          }
+          cleanParts.push(part);
+        }
+        if (cleanParts.length > 0) {
+          cleanParts[cleanParts.length - 1] = cleanParts[cleanParts.length - 1].replace(/\.[^/.]+$/, '');
+          publicId = cleanParts.join('/');
+        }
+      }
+    } catch {
+      // fallback
+    }
+  }
+
+  try {
+    const timestamp = Math.floor(Date.now() / 1000);
+    const paramsToSign: Record<string, string> = {
+      public_id: publicId,
+      timestamp: String(timestamp),
+    };
+
+    const signatureString =
+      Object.keys(paramsToSign)
+        .sort()
+        .map((k) => `${k}=${paramsToSign[k]}`)
+        .join('&') + config.apiSecret;
+
+    const signature = crypto.createHash('sha1').update(signatureString).digest('hex');
+
+    const formData = new FormData();
+    formData.append('public_id', publicId);
+    formData.append('api_key', config.apiKey);
+    formData.append('timestamp', String(timestamp));
+    formData.append('signature', signature);
+
+    const destroyUrl = `https://api.cloudinary.com/v1_1/${config.cloudName}/image/destroy`;
+    const res = await fetch(destroyUrl, {
+      method: 'POST',
+      body: formData,
+    });
+
+    const data = await res.json();
+    if (res.ok && (data.result === 'ok' || data.result === 'not found')) {
+      return { success: true };
+    }
+    return { success: false, error: data.error?.message || data.result };
+  } catch (err: any) {
+    console.warn('[Cloudinary] Delete warning:', err.message);
+    return { success: false, error: err.message };
+  }
+}
