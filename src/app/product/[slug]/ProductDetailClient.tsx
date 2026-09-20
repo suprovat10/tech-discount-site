@@ -846,17 +846,9 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
                 <FileText className="w-4 h-4 text-blue-600" />
                 <span>Product Overview & Full Description</span>
               </h2>
-              {activeProduct.brand &&
-                activeProduct.brand !== 'No Brand' &&
-                activeProduct.brand !== 'None' &&
-                activeProduct.brand.trim() !== '' && (
-                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    {activeProduct.brand} Official Information
-                  </span>
-                )}
             </div>
 
-            <div className="border border-border/80 bg-card p-6 space-y-6">
+            <div className="border-0 sm:border border-border/80 bg-transparent sm:bg-card p-0 sm:p-6 space-y-6">
               {/* Rich Text / Formatted Description */}
               <div className="space-y-2">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
