@@ -5,8 +5,7 @@ import { getDatabaseProducts } from '@/lib/catalogDb';
 import { transformCatalogItemToUnified } from '@/lib/adapters';
 import { BrandDetailClient } from './BrandDetailClient';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const revalidate = 30;
 
 interface BrandPageProps {
   params: Promise<{ slug: string }>;

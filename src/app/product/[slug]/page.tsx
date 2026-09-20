@@ -8,8 +8,7 @@ import { generateProductJsonLd, generateBreadcrumbJsonLd } from '@/lib/seo/jsonl
 import { ProductDetailClient } from './ProductDetailClient';
 import { getCategories, getCategorySlug } from '@/lib/categoryStore';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const revalidate = 30;
 
 interface ProductPageProps {
   params: Promise<{

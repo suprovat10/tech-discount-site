@@ -92,7 +92,17 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/90 backdrop-blur-md transition-all relative">
       <div className="container max-w-[1200px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4 sm:gap-8">
         {/* Brand Logo - suprodesign */}
-        <Link href="/" prefetch={true} className="flex items-center gap-2.5 shrink-0 group">
+        <Link
+          href="/"
+          prefetch={true}
+          onClick={(e) => {
+            if (pathname === '/') {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          }}
+          className="flex items-center gap-2.5 shrink-0 group cursor-pointer"
+        >
           <img
             src={branding.logoUrl || '/logo.png'}
             alt={branding.brandName || 'suprodesign'}
@@ -143,13 +153,46 @@ export function Header() {
 
         {/* Navigation Links */}
         <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-muted-foreground">
-          <Link href="/products" prefetch={true} className="hover:text-foreground transition-colors">
+          <Link
+            href="/"
+            prefetch={true}
+            onClick={(e) => {
+              if (pathname === '/') {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }}
+            className={`hover:text-foreground transition-colors ${
+              pathname === '/' ? 'text-foreground font-bold' : ''
+            }`}
+          >
+            Home
+          </Link>
+          <Link
+            href="/products"
+            prefetch={true}
+            className={`hover:text-foreground transition-colors ${
+              pathname.startsWith('/products') ? 'text-foreground font-bold' : ''
+            }`}
+          >
             All Products
           </Link>
-          <Link href="/coupons" prefetch={true} className="hover:text-foreground transition-colors">
+          <Link
+            href="/coupons"
+            prefetch={true}
+            className={`hover:text-foreground transition-colors ${
+              pathname.startsWith('/coupons') ? 'text-foreground font-bold' : ''
+            }`}
+          >
             Coupons
           </Link>
-          <Link href="/blog" prefetch={true} className="hover:text-foreground transition-colors">
+          <Link
+            href="/blog"
+            prefetch={true}
+            className={`hover:text-foreground transition-colors ${
+              pathname.startsWith('/blog') ? 'text-foreground font-bold' : ''
+            }`}
+          >
             Blog
           </Link>
         </nav>
@@ -242,10 +285,28 @@ export function Header() {
 
             <div className="flex flex-col text-xs font-bold divide-y divide-border/40">
               <Link
+                href="/"
+                prefetch={true}
+                onClick={(e) => {
+                  setIsMobileMenuOpen(false);
+                  if (pathname === '/') {
+                    e.preventDefault();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }
+                }}
+                className={`py-2.5 hover:text-blue-600 transition-colors ${
+                  pathname === '/' ? 'text-blue-600' : 'text-foreground'
+                }`}
+              >
+                Home
+              </Link>
+              <Link
                 href="/products"
                 prefetch={true}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="py-2.5 text-foreground hover:text-blue-600 transition-colors"
+                className={`py-2.5 hover:text-blue-600 transition-colors ${
+                  pathname.startsWith('/products') ? 'text-blue-600' : 'text-foreground'
+                }`}
               >
                 All Products
               </Link>

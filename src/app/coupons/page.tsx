@@ -4,8 +4,7 @@ import { getServerSettings } from '@/lib/settingsServer';
 import { getSiteKV } from '@/lib/db/kv';
 import { DEFAULT_COUPONS, CouponItem } from '@/data/coupons';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const revalidate = 30;
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = getServerSettings();

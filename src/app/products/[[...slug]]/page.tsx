@@ -8,8 +8,7 @@ import { getDatabaseProducts } from '@/lib/catalogDb';
 import { transformCatalogItemToUnified } from '@/lib/adapters';
 import { UnifiedProduct } from '@/types/product';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const revalidate = 30;
 
 interface ProductsPageProps {
   params: Promise<{ slug?: string[] }>;
