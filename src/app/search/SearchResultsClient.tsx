@@ -99,8 +99,18 @@ export function SearchResultsClient({
     }
   }, [dynamicMaxPrice, hasCustomMaxPrice]);
 
-  // Pagination State (15 items per page)
-  const PRODUCTS_PER_PAGE = 15;
+  // Pagination State (14 items per page on mobile, 15 on desktop)
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(typeof window !== 'undefined' && window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const productsPerPage = isMobile ? 14 : 15;
   const [currentPage, setCurrentPage] = useState<number>(1);
 
   // Lock body scroll when mobile filter drawer is open
@@ -731,11 +741,11 @@ export function SearchResultsClient({
   ]);
 
   // Paginated product slice
-  const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
   const paginatedProducts = useMemo(() => {
-    const startIndex = (currentPage - 1) * PRODUCTS_PER_PAGE;
-    return filteredProducts.slice(startIndex, startIndex + PRODUCTS_PER_PAGE);
-  }, [filteredProducts, currentPage, PRODUCTS_PER_PAGE]);
+    const startIndex = (currentPage - 1) * productsPerPage;
+    return filteredProducts.slice(startIndex, startIndex + productsPerPage);
+  }, [filteredProducts, currentPage, productsPerPage]);
 
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > totalPages) return;
@@ -1394,8 +1404,8 @@ export function SearchResultsClient({
                 Showing{' '}
                 {filteredProducts.length === 0
                   ? 0
-                  : `${(currentPage - 1) * PRODUCTS_PER_PAGE + 1} - ${Math.min(
-                      currentPage * PRODUCTS_PER_PAGE,
+                  : `${(currentPage - 1) * productsPerPage + 1} - ${Math.min(
+                      currentPage * productsPerPage,
                       filteredProducts.length
                     )} of ${filteredProducts.length}`}{' '}
                 verified products with live 4-store price comparisons
@@ -1476,7 +1486,7 @@ export function SearchResultsClient({
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+              <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-2.5 sm:gap-5">
                 {paginatedProducts.map((product) => (
                   <DealCard key={product.id} product={product} />
                 ))}

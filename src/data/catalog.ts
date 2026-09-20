@@ -68,6 +68,7 @@ export interface CatalogItem {
   }[];
   createdAt?: string;
   updatedAt?: string;
+  views?: number;
 }
 
 // 1. All Categories & Subcategories (Easily customizable!)

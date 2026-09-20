@@ -114,6 +114,21 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
     }
   }, [activeProduct?.category]);
 
+  // Track product view in background
+  useEffect(() => {
+    const targetId = activeProduct?.id || product?.id;
+    const targetSlug = activeProduct?.slug || product?.slug || slug;
+    if (!targetId && !targetSlug) return;
+
+    try {
+      fetch('/api/products/view', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: targetId, slug: targetSlug }),
+      }).catch(() => {});
+    } catch {}
+  }, [slug]);
+
   const matchesCategory = (p: UnifiedProduct | CatalogItem, catName: string) => {
     return (p.category || '').toLowerCase() === catName.toLowerCase();
   };
@@ -816,8 +831,8 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
                 </Link>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-                {relatedProducts.slice(0, 3).map((p) => (
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4">
+                {relatedProducts.slice(0, 4).map((p) => (
                   <DealCard key={p.id} product={p} />
                 ))}
               </div>

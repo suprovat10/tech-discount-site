@@ -25,8 +25,40 @@ export default async function HomePage() {
   ]);
 
   const allProducts: UnifiedProduct[] = catalog.map((item) => transformCatalogItemToUnified(item));
-  const featuredDeals = allProducts.slice(0, 8);
 
+  // 1. Featured Deals: Most viewed / popular products
+  const featuredDeals = [...allProducts]
+    .sort((a, b) => {
+      const viewsA = a.views ?? (a.ratingCount || 0);
+      const viewsB = b.views ?? (b.ratingCount || 0);
+      return viewsB - viewsA;
+    })
+    .slice(0, 8);
+
+  // 2. Latest Products: Freshly uploaded / newest added products
+  const latestProducts = [...allProducts]
+    .sort((a, b) => {
+      const getProductTimestamp = (p: UnifiedProduct) => {
+        if (p.createdAt) {
+          const t = new Date(p.createdAt).getTime();
+          if (!isNaN(t) && t > 0) return t;
+        }
+        if (p.updatedAt) {
+          const t = new Date(p.updatedAt).getTime();
+          if (!isNaN(t) && t > 0) return t;
+        }
+        if (p.id && p.id.startsWith('prod-dyn-')) {
+          const ts = parseInt(p.id.replace('prod-dyn-', ''), 10);
+          if (!isNaN(ts) && ts > 0) return ts;
+        }
+        return 0;
+      };
+      const timeA = getProductTimestamp(a);
+      const timeB = getProductTimestamp(b);
+      if (timeB !== timeA) return timeB - timeA;
+      return b.id.localeCompare(a.id);
+    })
+    .slice(0, 8);
 
   return (
     <div className="space-y-12 pb-16">
@@ -37,7 +69,7 @@ export default async function HomePage() {
         {/* 2. Top Category & Subcategory Image Slider (No 'All' Button) */}
         <TopCategorySlider />
 
-        {/* 3. Featured Deals Grid */}
+        {/* 3. Featured Deals Grid (Most Viewed) */}
         <section className="space-y-6">
           <div className="flex items-center justify-between pb-2 border-b border-border/60">
             <div>
@@ -45,7 +77,7 @@ export default async function HomePage() {
                 Featured Deals
               </h2>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Verified live prices across Amazon, Walmart, Best Buy, and Target
+                Most popular and viewed tech deals across Amazon, Walmart, Best Buy, and Target
               </p>
             </div>
 
@@ -60,6 +92,34 @@ export default async function HomePage() {
 
           <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-5">
             {featuredDeals.map((product) => (
+              <DealCard key={product.id} product={product} />
+            ))}
+          </div>
+        </section>
+
+        {/* 4. Latest Products Grid (Newest Uploads) */}
+        <section className="space-y-6">
+          <div className="flex items-center justify-between pb-2 border-b border-border/60">
+            <div>
+              <h2 className="text-xl sm:text-2xl font-black text-foreground tracking-tight">
+                Latest Products
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Freshly added tech deals and price drops across authorized retailers
+              </p>
+            </div>
+
+            <Link
+              href="/products?sort=latest"
+              className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1"
+            >
+              <span>View all</span>
+              <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-5">
+            {latestProducts.map((product) => (
               <DealCard key={product.id} product={product} />
             ))}
           </div>

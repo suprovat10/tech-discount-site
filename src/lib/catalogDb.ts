@@ -11,18 +11,30 @@ export const DB_CATALOG_KEY = 'products_catalog';
  */
 export async function getDatabaseProducts(): Promise<CatalogItem[]> {
   try {
-    const [oldDeletedRaw, cloud] = await Promise.all([
+    const [oldDeletedRaw, cloud, viewsMap] = await Promise.all([
       getSiteKV<string[]>('deleted_product_ids'),
       getSiteKV<CatalogItem[]>(DB_CATALOG_KEY),
+      getSiteKV<Record<string, number>>('product_views'),
     ]);
     const oldDeleted = oldDeletedRaw || [];
     const delSet = new Set(oldDeleted);
 
+    const applyViews = (items: CatalogItem[]): CatalogItem[] => {
+      if (!viewsMap) return items;
+      return items.map((p) => {
+        const v = viewsMap[p.id] ?? viewsMap[p.slug];
+        if (typeof v === 'number') {
+          return { ...p, views: Math.max(p.views || 0, v) };
+        }
+        return p;
+      });
+    };
+
     if (cloud !== null && Array.isArray(cloud)) {
-      if (delSet.size > 0) {
-        return cloud.filter((p) => !delSet.has(p.id) && !delSet.has(p.slug));
-      }
-      return cloud;
+      const activeCloud = delSet.size > 0
+        ? cloud.filter((p) => !delSet.has(p.id) && !delSet.has(p.slug))
+        : cloud;
+      return applyViews(activeCloud);
     }
 
     // Migration helper: If products_catalog key not created yet, check custom_products & deleted_product_ids
@@ -42,7 +54,7 @@ export async function getDatabaseProducts(): Promise<CatalogItem[]> {
 
     // Seed the database with this clean list once
     await setSiteKV(DB_CATALOG_KEY, initialCatalog);
-    return initialCatalog;
+    return applyViews(initialCatalog);
   } catch (err) {
     console.warn('Error reading products_catalog from database:', err);
     return PRODUCTS_CATALOG;
@@ -107,16 +119,37 @@ export async function deleteDatabaseProduct(idOrSlug: string): Promise<CatalogIt
  * Takes 0.01ms from the in-memory store.
  */
 export async function getDatabaseProductBySlug(slug: string): Promise<CatalogItem | null> {
-  const current = await getDatabaseProducts();
-  const clean = slug.toLowerCase().trim();
-  const found = current.find((p) => p.slug.toLowerCase() === clean || p.id.toLowerCase() === clean);
-  if (found) return found;
+  try {
+    const current = await getDatabaseProducts();
+    const clean = slug.toLowerCase().trim();
+    const found = current.find((p) => p.slug.toLowerCase() === clean || p.id.toLowerCase() === clean);
+    if (found) return found;
 
-  return (
-    current.find((p) => {
-      const slugified = p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-      return slugified.includes(clean) || clean.includes(slugified);
-    }) || null
-  );
+    return (
+      current.find((p) => {
+        const slugified = p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        return slugified.includes(clean) || clean.includes(slugified);
+      }) || null
+    );
+  } catch (e) {
+    return null;
+  }
 }
 
+/**
+ * Increment the view count of a product by its ID or slug.
+ */
+export async function incrementProductView(idOrSlug: string): Promise<number> {
+  try {
+    const clean = (idOrSlug || '').trim();
+    if (!clean) return 0;
+    const viewsMap = (await getSiteKV<Record<string, number>>('product_views')) || {};
+    const current = (viewsMap[clean] || 0) + 1;
+    viewsMap[clean] = current;
+    await setSiteKV('product_views', viewsMap);
+    return current;
+  } catch (err) {
+    console.warn('Error incrementing product view:', err);
+    return 0;
+  }
+}
