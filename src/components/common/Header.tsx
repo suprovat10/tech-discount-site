@@ -293,7 +293,9 @@ export function Header() {
               </div>
               <button
                 type="submit"
-                className="px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-none transition-colors cursor-pointer flex items-center justify-center"
+                className="px-4 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-border font-bold text-xs rounded-none transition-colors cursor-pointer flex items-center justify-center"
+                title="Search"
+                aria-label="Search"
               >
                 <Search className="w-3.5 h-3.5" />
               </button>
@@ -340,20 +342,7 @@ export function Header() {
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="py-2.5 text-foreground hover:text-blue-600 transition-colors"
               >
-                Blog Guides
-              </Link>
-              <Link
-                href="/watchlist"
-                prefetch={true}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="py-2.5 text-foreground hover:text-blue-600 transition-colors flex items-center justify-between"
-              >
-                <span>Saved Watchlist</span>
-                {displayCount > 0 && (
-                  <span className="px-1.5 py-0.2 bg-rose-600 text-white text-[10px] font-bold">
-                    {displayCount}
-                  </span>
-                )}
+                Blog
               </Link>
             </div>
           </div>
