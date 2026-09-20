@@ -106,7 +106,7 @@ export default async function BlogDetailPage({ params }: BlogDetailProps) {
   const brands = DEFAULT_BRANDS.filter((b) => b.isActive !== false);
 
   return (
-    <div className="container max-w-[1200px] mx-auto px-4 sm:px-6 py-6">
+    <div className="container max-w-[1280px] mx-auto px-4 sm:px-6 py-6">
       <BlogDetailClient
         slug={slug}
         initialPost={post}

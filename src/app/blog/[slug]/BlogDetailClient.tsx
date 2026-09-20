@@ -214,9 +214,9 @@ export function BlogDetailClient({
       </nav>
 
       {/* Two-Column Layout: Left Column (Article) + Right Sidebar (Featured Products & Brands) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 xl:gap-14 items-start">
         {/* Left Column: Article Content */}
-        <article className="lg:col-span-9 space-y-6">
+        <article className="lg:col-span-8 space-y-6">
           {/* Header Info */}
           <div className="space-y-3">
             <div className="flex items-center gap-2.5">
@@ -338,8 +338,8 @@ export function BlogDetailClient({
           )}
         </article>
 
-        {/* Right Sidebar: Same width as category sidebar (lg:col-span-3) */}
-        <aside className="lg:col-span-3 space-y-6">
+        {/* Right Sidebar: Featured Products & Brands */}
+        <aside className="lg:col-span-4 space-y-6">
           {/* 1. Featured Deals (1 column, 4 products) */}
           {featuredProducts && featuredProducts.length > 0 && (
             <div className="border border-border/80 bg-card p-4 space-y-4 shadow-sm">
