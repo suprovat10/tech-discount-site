@@ -700,9 +700,9 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
                     </h3>
                     <div className="divide-y divide-border/60 text-xs">
                       {displayKeySpecs.slice(0, 6).map(([k, v]) => (
-                        <div key={k} className="py-1.5 flex justify-between">
-                          <span className="text-muted-foreground">{k}</span>
-                          <span className="font-semibold text-foreground">{v}</span>
+                        <div key={k} className="py-1.5 flex items-baseline justify-between gap-4">
+                          <span className="text-muted-foreground shrink-0 max-w-[45%]">{k}</span>
+                          <span className="font-semibold text-foreground text-right flex-1 break-words">{v}</span>
                         </div>
                       ))}
                     </div>

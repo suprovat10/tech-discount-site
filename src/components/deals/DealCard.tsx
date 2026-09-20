@@ -133,7 +133,7 @@ export function DealCard({ product }: DealCardProps) {
           <Link
             href={`/product/${product.slug}`}
             prefetch={true}
-            className="flex-1 min-w-0 h-8 sm:h-9 px-1.5 sm:px-3 text-[11px] sm:text-xs font-bold border border-border hover:bg-foreground hover:text-background transition-colors flex items-center justify-center gap-1.5 cursor-pointer rounded-none"
+            className="flex-1 min-w-0 h-9 px-1.5 sm:px-3 text-[11px] sm:text-xs font-bold border border-border hover:bg-foreground hover:text-background transition-colors flex items-center justify-center gap-1.5 cursor-pointer rounded-none"
             title="Check price and store offers"
           >
             <span>Check Price</span>
@@ -145,7 +145,7 @@ export function DealCard({ product }: DealCardProps) {
               e.stopPropagation();
             }}
           >
-            <WatchlistButton product={product} className="w-8 h-8 sm:w-9 sm:h-9" />
+            <WatchlistButton product={product} className="w-9 h-9" />
           </div>
         </div>
       </div>
