@@ -1,23 +1,11 @@
-import type { Db } from 'mongodb';
+import { MongoClient, Db } from 'mongodb';
 
 declare global {
   // eslint-disable-next-line no-var
-  var _mongoClientPromise: Promise<any> | undefined;
+  var _mongoClientPromise: Promise<MongoClient> | undefined;
 }
 
 let cachedDb: Db | null = null;
-
-function getMongoDriver(): any {
-  if (typeof window === 'undefined') {
-    try {
-      return eval('require')('mongodb');
-    } catch {
-      return null;
-    }
-  }
-  return null;
-}
-
 let lastMongoError: string | null = null;
 
 export function getLastMongoError(): string | null {
@@ -57,11 +45,7 @@ export async function getMongoDb(): Promise<Db | null> {
   if (cachedDb) return cachedDb;
   if (!isMongoConfigured()) return null;
 
-  const mongoModule = getMongoDriver();
-  if (!mongoModule) return null;
-
   try {
-    const { MongoClient } = mongoModule;
     const uri = getMongoUri();
     const dbName = (process.env.MONGODB_DB_NAME || 'techpricedrop').replace(/^["']|["']$/g, '').trim();
 
