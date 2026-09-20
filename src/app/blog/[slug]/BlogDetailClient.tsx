@@ -38,15 +38,30 @@ export function BlogDetailClient({
 
   useEffect(() => {
     setMounted(true);
+    if (initialPost) {
+      setPost(initialPost);
+    }
+
     const loadFromStore = () => {
       const found = getBlogById(slug);
       if (found) {
         setPost(found);
+      } else if (!initialPost) {
+        fetch(`/api/blogs?slug=${encodeURIComponent(slug)}`)
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success && data.data) {
+              setPost(data.data);
+            }
+          })
+          .catch(() => {});
       }
       const all = getBlogs();
       const currentSlug = found?.slug || slug;
       const related = all.filter((p) => p.slug !== currentSlug).slice(0, 2);
-      setRelatedPosts(related);
+      if (related.length > 0) {
+        setRelatedPosts(related);
+      }
     };
 
     loadFromStore();
@@ -57,7 +72,7 @@ export function BlogDetailClient({
       window.removeEventListener('smarttech_blogs_updated', loadFromStore);
       window.removeEventListener('storage', loadFromStore);
     };
-  }, [slug]);
+  }, [slug, initialPost]);
 
   // If article not found in server or client storage
   if (!post) {

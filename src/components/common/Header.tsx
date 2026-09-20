@@ -34,9 +34,10 @@ export function Header() {
 
   // Sync searchQuery with current URL search param (e.g. /products?search=mobile)
   useEffect(() => {
-    const q = searchParams.get('search');
-    if (q !== null) {
-      setSearchQuery(q);
+    const q = searchParams.get('search') || searchParams.get('q');
+    setSearchQuery(q || '');
+    if (desktopSearchInputRef.current && !q) {
+      desktopSearchInputRef.current.value = '';
     }
   }, [searchParams]);
 

@@ -1,108 +1,172 @@
-import fs from 'fs';
-import path from 'path';
 import { BlogPost, BlogCategory, BLOG_POSTS as DEFAULT_BLOGS, DEFAULT_BLOG_CATEGORIES } from '@/data/blogs';
+import { getSiteKV, setSiteKV } from '@/lib/db/kv';
 
-const BLOGS_FILE_PATH = path.join(process.cwd(), 'src', 'data', 'blogs.json');
-const BLOG_CATS_FILE_PATH = path.join(process.cwd(), 'src', 'data', 'blog_categories.json');
+function getFs(): any {
+  if (typeof window === 'undefined') {
+    try {
+      return eval('require')('fs');
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+function getPath(): any {
+  if (typeof window === 'undefined') {
+    try {
+      return eval('require')('path');
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
 
 /**
- * Get all blogs on the server from blogs.json
+ * Get all blogs on the server from MongoDB/site_kv or blogs.json fallback
  */
-export function getServerBlogs(): BlogPost[] {
+export async function getServerBlogs(): Promise<BlogPost[]> {
   try {
-    if (fs.existsSync(BLOGS_FILE_PATH)) {
-      const content = fs.readFileSync(BLOGS_FILE_PATH, 'utf-8');
-      const parsed = JSON.parse(content);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
-      }
+    const cloud = await getSiteKV<BlogPost[]>('site_blogs');
+    if (cloud && Array.isArray(cloud) && cloud.length > 0) {
+      return cloud;
     }
-  } catch (error) {
-    console.error('Error reading blogs.json on server:', error);
+  } catch (e) {
+    console.warn('Failed to read blogs from cloud store:', e);
   }
+
+  const fs = getFs();
+  const path = getPath();
+  if (fs && path) {
+    try {
+      const filePath = path.join(process.cwd(), 'src', 'data', 'blogs.json');
+      if (fs.existsSync(filePath)) {
+        const raw = fs.readFileSync(filePath, 'utf-8');
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Auto-seed to site_kv
+          setSiteKV('site_blogs', parsed).catch(() => {});
+          return parsed;
+        }
+      }
+    } catch (err) {
+      console.warn('Error reading local blogs.json:', err);
+    }
+  }
+
   return DEFAULT_BLOGS;
 }
 
 /**
  * Get single blog post by slug or id on the server
  */
-export function getServerBlogBySlug(slug: string): BlogPost | undefined {
-  const blogs = getServerBlogs();
-  const cleanSlug = slug.toLowerCase().trim();
-  return blogs.find((b) => b.slug.toLowerCase().trim() === cleanSlug || b.id === slug);
+export async function getServerBlogBySlug(slug: string): Promise<BlogPost | undefined> {
+  const blogs = await getServerBlogs();
+  const clean = slug.toLowerCase().trim();
+  return (
+    blogs.find((b) => b.slug.toLowerCase().trim() === clean || b.id === slug) ||
+    DEFAULT_BLOGS.find((b) => b.slug.toLowerCase().trim() === clean || b.id === slug)
+  );
 }
 
 /**
  * Save or update a blog post on the server
  */
-export function saveServerBlog(blog: BlogPost): BlogPost[] {
-  try {
-    const current = getServerBlogs();
-    const index = current.findIndex((b) => b.id === blog.id || b.slug === blog.slug);
-    let updated: BlogPost[];
-    if (index >= 0) {
-      updated = [...current];
-      updated[index] = blog;
-    } else {
-      updated = [blog, ...current];
-    }
-
-    const dir = path.dirname(BLOGS_FILE_PATH);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    fs.writeFileSync(BLOGS_FILE_PATH, JSON.stringify(updated, null, 2), 'utf-8');
-    return updated;
-  } catch (error) {
-    console.error('Error saving blog to blogs.json on server:', error);
-    return getServerBlogs();
+export async function saveServerBlog(blog: BlogPost): Promise<BlogPost[]> {
+  const current = await getServerBlogs();
+  const index = current.findIndex((b) => b.id === blog.id || b.slug === blog.slug);
+  let updated: BlogPost[];
+  if (index >= 0) {
+    updated = [...current];
+    updated[index] = blog;
+  } else {
+    updated = [blog, ...current];
   }
+
+  await setSiteKV('site_blogs', updated);
+
+  const fs = getFs();
+  const path = getPath();
+  if (fs && path) {
+    try {
+      const filePath = path.join(process.cwd(), 'src', 'data', 'blogs.json');
+      const dir = path.dirname(filePath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      fs.writeFileSync(filePath, JSON.stringify(updated, null, 2), 'utf-8');
+    } catch {}
+  }
+
+  return updated;
 }
 
 /**
  * Delete a blog post on the server
  */
-export function deleteServerBlog(idOrSlug: string): BlogPost[] {
-  try {
-    const current = getServerBlogs();
-    const updated = current.filter((b) => b.id !== idOrSlug && b.slug !== idOrSlug);
-    fs.writeFileSync(BLOGS_FILE_PATH, JSON.stringify(updated, null, 2), 'utf-8');
-    return updated;
-  } catch (error) {
-    console.error('Error deleting blog on server:', error);
-    return getServerBlogs();
+export async function deleteServerBlog(idOrSlug: string): Promise<BlogPost[]> {
+  const current = await getServerBlogs();
+  const updated = current.filter((b) => b.id !== idOrSlug && b.slug !== idOrSlug);
+  await setSiteKV('site_blogs', updated);
+
+  const fs = getFs();
+  const path = getPath();
+  if (fs && path) {
+    try {
+      const filePath = path.join(process.cwd(), 'src', 'data', 'blogs.json');
+      fs.writeFileSync(filePath, JSON.stringify(updated, null, 2), 'utf-8');
+    } catch {}
   }
+
+  return updated;
 }
 
 /**
  * Get all blog categories on the server
  */
-export function getServerBlogCategories(): BlogCategory[] {
+export async function getServerBlogCategories(): Promise<BlogCategory[]> {
   try {
-    if (fs.existsSync(BLOG_CATS_FILE_PATH)) {
-      const content = fs.readFileSync(BLOG_CATS_FILE_PATH, 'utf-8');
-      const parsed = JSON.parse(content);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
-      }
+    const cloud = await getSiteKV<BlogCategory[]>('blog_categories');
+    if (cloud && Array.isArray(cloud) && cloud.length > 0) {
+      return cloud;
     }
-  } catch (error) {
-    console.error('Error reading blog_categories.json on server:', error);
+  } catch {}
+
+  const fs = getFs();
+  const path = getPath();
+  if (fs && path) {
+    try {
+      const filePath = path.join(process.cwd(), 'src', 'data', 'blog_categories.json');
+      if (fs.existsSync(filePath)) {
+        const raw = fs.readFileSync(filePath, 'utf-8');
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch {}
   }
+
   return DEFAULT_BLOG_CATEGORIES;
 }
 
 /**
  * Save blog categories on the server
  */
-export function saveServerBlogCategories(cats: BlogCategory[]): void {
-  try {
-    const dir = path.dirname(BLOG_CATS_FILE_PATH);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    fs.writeFileSync(BLOG_CATS_FILE_PATH, JSON.stringify(cats, null, 2), 'utf-8');
-  } catch (error) {
-    console.error('Error saving blog_categories.json on server:', error);
+export async function saveServerBlogCategories(cats: BlogCategory[]): Promise<void> {
+  await setSiteKV('blog_categories', cats);
+
+  const fs = getFs();
+  const path = getPath();
+  if (fs && path) {
+    try {
+      const filePath = path.join(process.cwd(), 'src', 'data', 'blog_categories.json');
+      const dir = path.dirname(filePath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      fs.writeFileSync(filePath, JSON.stringify(cats, null, 2), 'utf-8');
+    } catch {}
   }
 }

@@ -190,15 +190,18 @@ export function BlogListClient({
                   className="border border-border bg-card overflow-hidden hover:border-blue-600 transition-colors flex flex-col justify-between group"
                 >
                   <div>
-                    {/* Featured Image */}
+                    {/* Featured Image - Clickable */}
                     <Link
                       href={`/blog/${post.slug}`}
-                      className="relative block aspect-[16/10] w-full overflow-hidden bg-muted border-b border-border"
+                      prefetch={true}
+                      className="relative block aspect-[16/10] w-full overflow-hidden bg-muted border-b border-border cursor-pointer"
+                      title={post.title}
                     >
                       {post.imageUrl ? (
                         <img
                           src={post.imageUrl}
                           alt={post.imageAlt || post.title}
+                          loading="eager"
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           onError={(e) => {
                             e.currentTarget.src = '/logo.png';
@@ -227,8 +230,9 @@ export function BlogListClient({
                         </span>
                       </div>
 
-                      <Link href={`/blog/${post.slug}`}>
-                        <h3 className="text-sm font-black text-foreground group-hover:text-blue-600 transition-colors line-clamp-2 leading-snug">
+                      {/* Title - Clickable */}
+                      <Link href={`/blog/${post.slug}`} prefetch={true} className="block cursor-pointer">
+                        <h3 className="text-sm font-black text-foreground hover:text-blue-600 transition-colors line-clamp-2 leading-snug">
                           {post.title}
                         </h3>
                       </Link>
@@ -239,11 +243,12 @@ export function BlogListClient({
                     </div>
                   </div>
 
-                  {/* Card Footer: Read More button (NO AUTHOR) */}
+                  {/* Card Footer: Read More button - Clickable */}
                   <div className="p-4 pt-0 border-t border-border/40 mt-3 pt-3 flex items-center justify-end">
                     <Link
                       href={`/blog/${post.slug}`}
-                      className="text-xs font-bold text-blue-600 group-hover:translate-x-1 transition-transform flex items-center gap-1"
+                      prefetch={true}
+                      className="text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1 cursor-pointer"
                     >
                       <span>Read Guide</span>
                       <ArrowRight className="w-3 h-3" />

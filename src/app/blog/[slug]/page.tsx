@@ -10,13 +10,15 @@ interface BlogDetailProps {
   }>;
 }
 
+export const revalidate = 30;
+
 export async function generateMetadata({ params }: BlogDetailProps): Promise<Metadata> {
   const { slug } = await params;
   const settings = getServerSettings();
   const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
   const brand = settings.siteBrandName || 'suprodesign';
 
-  const post = getServerBlogBySlug(slug);
+  const post = await getServerBlogBySlug(slug);
 
   if (!post) {
     const formattedTitle = slug
@@ -62,7 +64,7 @@ export default async function BlogDetailPage({ params }: BlogDetailProps) {
   const brand = settings.siteBrandName || 'suprodesign';
   const logoUrl = settings.logoUrl || '/logo.png';
 
-  const allBlogs = getServerBlogs();
+  const allBlogs = await getServerBlogs();
   const post = allBlogs.find((p) => p.slug === slug || p.id === slug) || null;
   const relatedPosts = post
     ? allBlogs.filter((p) => p.slug !== post.slug).slice(0, 2)

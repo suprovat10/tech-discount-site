@@ -48,6 +48,10 @@ export async function POST(req: NextRequest) {
 
     try {
       revalidatePath('/', 'layout');
+      revalidatePath('/', 'page');
+      revalidatePath('/products', 'page');
+      revalidatePath('/blog', 'page');
+      revalidatePath('/coupons', 'page');
     } catch (revalErr) {
       console.warn('Settings revalidate warning:', revalErr);
     }

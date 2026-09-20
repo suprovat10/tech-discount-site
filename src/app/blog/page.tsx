@@ -24,9 +24,11 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function BlogListingPage() {
-  const posts = getServerBlogs();
-  const categories = getServerBlogCategories();
+export const revalidate = 30;
+
+export default async function BlogListingPage() {
+  const posts = await getServerBlogs();
+  const categories = await getServerBlogCategories();
 
   return (
     <div className="container max-w-[1200px] mx-auto px-4 sm:px-6 py-8">

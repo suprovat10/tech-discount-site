@@ -61,6 +61,7 @@ export function BrandShowcaseSection() {
                 <img
                   src={brand.logoUrl}
                   alt={brand.name}
+                  loading="eager"
                   className="h-7 sm:h-8 w-auto max-w-[85%] object-contain dark:invert transition-transform duration-200 group-hover:scale-110"
                   onError={(e) => {
                     // fallback to text if logo image fails

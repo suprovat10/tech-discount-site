@@ -26,7 +26,7 @@ export function TopCategorySlider() {
     if (loaded && loaded.length > 0) {
       setCategories(loaded);
     }
-    fetch('/api/categories', { cache: 'no-store' })
+    fetch('/api/categories')
       .then((res) => res.json())
       .then((json) => {
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
@@ -141,7 +141,7 @@ export function TopCategorySlider() {
                   src={item.imageUrl}
                   alt={item.name}
                   className="h-10 sm:h-12 w-auto max-w-[85%] max-h-full object-contain transition-transform duration-300 group-hover:scale-110"
-                  loading="lazy"
+                  loading="eager"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-transparent">
