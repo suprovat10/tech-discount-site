@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getMongoDb, isMongoConfigured } from '@/lib/db/mongodb';
+import { getMongoDb, isMongoConfigured, getLastMongoError } from '@/lib/db/mongodb';
 import { isCloudinaryConfigured } from '@/lib/cloudinary';
 
 export const dynamic = 'force-dynamic';
@@ -22,7 +22,7 @@ export async function GET() {
   try {
     const db = await getMongoDb();
     if (!db) {
-      status.error = 'Failed to obtain MongoDB instance (check IP whitelist or connection string).';
+      status.error = getLastMongoError() || 'Failed to obtain MongoDB instance (check IP whitelist or connection string).';
       return NextResponse.json(status, { status: 500 });
     }
 
