@@ -287,24 +287,9 @@ export function BlogListClient({
 
       {/* Two-Column Layout: Left Sidebar Categories + Right Main Articles Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* LEFT SIDEBAR: Categories & Filter Systems (Desktop Only, matches product page) */}
+        {/* LEFT SIDEBAR: Categories & Search (Desktop Only) */}
         <aside className="hidden lg:block lg:col-span-3 space-y-6">
           <div className="border border-border/80 bg-card p-4 space-y-6 shadow-sm">
-            {/* Sidebar Header & Reset */}
-            <div className="flex items-center justify-between pb-3 border-b border-border/60">
-              <span className="text-xs font-black uppercase tracking-wider text-foreground flex items-center gap-1.5 whitespace-nowrap">
-                <Filter className="w-3.5 h-3.5 text-blue-600 shrink-0" /> Filters & Categories
-              </span>
-              <button
-                onClick={handleReset}
-                title="Reset all filters"
-                aria-label="Reset all filters"
-                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-all cursor-pointer"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
             {renderFilterControls()}
           </div>
         </aside>

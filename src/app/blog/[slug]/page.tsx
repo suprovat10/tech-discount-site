@@ -64,6 +64,10 @@ export async function generateMetadata({ params }: BlogDetailProps): Promise<Met
   };
 }
 
+import { getDatabaseProducts } from '@/lib/catalogDb';
+import { transformCatalogItemToUnified } from '@/lib/adapters';
+import { DEFAULT_BRANDS } from '@/data/brands';
+
 export default async function BlogDetailPage({ params }: BlogDetailProps) {
   const { slug } = await params;
   const settings = await getServerSettings();
@@ -71,9 +75,14 @@ export default async function BlogDetailPage({ params }: BlogDetailProps) {
   const brand = settings.siteBrandName || 'suprodesign';
   const logoUrl = settings.logoUrl || '/logo.png';
 
-  const allBlogs = await getServerBlogs();
+  const [allBlogs, catalog] = await Promise.all([
+    getServerBlogs(),
+    getDatabaseProducts().catch(() => []),
+  ]);
+
   const post = allBlogs.find((p) => p.slug === slug || p.id === slug) || null;
 
+  // 4 related articles from the same category
   let relatedPosts: typeof allBlogs = [];
   if (post) {
     const currentCategory = (post.category || '').trim().toLowerCase();
@@ -83,10 +92,18 @@ export default async function BlogDetailPage({ params }: BlogDetailProps) {
     const otherPosts = allBlogs.filter(
       (p) => p.slug !== post.slug && (p.category || '').trim().toLowerCase() !== currentCategory
     );
-    relatedPosts = [...sameCatPosts, ...otherPosts].slice(0, 2);
+    relatedPosts = [...sameCatPosts, ...otherPosts].slice(0, 4);
   } else {
-    relatedPosts = allBlogs.slice(0, 2);
+    relatedPosts = allBlogs.slice(0, 4);
   }
+
+  // Top 4 featured products for right sidebar
+  const allProducts = catalog.map(transformCatalogItemToUnified);
+  const featuredProducts = [...allProducts]
+    .sort((a, b) => (b.views || b.ratingCount || 0) - (a.views || a.ratingCount || 0))
+    .slice(0, 4);
+
+  const brands = DEFAULT_BRANDS.filter((b) => b.isActive !== false);
 
   return (
     <div className="container max-w-[1200px] mx-auto px-4 sm:px-6 py-6">
@@ -94,6 +111,8 @@ export default async function BlogDetailPage({ params }: BlogDetailProps) {
         slug={slug}
         initialPost={post}
         initialRelatedPosts={relatedPosts}
+        featuredProducts={featuredProducts}
+        brands={brands}
         siteUrl={siteUrl}
         brand={brand}
         logoUrl={logoUrl}
