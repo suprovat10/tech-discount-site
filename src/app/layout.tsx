@@ -126,7 +126,9 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
         />
 
-        {/* Google Tag Manager (Head) */}
+      </head>
+      <body className="min-h-screen bg-background text-foreground font-sans">
+        {/* Google Tag Manager (Head script) */}
         {gtmId && (
           <Script
             id="gtm-script"
@@ -203,8 +205,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             }}
           />
         )}
-      </head>
-      <body className="min-h-screen bg-background text-foreground font-sans">
+
         {/* Google Tag Manager (Noscript) */}
         {gtmId && (
           <noscript>
