@@ -417,7 +417,8 @@ export function SearchResultsClient({
 
   const handleSortChange = (newSort: string) => {
     setSortBy(newSort);
-    syncToUrl({ sort: newSort });
+    setCurrentPage(1);
+    syncToUrl({ sort: newSort, page: 1 });
   };
 
   // Dynamically discover all platforms/stores present across all products (standard 4 + any custom added platforms)
@@ -589,7 +590,12 @@ export function SearchResultsClient({
 
     // 2. Count products for each brand (and dynamically add any product brands not in admin list)
     products.forEach((p) => {
-      if (p.brand && p.brand.trim()) {
+      if (
+        p.brand &&
+        p.brand.trim() &&
+        p.brand.toLowerCase() !== 'no brand' &&
+        p.brand.toLowerCase() !== 'none'
+      ) {
         const rawBrand = p.brand.trim();
         const key = rawBrand.toLowerCase();
         const existing = brandMap.get(key);
@@ -660,12 +666,53 @@ export function SearchResultsClient({
       .sort((a, b) => {
         const s = sortBy.replace(/_/g, '-');
         if (s === 'latest') {
-          return b.id.localeCompare(a.id);
+          const getProductTimestamp = (p: UnifiedProduct) => {
+            if (p.updatedAt) {
+              const t = new Date(p.updatedAt).getTime();
+              if (!isNaN(t) && t > 0) return t;
+            }
+            if (p.createdAt) {
+              const t = new Date(p.createdAt).getTime();
+              if (!isNaN(t) && t > 0) return t;
+            }
+            if (p.id && p.id.startsWith('prod-dyn-')) {
+              const ts = parseInt(p.id.replace('prod-dyn-', ''), 10);
+              if (!isNaN(ts) && ts > 0) return ts;
+            }
+            return 0;
+          };
+          const timeA = getProductTimestamp(a);
+          const timeB = getProductTimestamp(b);
+          if (timeB !== timeA) return timeB - timeA;
+          return 0;
         }
-        if (s === 'lowest-price') return a.lowestPrice - b.lowestPrice;
-        if (s === 'highest-savings') return (b.maxSavingsPercentage || 0) - (a.maxSavingsPercentage || 0);
-        if (s === 'top-rated' || s === 'rating') return (b.rating || 0) - (a.rating || 0);
-        if (s === 'highest-price') return b.lowestPrice - a.lowestPrice;
+        if (s === 'lowest-price') {
+          const priceA = a.lowestPrice > 0 ? a.lowestPrice : Infinity;
+          const priceB = b.lowestPrice > 0 ? b.lowestPrice : Infinity;
+          if (priceA !== priceB) return priceA - priceB;
+          return (b.rating || 0) - (a.rating || 0);
+        }
+        if (s === 'highest-price') {
+          const priceA = a.lowestPrice > 0 ? a.lowestPrice : 0;
+          const priceB = b.lowestPrice > 0 ? b.lowestPrice : 0;
+          if (priceB !== priceA) return priceB - priceA;
+          return (b.rating || 0) - (a.rating || 0);
+        }
+        if (s === 'highest-savings') {
+          const savA = a.maxSavingsPercentage || 0;
+          const savB = b.maxSavingsPercentage || 0;
+          if (savB !== savA) return savB - savA;
+          const diffA = (a.regularPrice || a.lowestPrice) - a.lowestPrice;
+          const diffB = (b.regularPrice || b.lowestPrice) - b.lowestPrice;
+          if (diffB !== diffA) return diffB - diffA;
+          return (b.rating || 0) - (a.rating || 0);
+        }
+        if (s === 'top-rated' || s === 'rating') {
+          const ratA = a.rating || 0;
+          const ratB = b.rating || 0;
+          if (ratB !== ratA) return ratB - ratA;
+          return (b.ratingCount || 0) - (a.ratingCount || 0);
+        }
         return 0;
       });
   }, [

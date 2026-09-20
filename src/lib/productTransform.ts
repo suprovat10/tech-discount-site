@@ -16,19 +16,32 @@ export const RETAILER_NAMES: Record<string, string> = {
 };
 
 export function transformCatalogItemToUnified(item: any): UnifiedProduct {
-  const inStockPrices = (item.offers || [])
-    .filter((o: any) => o.isInStock && o.price > 0)
-    .map((o: any) => o.price);
+  const offersList = Array.isArray(item.offers) ? item.offers : [];
+
+  const validPrices = offersList
+    .map((o: any) => (typeof o.price === 'number' ? o.price : parseFloat(o.price)))
+    .filter((p: number) => !isNaN(p) && p > 0);
+
+  const inStockPrices = offersList
+    .filter((o: any) => o.isInStock)
+    .map((o: any) => (typeof o.price === 'number' ? o.price : parseFloat(o.price)))
+    .filter((p: number) => !isNaN(p) && p > 0);
 
   const lowestPrice = inStockPrices.length > 0
     ? Math.min(...inStockPrices)
-    : Math.min(...(item.offers || [{ price: 0 }]).map((o: any) => o.price));
-  const highestPrice = Math.max(...(item.offers || [{ price: 0 }]).map((o: any) => o.price));
-  const regularPrice = Math.max(...(item.offers || []).map((o: any) => o.regularPrice || o.price));
+    : (validPrices.length > 0 ? Math.min(...validPrices) : 0);
+  const highestPrice = validPrices.length > 0 ? Math.max(...validPrices) : lowestPrice;
+
+  const regularPrices = offersList
+    .map((o: any) => (typeof o.regularPrice === 'number' ? o.regularPrice : parseFloat(o.regularPrice)))
+    .filter((p: number) => !isNaN(p) && p > 0);
+  const regularPrice = regularPrices.length > 0 ? Math.max(...regularPrices) : lowestPrice;
   const savings = calculateSavings(lowestPrice, regularPrice);
 
-  const offers: ProductOffer[] = (item.offers || []).map((offer: any) => {
-    const offerSavings = calculateSavings(offer.price, offer.regularPrice);
+  const offers: ProductOffer[] = offersList.map((offer: any) => {
+    const offerPrice = typeof offer.price === 'number' ? offer.price : (parseFloat(offer.price) || 0);
+    const offerRegPrice = typeof offer.regularPrice === 'number' ? offer.regularPrice : (parseFloat(offer.regularPrice) || undefined);
+    const offerSavings = calculateSavings(offerPrice, offerRegPrice);
     const resolvedRetailerName = (offer.retailerName && offer.retailerName.toLowerCase() !== 'custom')
       ? offer.retailerName
       : (RETAILER_NAMES[offer.retailer] || getRetailerDisplayName(offer.retailer));
@@ -40,17 +53,17 @@ export function transformCatalogItemToUnified(item: any): UnifiedProduct {
       productUrl: offer.productUrl || '#',
       directAffiliateUrl: offer.productUrl || '#',
       internalGoUrl: `/go/${offer.retailer}/${encodeURIComponent(offer.retailerItemId || '')}`,
-      price: offer.price,
-      regularPrice: offer.regularPrice,
+      price: offerPrice,
+      regularPrice: offerRegPrice,
       currency: 'USD',
       savingsAmount: offerSavings?.amount,
       savingsPercentage: offerSavings?.percentage,
-      isLowestPrice: offer.isInStock && offer.price === lowestPrice,
-      isInStock: offer.isInStock,
+      isLowestPrice: Boolean(offer.isInStock && offerPrice > 0 && offerPrice === lowestPrice),
+      isInStock: Boolean(offer.isInStock),
       availabilityStatus: offer.availabilityStatus || 'In Stock',
       shippingInfo: offer.shippingInfo || 'Free Shipping',
       condition: 'New',
-      lastUpdated: new Date().toISOString(),
+      lastUpdated: offer.lastUpdated || new Date().toISOString(),
     };
   });
 
@@ -60,11 +73,15 @@ export function transformCatalogItemToUnified(item: any): UnifiedProduct {
     return a.price - b.price;
   });
 
+  const dynTimestamp = item.id && typeof item.id === 'string' && item.id.startsWith('prod-dyn-')
+    ? new Date(parseInt(item.id.replace('prod-dyn-', ''), 10)).toISOString()
+    : undefined;
+
   return {
     id: item.id,
     title: item.title,
     slug: item.slug,
-    brand: item.brand,
+    brand: item.brand || 'No Brand',
     category: item.category,
     subcategory: item.subcategory,
     badge: item.badge,
@@ -86,6 +103,7 @@ export function transformCatalogItemToUnified(item: any): UnifiedProduct {
     offers,
     rating: item.rating || 4.8,
     ratingCount: item.reviewCount || 100,
-    updatedAt: new Date().toISOString(),
+    createdAt: item.createdAt || dynTimestamp,
+    updatedAt: item.updatedAt || item.createdAt || dynTimestamp || new Date().toISOString(),
   };
 }

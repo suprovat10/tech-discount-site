@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { CATEGORIES, CatalogItem, CategoryDefinition } from '@/data/catalog';
 import { getCatalogProductByIdOrSlug, fetchProductByIdOrSlug, upsertCatalogProduct } from '@/lib/catalogStore';
 import { getCategories } from '@/lib/categoryStore';
+import { getBrands } from '@/lib/brandStore';
 import { RichTextEditor } from '@/components/admin/RichTextEditor';
 import {
   ArrowLeft,
@@ -124,7 +125,10 @@ export default function EditProductStudioPage({
 
   // Form states
   const [title, setTitle] = useState('');
-  const [brand, setBrand] = useState('Apple');
+  const [brand, setBrand] = useState('No Brand');
+  const [isCustomBrand, setIsCustomBrand] = useState(false);
+  const [customBrandInput, setCustomBrandInput] = useState('');
+  const [availableBrands, setAvailableBrands] = useState<string[]>([]);
   const [category, setCategory] = useState(CATEGORIES[0].name);
   const [subcategory, setSubcategory] = useState(CATEGORIES[0].subcategories[0]?.name || '');
   const [badge, setBadge] = useState('Best Seller');
@@ -221,11 +225,11 @@ export default function EditProductStudioPage({
     }
   };
 
-  // SEO
+  // SEO & Social Optimization
+  const [customSlug, setCustomSlug] = useState('');
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
   const [keywords, setKeywords] = useState('');
-  const [customSlug, setCustomSlug] = useState('');
   const [ogImageUrl, setOgImageUrl] = useState('');
   const [ogImageAlt, setOgImageAlt] = useState('');
 
@@ -233,7 +237,13 @@ export default function EditProductStudioPage({
   const [successToast, setSuccessToast] = useState(false);
 
   useEffect(() => {
-    setCategoriesList(getCategories());
+    const loadedCats = getCategories();
+    setCategoriesList(loadedCats);
+    const brands = getBrands().map((b) => b.name);
+    const standardBrands = ['Apple', 'Samsung', 'Sony', 'Bose', 'Dell', 'HP', 'Asus', 'Nintendo', 'LG', 'Google', 'Microsoft', 'Lenovo', 'Logitech', 'Anker', 'Razer'];
+    const mergedBrands = Array.from(new Set([...standardBrands, ...brands])).filter(Boolean).sort();
+    setAvailableBrands(mergedBrands);
+
     let isMounted = true;
 
     async function loadProduct() {
@@ -247,7 +257,16 @@ export default function EditProductStudioPage({
       }
 
       setTitle(existing.title);
-      setBrand(existing.brand);
+      const currentBrand = existing.brand || 'No Brand';
+      setBrand(currentBrand);
+      if (currentBrand !== 'No Brand' && currentBrand !== '' && !mergedBrands.includes(currentBrand)) {
+        setIsCustomBrand(true);
+        setCustomBrandInput(currentBrand);
+      } else {
+        setIsCustomBrand(false);
+        setCustomBrandInput('');
+      }
+
       setCategory(existing.category);
       setSubcategory(existing.subcategory || '');
       setBadge(existing.badge || 'Admin Verified');
@@ -257,22 +276,30 @@ export default function EditProductStudioPage({
       setRichDescription(existing.richDescription || `<p>${existing.description}</p>`);
       setFeatures(existing.features || []);
 
-      if (existing.keySpecs && Object.keys(existing.keySpecs).length > 0) {
-        setKeySpecsList(
-          Object.entries(existing.keySpecs).map(([key, value]) => ({ key, value }))
-        );
-      } else if (existing.specs) {
-        setKeySpecsList(
-          Object.entries(existing.specs).slice(0, 4).map(([key, value]) => ({ key, value }))
-        );
+      if (existing.keySpecs && typeof existing.keySpecs === 'object') {
+        if (Array.isArray(existing.keySpecs)) {
+          setKeySpecsList(existing.keySpecs);
+        } else {
+          setKeySpecsList(
+            Object.entries(existing.keySpecs).map(([key, value]) => ({ key, value: String(value) }))
+          );
+        }
+      } else {
+        setKeySpecsList([]);
       }
 
-      if (existing.specs) {
-        const parsedSpecs: SpecItem[] = Object.entries(existing.specs).map(([key, value]) => ({
-          key,
-          value,
-        }));
-        setSpecsList(parsedSpecs);
+      if (existing.specs && typeof existing.specs === 'object') {
+        if (Array.isArray(existing.specs)) {
+          setSpecsList(existing.specs);
+        } else {
+          const parsedSpecs: SpecItem[] = Object.entries(existing.specs).map(([key, value]) => ({
+            key,
+            value: String(value),
+          }));
+          setSpecsList(parsedSpecs);
+        }
+      } else {
+        setSpecsList([]);
       }
 
       setFaqs(
@@ -670,6 +697,10 @@ export default function EditProductStudioPage({
         keySpecsMap[s.key.trim()] = s.value.trim();
       }
     });
+    // Auto-capture uncommitted Key Spec input
+    if (newKeySpecKey.trim() && newKeySpecValue.trim()) {
+      keySpecsMap[newKeySpecKey.trim()] = newKeySpecValue.trim();
+    }
 
     const specsMap: Record<string, string> = {};
     specsList.forEach((s) => {
@@ -677,6 +708,16 @@ export default function EditProductStudioPage({
         specsMap[s.key.trim()] = s.value.trim();
       }
     });
+    // Auto-capture uncommitted Hardware Spec input
+    if (newSpecKey.trim() && newSpecValue.trim()) {
+      specsMap[newSpecKey.trim()] = newSpecValue.trim();
+    }
+
+    // Auto-capture uncommitted Feature input
+    let finalFeatures = [...features];
+    if (newFeatureInput.trim() && !finalFeatures.includes(newFeatureInput.trim())) {
+      finalFeatures.push(newFeatureInput.trim());
+    }
 
     const plainDescription = richDescription.replace(/<[^>]*>?/gm, '').trim();
 
@@ -712,11 +753,15 @@ export default function EditProductStudioPage({
       };
     });
 
+    const finalBrand = isCustomBrand
+      ? (customBrandInput.trim() || 'No Brand')
+      : (brand.trim() || 'No Brand');
+
     const updatedProduct: CatalogItem = {
       id: productId,
       slug: customSlug || title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
       title: title.trim(),
-      brand: brand.trim(),
+      brand: finalBrand,
       category: category.trim(),
       subcategory: subcategory.trim() || undefined,
       badge,
@@ -728,10 +773,11 @@ export default function EditProductStudioPage({
       imageAlts: imageAlts.length > 0 ? imageAlts : undefined,
       description: plainDescription || title,
       richDescription,
-      features,
+      features: finalFeatures,
       specs: specsMap,
       keySpecs: Object.keys(keySpecsMap).length > 0 ? keySpecsMap : undefined,
       faqs,
+      updatedAt: new Date().toISOString(),
       seo: {
         metaTitle: metaTitle || `${title} - Compare Lowest Prices & Deals`,
         metaDescription: metaDescription || `Compare verified prices for ${title}.`,
@@ -839,22 +885,45 @@ export default function EditProductStudioPage({
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="font-bold text-foreground block mb-1">Brand Manufacturer *</label>
+                <label className="font-bold text-foreground block mb-1">Brand Manufacturer</label>
                 <select
-                  value={brand}
-                  onChange={(e) => setBrand(e.target.value)}
+                  value={isCustomBrand ? '__custom__' : brand}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === '__custom__') {
+                      setIsCustomBrand(true);
+                      setBrand(customBrandInput || '');
+                    } else {
+                      setIsCustomBrand(false);
+                      setBrand(val);
+                    }
+                  }}
                   className="w-full h-9 border border-input bg-background px-3 text-xs font-semibold"
                 >
-                  <option value="Apple">Apple</option>
-                  <option value="Samsung">Samsung</option>
-                  <option value="Sony">Sony</option>
-                  <option value="Bose">Bose</option>
-                  <option value="Dell">Dell</option>
-                  <option value="HP">HP</option>
-                  <option value="Asus">Asus</option>
-                  <option value="Nintendo">Nintendo</option>
-                  <option value="LG">LG</option>
+                  <option value="No Brand">No Brand / None (No Brand Shown)</option>
+                  <optgroup label="Popular Brands">
+                    {availableBrands.map((b) => (
+                      <option key={b} value={b}>
+                        {b}
+                      </option>
+                    ))}
+                  </optgroup>
+                  <option value="__custom__">Other / Custom Brand...</option>
                 </select>
+                {isCustomBrand && (
+                  <div className="mt-2">
+                    <Input
+                      placeholder="Type custom brand name..."
+                      value={customBrandInput}
+                      onChange={(e) => {
+                        setCustomBrandInput(e.target.value);
+                        setBrand(e.target.value);
+                      }}
+                      className="h-8 text-xs"
+                      autoFocus
+                    />
+                  </div>
+                )}
               </div>
 
               <div>

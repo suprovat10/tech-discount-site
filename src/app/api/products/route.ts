@@ -84,9 +84,9 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    if (!body.title || !body.brand) {
+    if (!body.title) {
       return NextResponse.json(
-        { success: false, error: 'Title and Brand are required' },
+        { success: false, error: 'Product title is required' },
         { status: 400 }
       );
     }
@@ -95,21 +95,25 @@ export async function POST(request: Request) {
       id: body.id || `prod-dyn-${Date.now()}`,
       slug: body.slug || body.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
       title: body.title,
-      brand: body.brand,
+      brand: body.brand || 'No Brand',
       category: body.category || 'Electronics',
       subcategory: body.subcategory || '',
-      rating: body.rating || 4.8,
-      reviewCount: body.reviewCount || 100,
+      rating: typeof body.rating === 'number' ? body.rating : (parseFloat(body.rating) || 4.8),
+      reviewCount: typeof body.reviewCount === 'number' ? body.reviewCount : (parseInt(body.reviewCount, 10) || 100),
       badge: body.badge || 'New',
       imageUrl: body.imageUrl || 'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=800&q=80',
+      imageAlt: body.imageAlt || '',
       images: body.images && body.images.length > 0 ? body.images : [body.imageUrl || 'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=800&q=80'],
+      imageAlts: Array.isArray(body.imageAlts) ? body.imageAlts : [],
       description: body.description || '',
       richDescription: body.richDescription || '',
-      features: body.features || [],
-      specs: body.specs || {},
-      faqs: body.faqs || [],
+      features: Array.isArray(body.features) ? body.features : [],
+      specs: (typeof body.specs === 'object' && body.specs !== null) ? body.specs : {},
+      keySpecs: (typeof body.keySpecs === 'object' && body.keySpecs !== null) ? body.keySpecs : {},
+      faqs: Array.isArray(body.faqs) ? body.faqs : [],
       seo: body.seo || {},
-      offers: body.offers || [],
+      offers: Array.isArray(body.offers) ? body.offers : [],
+      createdAt: body.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 

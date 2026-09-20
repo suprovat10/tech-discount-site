@@ -74,6 +74,7 @@ export interface UnifiedProduct {
   coupons?: RetailerCoupon[];
   rating?: number;
   ratingCount?: number;
+  createdAt?: string;
   updatedAt: string;
   lastUpdated?: string;
 }

@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { CATEGORIES, CatalogItem, CategoryDefinition } from '@/data/catalog';
 import { upsertCatalogProduct } from '@/lib/catalogStore';
 import { getCategories } from '@/lib/categoryStore';
+import { getBrands } from '@/lib/brandStore';
 import { RichTextEditor } from '@/components/admin/RichTextEditor';
 import {
   ArrowLeft,
@@ -116,14 +117,21 @@ export default function CreateProductStudioPage() {
   useEffect(() => {
     const loaded = getCategories();
     setCategoriesList(loaded);
-    if (!category && loaded.length > 0) {
+    if (loaded.length > 0) {
       setCategory(loaded[0].name);
     }
+    const brands = getBrands().map((b) => b.name);
+    const standardBrands = ['Apple', 'Samsung', 'Sony', 'Bose', 'Dell', 'HP', 'Asus', 'Nintendo', 'LG', 'Google', 'Microsoft', 'Lenovo', 'Logitech', 'Anker', 'Razer'];
+    const mergedBrands = Array.from(new Set([...standardBrands, ...brands])).filter(Boolean).sort();
+    setAvailableBrands(mergedBrands);
   }, []);
 
   // Basic Information (Starts completely blank)
   const [title, setTitle] = useState('');
-  const [brand, setBrand] = useState('');
+  const [brand, setBrand] = useState('No Brand');
+  const [isCustomBrand, setIsCustomBrand] = useState(false);
+  const [customBrandInput, setCustomBrandInput] = useState('');
+  const [availableBrands, setAvailableBrands] = useState<string[]>([]);
   const [category, setCategory] = useState(CATEGORIES[0]?.name || '');
   const [subcategory, setSubcategory] = useState('');
   const [badge, setBadge] = useState('');
@@ -587,6 +595,10 @@ export default function CreateProductStudioPage() {
         keySpecsMap[s.key.trim()] = s.value.trim();
       }
     });
+    // Auto-capture uncommitted Key Spec input
+    if (newKeySpecKey.trim() && newKeySpecValue.trim()) {
+      keySpecsMap[newKeySpecKey.trim()] = newKeySpecValue.trim();
+    }
 
     const specsMap: Record<string, string> = {};
     specsList.forEach((s) => {
@@ -594,6 +606,16 @@ export default function CreateProductStudioPage() {
         specsMap[s.key.trim()] = s.value.trim();
       }
     });
+    // Auto-capture uncommitted Hardware Spec input
+    if (newSpecKey.trim() && newSpecValue.trim()) {
+      specsMap[newSpecKey.trim()] = newSpecValue.trim();
+    }
+
+    // Auto-capture uncommitted Feature input
+    let finalFeatures = [...features];
+    if (newFeatureInput.trim() && !finalFeatures.includes(newFeatureInput.trim())) {
+      finalFeatures.push(newFeatureInput.trim());
+    }
 
     const plainDescription = richDescription.replace(/<[^>]*>?/gm, '').trim();
 
@@ -629,11 +651,15 @@ export default function CreateProductStudioPage() {
       };
     });
 
+    const finalBrand = isCustomBrand
+      ? (customBrandInput.trim() || 'No Brand')
+      : (brand.trim() || 'No Brand');
+
     const newProduct: CatalogItem = {
       id: `prod-dyn-${Date.now()}`,
       slug: generatedSlug,
       title: title.trim(),
-      brand: brand.trim() || 'Generic',
+      brand: finalBrand,
       category: category.trim(),
       subcategory: subcategory.trim() || undefined,
       badge: badge.trim() || undefined,
@@ -645,10 +671,12 @@ export default function CreateProductStudioPage() {
       imageAlts,
       description: plainDescription || title,
       richDescription,
-      features,
+      features: finalFeatures,
       specs: specsMap,
       keySpecs: Object.keys(keySpecsMap).length > 0 ? keySpecsMap : undefined,
       faqs,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       seo: {
         metaTitle: metaTitle || `${title} - Compare Lowest Prices & Deals`,
         metaDescription:
@@ -734,22 +762,45 @@ export default function CreateProductStudioPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="font-bold text-foreground block mb-1">Brand Manufacturer *</label>
+                <label className="font-bold text-foreground block mb-1">Brand Manufacturer</label>
                 <select
-                  value={brand}
-                  onChange={(e) => setBrand(e.target.value)}
+                  value={isCustomBrand ? '__custom__' : brand}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === '__custom__') {
+                      setIsCustomBrand(true);
+                      setBrand(customBrandInput || '');
+                    } else {
+                      setIsCustomBrand(false);
+                      setBrand(val);
+                    }
+                  }}
                   className="w-full h-9 border border-input bg-background px-3 text-xs font-semibold"
                 >
-                  <option value="Apple">Apple</option>
-                  <option value="Samsung">Samsung</option>
-                  <option value="Sony">Sony</option>
-                  <option value="Bose">Bose</option>
-                  <option value="Dell">Dell</option>
-                  <option value="HP">HP</option>
-                  <option value="Asus">Asus</option>
-                  <option value="Nintendo">Nintendo</option>
-                  <option value="LG">LG</option>
+                  <option value="No Brand">No Brand / None (No Brand Shown)</option>
+                  <optgroup label="Popular Brands">
+                    {availableBrands.map((b) => (
+                      <option key={b} value={b}>
+                        {b}
+                      </option>
+                    ))}
+                  </optgroup>
+                  <option value="__custom__">Other / Custom Brand...</option>
                 </select>
+                {isCustomBrand && (
+                  <div className="mt-2">
+                    <Input
+                      placeholder="Type custom brand name..."
+                      value={customBrandInput}
+                      onChange={(e) => {
+                        setCustomBrandInput(e.target.value);
+                        setBrand(e.target.value);
+                      }}
+                      className="h-8 text-xs"
+                      autoFocus
+                    />
+                  </div>
+                )}
               </div>
 
               <div>

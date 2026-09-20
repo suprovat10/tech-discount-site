@@ -75,14 +75,19 @@ export function DealCard({ product }: DealCardProps) {
             <span className="text-foreground font-bold">{rating}</span>
             <span className="text-muted-foreground/80 hidden xs:inline sm:inline">({product.ratingCount || 120})</span>
           </div>
-          <Link
-            href={`/brand/${(product.brand || 'tech').toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
-            prefetch={true}
-            className="uppercase tracking-wider text-[9px] sm:text-[10px] font-black text-muted-foreground hover:text-blue-600 transition-colors truncate max-w-[65px] sm:max-w-none text-right cursor-pointer"
-            title={`View all ${product.brand} deals`}
-          >
-            {product.brand}
-          </Link>
+          {product.brand &&
+            product.brand !== 'No Brand' &&
+            product.brand !== 'None' &&
+            product.brand.trim() !== '' && (
+              <Link
+                href={`/brand/${product.brand.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+                prefetch={true}
+                className="uppercase tracking-wider text-[9px] sm:text-[10px] font-black text-muted-foreground hover:text-blue-600 transition-colors truncate max-w-[65px] sm:max-w-none text-right cursor-pointer"
+                title={`View all ${product.brand} deals`}
+              >
+                {product.brand}
+              </Link>
+            )}
         </div>
 
         {/* Title - Clickable to View Product */}

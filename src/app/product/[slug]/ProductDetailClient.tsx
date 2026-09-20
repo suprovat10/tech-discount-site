@@ -581,14 +581,19 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground">
                   <div className="flex items-center gap-2">
-                    <Link
-                      href={`/brand/${(activeProduct.brand || 'tech').toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
-                      prefetch={true}
-                      className="uppercase tracking-wider font-bold text-blue-600 hover:underline"
-                      title={`View all products by ${activeProduct.brand}`}
-                    >
-                      {activeProduct.brand}
-                    </Link>
+                    {activeProduct.brand &&
+                      activeProduct.brand !== 'No Brand' &&
+                      activeProduct.brand !== 'None' &&
+                      activeProduct.brand.trim() !== '' && (
+                        <Link
+                          href={`/brand/${activeProduct.brand.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+                          prefetch={true}
+                          className="uppercase tracking-wider font-bold text-blue-600 hover:underline"
+                          title={`View all products by ${activeProduct.brand}`}
+                        >
+                          {activeProduct.brand}
+                        </Link>
+                      )}
                     {hasValidBadge && (
                       <span className="px-2 py-0.5 bg-amber-500 text-white font-black text-[10px] uppercase tracking-wider">
                         {activeProduct.badge}
@@ -642,26 +647,48 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
               </div>
 
               {/* Key Specs Preview (shows dedicated keySpecs if provided, otherwise falls back to first 4 of specs) */}
-              {((activeProduct.keySpecs && Object.keys(activeProduct.keySpecs).length > 0) ||
-                (activeProduct.specs && Object.keys(activeProduct.specs).length > 0)) && (
-                <div className="space-y-1.5 pt-1">
-                  <h3 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                    Key Specifications
-                  </h3>
-                  <div className="divide-y divide-border/60 text-xs">
-                    {Object.entries(
-                      (activeProduct.keySpecs && Object.keys(activeProduct.keySpecs).length > 0
-                        ? activeProduct.keySpecs
-                        : activeProduct.specs) || {}
-                    ).slice(0, 4).map(([k, v]) => (
-                      <div key={k} className="py-1.5 flex justify-between">
-                        <span className="text-muted-foreground">{k}</span>
-                        <span className="font-semibold text-foreground">{v}</span>
-                      </div>
-                    ))}
+              {(() => {
+                const rawKeySpecs = activeProduct.keySpecs;
+                const rawSpecs = activeProduct.specs;
+
+                let entries: [string, string][] = [];
+                if (rawKeySpecs && typeof rawKeySpecs === 'object') {
+                  if (Array.isArray(rawKeySpecs)) {
+                    entries = (rawKeySpecs as any[])
+                      .map((item: any) => [item.key || '', item.value || ''] as [string, string])
+                      .filter(([k, v]) => Boolean(k && v));
+                  } else {
+                    entries = Object.entries(rawKeySpecs).map(([k, v]) => [k, String(v)]);
+                  }
+                } else if (rawSpecs && typeof rawSpecs === 'object') {
+                  if (Array.isArray(rawSpecs)) {
+                    entries = (rawSpecs as any[])
+                      .slice(0, 4)
+                      .map((item: any) => [item.key || '', item.value || ''] as [string, string])
+                      .filter(([k, v]) => Boolean(k && v));
+                  } else {
+                    entries = Object.entries(rawSpecs).slice(0, 4).map(([k, v]) => [k, String(v)]);
+                  }
+                }
+
+                if (entries.length === 0) return null;
+
+                return (
+                  <div className="space-y-1.5 pt-1">
+                    <h3 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Key Specifications
+                    </h3>
+                    <div className="divide-y divide-border/60 text-xs">
+                      {entries.slice(0, 6).map(([k, v]) => (
+                        <div key={k} className="py-1.5 flex justify-between">
+                          <span className="text-muted-foreground">{k}</span>
+                          <span className="font-semibold text-foreground">{v}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Fast Delivery / Safe Check */}
               <div className="flex items-center gap-4 pt-1 text-[11px] font-medium text-muted-foreground">
@@ -799,9 +826,14 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
                 <FileText className="w-4 h-4 text-blue-600" />
                 <span>Product Overview & Full Description</span>
               </h2>
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                {activeProduct.brand} Official Information
-              </span>
+              {activeProduct.brand &&
+                activeProduct.brand !== 'No Brand' &&
+                activeProduct.brand !== 'None' &&
+                activeProduct.brand.trim() !== '' && (
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    {activeProduct.brand} Official Information
+                  </span>
+                )}
             </div>
 
             <div className="border border-border/80 bg-card p-6 space-y-6">
@@ -852,35 +884,51 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
               )}
 
               {/* Full Specifications (1 Column Layout) */}
-              {activeProduct.specs && Object.keys(activeProduct.specs).length > 0 && (
-                <div className="space-y-3 pt-5 border-t border-border/60">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                      Full Technical Specifications
-                    </h3>
-                    <span className="text-[11px] font-semibold text-blue-600">
-                      {Object.keys(activeProduct.specs).length} Hardware Specs
-                    </span>
+              {(() => {
+                const rawSpecs = activeProduct.specs;
+                let specEntries: [string, string][] = [];
+                if (rawSpecs && typeof rawSpecs === 'object') {
+                  if (Array.isArray(rawSpecs)) {
+                    specEntries = (rawSpecs as any[])
+                      .map((item: any) => [item.key || '', item.value || ''] as [string, string])
+                      .filter(([k, v]) => Boolean(k && v));
+                  } else {
+                    specEntries = Object.entries(rawSpecs).map(([k, v]) => [k, String(v)]);
+                  }
+                }
+
+                if (specEntries.length === 0) return null;
+
+                return (
+                  <div className="space-y-3 pt-5 border-t border-border/60">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                        Full Technical Specifications
+                      </h3>
+                      <span className="text-[11px] font-semibold text-blue-600">
+                        {specEntries.length} Hardware Specs
+                      </span>
+                    </div>
+                    <div className="border border-border/80 bg-background divide-y divide-border/60 text-xs sm:text-sm">
+                      {specEntries.map(([key, val], idx) => (
+                        <div
+                          key={key}
+                          className={`flex items-center justify-between p-3.5 transition-colors ${
+                            idx % 2 === 0 ? 'bg-muted/25' : 'bg-background'
+                          } hover:bg-muted/40`}
+                        >
+                          <span className="font-semibold text-muted-foreground w-2/5 sm:w-1/3 shrink-0">
+                            {key}
+                          </span>
+                          <span className="font-bold text-foreground text-right flex-1 pl-4">
+                            {val}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="border border-border/80 bg-background divide-y divide-border/60 text-xs sm:text-sm">
-                    {Object.entries(activeProduct.specs).map(([key, val], idx) => (
-                      <div
-                        key={key}
-                        className={`flex items-center justify-between p-3.5 transition-colors ${
-                          idx % 2 === 0 ? 'bg-muted/25' : 'bg-background'
-                        } hover:bg-muted/40`}
-                      >
-                        <span className="font-semibold text-muted-foreground w-2/5 sm:w-1/3 shrink-0">
-                          {key}
-                        </span>
-                        <span className="font-bold text-foreground text-right flex-1 pl-4">
-                          {val}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Retailer Quality Assurance */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50 text-xs">
