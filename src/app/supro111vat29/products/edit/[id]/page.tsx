@@ -632,9 +632,22 @@ export default function EditProductStudioPage({
   };
 
   // SEO Social Image Handlers
-  const handleSocialImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSocialImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('folder', 'social');
+        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.success && data.url) {
+          setOgImageUrl(data.url);
+          return;
+        }
+      } catch (err) {
+        console.warn('Social image upload API failed:', err);
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         if (typeof reader.result === 'string') {

@@ -54,6 +54,10 @@ export function getCatalogProducts(): CatalogItem[] {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
+        const deleted = getDeletedProductIds();
+        if (deleted.size > 0) {
+          return parsed.filter((p) => !deleted.has(p.id) && !deleted.has(p.slug));
+        }
         return parsed;
       }
     }
@@ -154,6 +158,11 @@ export async function upsertCatalogProduct(product: CatalogItem): Promise<boolea
 export async function deleteCatalogProduct(id: string): Promise<boolean> {
   markProductDeleted(id);
   const products = getCatalogProducts();
+  const target = products.find((p) => p.id === id || p.slug === id);
+  if (target) {
+    if (target.id) markProductDeleted(target.id);
+    if (target.slug) markProductDeleted(target.slug);
+  }
   const filtered = products.filter((p) => p.id !== id && p.slug !== id);
   saveCatalogProducts(filtered);
 

@@ -668,9 +668,25 @@ export function RichTextEditor({
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={(e) => {
+                      onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (file) {
+                          try {
+                            const formData = new FormData();
+                            formData.append('file', file);
+                            formData.append('folder', 'editor');
+                            const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                            const data = await res.json();
+                            if (data.success && data.url) {
+                              setMediaUrl(data.url);
+                              if (!mediaAlt) {
+                                setMediaAlt(file.name.replace(/\.[^/.]+$/, ''));
+                              }
+                              return;
+                            }
+                          } catch (err) {
+                            console.warn('Editor image upload API failed:', err);
+                          }
                           const reader = new FileReader();
                           reader.onloadend = () => {
                             if (typeof reader.result === 'string') {

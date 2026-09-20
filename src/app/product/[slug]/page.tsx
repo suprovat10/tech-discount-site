@@ -8,7 +8,8 @@ import { generateProductJsonLd, generateBreadcrumbJsonLd } from '@/lib/seo/jsonl
 import { ProductDetailClient } from './ProductDetailClient';
 import { getCategories, getCategorySlug } from '@/lib/categoryStore';
 
-export const revalidate = 30;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function generateStaticParams() {
   const products = await getDatabaseProducts();

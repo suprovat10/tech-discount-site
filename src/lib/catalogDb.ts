@@ -11,14 +11,19 @@ export const DB_CATALOG_KEY = 'products_catalog';
  */
 export async function getDatabaseProducts(): Promise<CatalogItem[]> {
   try {
+    const oldDeleted = (await getSiteKV<string[]>('deleted_product_ids')) || [];
+    const delSet = new Set(oldDeleted);
+
     const cloud = await getSiteKV<CatalogItem[]>(DB_CATALOG_KEY);
     if (cloud !== null && Array.isArray(cloud)) {
+      if (delSet.size > 0) {
+        return cloud.filter((p) => !delSet.has(p.id) && !delSet.has(p.slug));
+      }
       return cloud;
     }
 
     // Migration helper: If products_catalog key not created yet, check custom_products & deleted_product_ids
     const oldCustom = await getSiteKV<CatalogItem[]>('custom_products');
-    const oldDeleted = await getSiteKV<string[]>('deleted_product_ids');
 
     let initialCatalog = [...PRODUCTS_CATALOG];
     if (oldCustom && Array.isArray(oldCustom) && oldCustom.length > 0) {
@@ -28,8 +33,7 @@ export async function getDatabaseProducts(): Promise<CatalogItem[]> {
       initialCatalog = Array.from(map.values());
     }
 
-    if (oldDeleted && Array.isArray(oldDeleted) && oldDeleted.length > 0) {
-      const delSet = new Set(oldDeleted);
+    if (delSet.size > 0) {
       initialCatalog = initialCatalog.filter((p) => !delSet.has(p.id) && !delSet.has(p.slug));
     }
 
@@ -46,6 +50,15 @@ export async function getDatabaseProducts(): Promise<CatalogItem[]> {
  * Add or update a product in the cloud database.
  */
 export async function saveDatabaseProduct(product: CatalogItem): Promise<CatalogItem[]> {
+  // If this product was previously marked deleted, unmark it
+  try {
+    const oldDeleted = (await getSiteKV<string[]>('deleted_product_ids')) || [];
+    if (oldDeleted.includes(product.id) || (product.slug && oldDeleted.includes(product.slug))) {
+      const updatedDeleted = oldDeleted.filter((id) => id !== product.id && id !== product.slug);
+      await setSiteKV('deleted_product_ids', updatedDeleted);
+    }
+  } catch {}
+
   const current = await getDatabaseProducts();
   const index = current.findIndex((p) => p.id === product.id || p.slug === product.slug);
   let updated: CatalogItem[];
@@ -65,8 +78,24 @@ export async function saveDatabaseProduct(product: CatalogItem): Promise<Catalog
  */
 export async function deleteDatabaseProduct(idOrSlug: string): Promise<CatalogItem[]> {
   const current = await getDatabaseProducts();
+  const target = current.find((p) => p.id === idOrSlug || p.slug === idOrSlug);
   const updated = current.filter((p) => p.id !== idOrSlug && p.slug !== idOrSlug);
   await setSiteKV(DB_CATALOG_KEY, updated);
+
+  // Permanently record deletion in deleted_product_ids so it NEVER comes back
+  try {
+    const oldDeleted = (await getSiteKV<string[]>('deleted_product_ids')) || [];
+    const toAdd = [idOrSlug];
+    if (target) {
+      if (target.id) toAdd.push(target.id);
+      if (target.slug) toAdd.push(target.slug);
+    }
+    const newDeleted = Array.from(new Set([...oldDeleted, ...toAdd]));
+    await setSiteKV('deleted_product_ids', newDeleted);
+  } catch (err) {
+    console.warn('Error updating deleted_product_ids:', err);
+  }
+
   return updated;
 }
 

@@ -60,19 +60,21 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
         setCatalogProducts(allProds);
       }
       fetchAndSyncCatalogFromServer().then((fresh) => {
-        if (fresh && fresh.length > 0) {
+        if (fresh && Array.isArray(fresh)) {
           setCatalogProducts(fresh);
+          const stillExists = fresh.find((p) => p.slug === slug || p.id === slug);
+          if (!stillExists) {
+            setActiveProduct(null);
+          } else if (!product) {
+            setActiveProduct(transformCatalogItemToUnified(stillExists));
+          }
         }
       });
 
       if (product) {
         setActiveProduct(product);
-      } else if (slug) {
-        const localItem = getCatalogProductByIdOrSlug(slug);
-        if (localItem) {
-          const unified = transformCatalogItemToUnified(localItem);
-          setActiveProduct(unified);
-        }
+      } else {
+        setActiveProduct(null);
       }
     } catch {
       // ignore

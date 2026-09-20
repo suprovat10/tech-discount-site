@@ -17,6 +17,8 @@ function purgeServerCaches(slug?: string) {
     revalidatePath('/', 'page');
     revalidatePath('/products', 'layout');
     revalidatePath('/products', 'page');
+    revalidatePath('/products/[[...slug]]', 'page');
+    revalidatePath('/products/[[...slug]]', 'layout');
     revalidatePath('/search', 'page');
     revalidatePath('/brand/[slug]', 'page');
     revalidatePath('/product/[slug]', 'page');

@@ -94,9 +94,22 @@ export default function AdminBrandsPage() {
     }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('folder', 'brands');
+        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.success && data.url) {
+          setLogoUrl(data.url);
+          return;
+        }
+      } catch (err) {
+        console.warn('Brand logo upload API failed:', err);
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         if (typeof reader.result === 'string') {

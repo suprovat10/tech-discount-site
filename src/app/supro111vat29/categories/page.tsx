@@ -84,12 +84,25 @@ export default function AdminCategoriesPage() {
     }
   };
 
-  const handleImageUpload = (
+  const handleImageUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
     callback: (dataUrl: string) => void
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', 'categories');
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.success && data.url) {
+        callback(data.url);
+        return;
+      }
+    } catch (err) {
+      console.warn('Category image upload API failed:', err);
+    }
     const reader = new FileReader();
     reader.onload = (uploadEvent) => {
       if (typeof uploadEvent.target?.result === 'string') {
