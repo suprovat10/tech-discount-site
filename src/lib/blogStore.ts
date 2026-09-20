@@ -3,13 +3,66 @@ import { BLOG_POSTS as DEFAULT_BLOGS, DEFAULT_BLOG_CATEGORIES, BlogPost, BlogCat
 const BLOG_CATEGORIES_STORAGE_KEY = 'smarttech_blog_categories';
 const BLOG_POSTS_STORAGE_KEY = 'smarttech_blog_posts';
 
+let isInitialBlogsFetchTriggered = false;
+let isInitialBlogCatsFetchTriggered = false;
+
+/**
+ * Fetch and sync blogs from server / MongoDB into client localStorage
+ */
+export async function fetchAndSyncBlogsFromServer(): Promise<BlogPost[]> {
+  if (typeof window === 'undefined') return DEFAULT_BLOGS;
+  try {
+    const res = await fetch('/api/blogs', { cache: 'no-store' });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        localStorage.setItem(BLOG_POSTS_STORAGE_KEY, JSON.stringify(json.data));
+        window.dispatchEvent(new Event('smarttech_blogs_updated'));
+        return json.data;
+      }
+    }
+  } catch (e) {
+    console.warn('Could not sync blogs from server:', e);
+  }
+  return getBlogs();
+}
+
+/**
+ * Fetch and sync blog categories from server / MongoDB into client localStorage
+ */
+export async function fetchAndSyncBlogCategoriesFromServer(): Promise<BlogCategory[]> {
+  if (typeof window === 'undefined') return DEFAULT_BLOG_CATEGORIES;
+  try {
+    const res = await fetch('/api/blogs/categories', { cache: 'no-store' });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        localStorage.setItem(BLOG_CATEGORIES_STORAGE_KEY, JSON.stringify(json.data));
+        window.dispatchEvent(new Event('smarttech_blog_categories_updated'));
+        return json.data;
+      }
+    }
+  } catch (e) {
+    console.warn('Could not sync blog categories from server:', e);
+  }
+  return getBlogCategories();
+}
+
 /**
  * Get Blog Categories from localStorage with default fallbacks
+ * Automatically triggers server sync in background.
  */
 export function getBlogCategories(): BlogCategory[] {
   if (typeof window === 'undefined') {
     return DEFAULT_BLOG_CATEGORIES;
   }
+
+  // Trigger background server sync once per session
+  if (!isInitialBlogCatsFetchTriggered) {
+    isInitialBlogCatsFetchTriggered = true;
+    fetchAndSyncBlogCategoriesFromServer().catch(() => {});
+  }
+
   try {
     const raw = localStorage.getItem(BLOG_CATEGORIES_STORAGE_KEY);
     if (raw) {
@@ -25,19 +78,44 @@ export function getBlogCategories(): BlogCategory[] {
 }
 
 /**
- * Save Blog Categories
+ * Save Blog Categories to localStorage and sync to server
  */
 export function saveBlogCategories(categories: BlogCategory[]): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(BLOG_CATEGORIES_STORAGE_KEY, JSON.stringify(categories));
+    window.dispatchEvent(new Event('smarttech_blog_categories_updated'));
   } catch (e) {
     console.error('Error saving blog categories to localStorage:', e);
   }
 }
 
+async function syncBlogCategoryToServer(category: BlogCategory) {
+  if (typeof window === 'undefined') return;
+  try {
+    await fetch('/api/blogs/categories', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(category),
+    });
+  } catch (e) {
+    console.warn('Async server sync for blog category failed:', e);
+  }
+}
+
+async function syncBlogCategoryDeleteToServer(id: string) {
+  if (typeof window === 'undefined') return;
+  try {
+    await fetch(`/api/blogs/categories?id=${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    });
+  } catch (e) {
+    console.warn('Async server delete for blog category failed:', e);
+  }
+}
+
 /**
- * Add a new Blog Category
+ * Add a new Blog Category and sync to server / MongoDB
  */
 export function addBlogCategory(category: BlogCategory): BlogCategory[] {
   const current = getBlogCategories();
@@ -46,58 +124,56 @@ export function addBlogCategory(category: BlogCategory): BlogCategory[] {
     ? current.map((c) => (c.id === category.id ? category : c))
     : [...current, category];
   saveBlogCategories(updated);
+  syncBlogCategoryToServer(category);
   return updated;
 }
 
 /**
- * Update an existing Blog Category
+ * Update an existing Blog Category and sync to server / MongoDB
  */
 export function updateBlogCategory(category: BlogCategory): BlogCategory[] {
   const current = getBlogCategories();
   const updated = current.map((c) => (c.id === category.id ? category : c));
   saveBlogCategories(updated);
+  syncBlogCategoryToServer(category);
   return updated;
 }
 
 /**
- * Delete a Blog Category
+ * Delete a Blog Category and sync to server / MongoDB
  */
 export function deleteBlogCategory(id: string): BlogCategory[] {
   const current = getBlogCategories();
-  const updated = current.filter((c) => c.id !== id);
+  const updated = current.filter((c) => c.id !== id && c.slug !== id);
   saveBlogCategories(updated);
+  syncBlogCategoryDeleteToServer(id);
   return updated;
 }
 
 /**
- * Get All Blog Posts
+ * Get All Blog Posts from localStorage with server sync
  */
 export function getBlogs(): BlogPost[] {
   if (typeof window === 'undefined') {
     return DEFAULT_BLOGS;
   }
+
+  // Trigger background server sync once per session
+  if (!isInitialBlogsFetchTriggered) {
+    isInitialBlogsFetchTriggered = true;
+    fetchAndSyncBlogsFromServer().catch(() => {});
+  }
+
   try {
     const raw = localStorage.getItem(BLOG_POSTS_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        const parsedIds = new Set(parsed.map((p: any) => p.id));
-        const missing = DEFAULT_BLOGS.filter((b) => !parsedIds.has(b.id));
-        if (missing.length > 0) {
-          const merged = [...parsed, ...missing];
-          localStorage.setItem(BLOG_POSTS_STORAGE_KEY, JSON.stringify(merged));
-          return merged;
-        }
         return parsed;
       }
     }
   } catch (e) {
     console.error('Error reading blogs from localStorage:', e);
-  }
-  try {
-    localStorage.setItem(BLOG_POSTS_STORAGE_KEY, JSON.stringify(DEFAULT_BLOGS));
-  } catch (e) {
-    console.error('Error saving blogs to localStorage:', e);
   }
   return DEFAULT_BLOGS;
 }
@@ -107,16 +183,18 @@ export function getBlogs(): BlogPost[] {
  */
 export function getBlogById(idOrSlug: string): BlogPost | undefined {
   const blogs = getBlogs();
-  return blogs.find((b) => b.id === idOrSlug || b.slug === idOrSlug);
+  const clean = idOrSlug.toLowerCase().trim();
+  return blogs.find((b) => b.id === idOrSlug || b.slug.toLowerCase().trim() === clean);
 }
 
 /**
- * Save All Blog Posts
+ * Save All Blog Posts to localStorage
  */
 export function saveBlogs(blogs: BlogPost[]): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(BLOG_POSTS_STORAGE_KEY, JSON.stringify(blogs));
+    window.dispatchEvent(new Event('smarttech_blogs_updated'));
   } catch (e) {
     console.error('Error saving blogs to localStorage:', e);
   }
@@ -147,35 +225,29 @@ async function syncBlogDeleteToServer(id: string) {
 }
 
 /**
- * Add Blog Post (Placed at the very top / first in list)
+ * Add Blog Post (Placed at the very top / first in list) and sync to server / MongoDB
  */
 export function addBlog(blog: BlogPost): BlogPost[] {
   const current = getBlogs();
   const updated = [blog, ...current.filter((b) => b.id !== blog.id)];
   saveBlogs(updated);
   syncBlogToServer(blog);
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new Event('smarttech_blogs_updated'));
-  }
   return updated;
 }
 
 /**
- * Update Blog Post (Moved to the very top / first in list)
+ * Update Blog Post (Moved to the very top / first in list) and sync to server / MongoDB
  */
 export function updateBlog(blog: BlogPost): BlogPost[] {
   const current = getBlogs();
   const updated = [blog, ...current.filter((b) => b.id !== blog.id)];
   saveBlogs(updated);
   syncBlogToServer(blog);
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new Event('smarttech_blogs_updated'));
-  }
   return updated;
 }
 
 /**
- * Duplicate Blog Post
+ * Duplicate Blog Post and sync to server / MongoDB
  */
 export function duplicateBlog(id: string): BlogPost[] {
   const current = getBlogs();
@@ -194,22 +266,16 @@ export function duplicateBlog(id: string): BlogPost[] {
   const updated = [copyPost, ...current];
   saveBlogs(updated);
   syncBlogToServer(copyPost);
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new Event('smarttech_blogs_updated'));
-  }
   return updated;
 }
 
 /**
- * Delete Blog Post
+ * Delete Blog Post and sync to server / MongoDB
  */
 export function deleteBlog(id: string): BlogPost[] {
   const current = getBlogs();
   const updated = current.filter((b) => b.id !== id);
   saveBlogs(updated);
   syncBlogDeleteToServer(id);
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new Event('smarttech_blogs_updated'));
-  }
   return updated;
 }

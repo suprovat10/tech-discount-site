@@ -32,9 +32,11 @@ export function BlogListClient({
     loadData();
 
     window.addEventListener('smarttech_blogs_updated', loadData);
+    window.addEventListener('smarttech_blog_categories_updated', loadData);
     window.addEventListener('storage', loadData);
     return () => {
       window.removeEventListener('smarttech_blogs_updated', loadData);
+      window.removeEventListener('smarttech_blog_categories_updated', loadData);
       window.removeEventListener('storage', loadData);
     };
   }, []);

@@ -43,6 +43,23 @@ export default function AdminBlogsPage() {
   useEffect(() => {
     setBlogs(getBlogs());
     setCategories(getBlogCategories());
+
+    const handleBlogsUpdate = () => {
+      setBlogs(getBlogs());
+    };
+    const handleCatsUpdate = () => {
+      setCategories(getBlogCategories());
+    };
+
+    window.addEventListener('smarttech_blogs_updated', handleBlogsUpdate);
+    window.addEventListener('smarttech_blog_categories_updated', handleCatsUpdate);
+    window.addEventListener('storage', handleBlogsUpdate);
+
+    return () => {
+      window.removeEventListener('smarttech_blogs_updated', handleBlogsUpdate);
+      window.removeEventListener('smarttech_blog_categories_updated', handleCatsUpdate);
+      window.removeEventListener('storage', handleBlogsUpdate);
+    };
   }, []);
 
   const showSuccess = (msg: string) => {

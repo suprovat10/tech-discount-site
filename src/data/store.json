@@ -1786,5 +1786,37 @@
         "Price Tracking"
       ]
     }
+  ],
+  "blog_categories": [
+    {
+      "id": "shopping-guides",
+      "name": "Shopping Guides",
+      "slug": "shopping-guides",
+      "description": "Tips, price tracking advice, and holiday sale guides"
+    },
+    {
+      "id": "laptops-computers",
+      "name": "Laptops & Computers",
+      "slug": "laptops-computers",
+      "description": "MacBooks, Windows ultrabooks, and monitor buying guides"
+    },
+    {
+      "id": "audio-sound",
+      "name": "Audio & Sound",
+      "slug": "audio-sound",
+      "description": "Headphones, earbuds, soundbars, and acoustic deals"
+    },
+    {
+      "id": "smartphones-gadgets",
+      "name": "Smartphones & Gadgets",
+      "slug": "smartphones-gadgets",
+      "description": "Flagship phones, smartwatches, and tablet comparisons"
+    },
+    {
+      "id": "deals-savings",
+      "name": "Deals & Price Trends",
+      "slug": "deals-savings",
+      "description": "Retailer discount analysis and seasonal sales"
+    }
   ]
 }

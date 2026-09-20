@@ -12,6 +12,12 @@ interface PolicyPageClientProps {
 export function PolicyPageClient({ slug }: PolicyPageClientProps) {
   const page = usePage(slug);
 
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && !window.location.hash) {
+      window.scrollTo(0, 0);
+    }
+  }, [slug]);
+
   return (
     <div className="container mx-auto px-4 sm:px-6 py-12 max-w-4xl space-y-8">
       {/* Header */}
@@ -39,7 +45,7 @@ export function PolicyPageClient({ slug }: PolicyPageClientProps) {
       </div>
 
       {/* Main Content Card with rich typography */}
-      <div className="p-6 sm:p-10 rounded-2xl border border-border bg-card shadow-sm prose dark:prose-invert max-w-none text-muted-foreground prose-headings:text-foreground prose-headings:font-bold prose-h2:text-lg prose-h2:mt-6 prose-h2:mb-2 prose-h3:text-base prose-p:leading-relaxed prose-li:my-1 prose-a:text-blue-600 prose-a:underline">
+      <div className="p-6 sm:p-10 border border-border bg-card shadow-sm prose dark:prose-invert max-w-none text-muted-foreground prose-headings:text-foreground prose-headings:font-bold prose-h2:text-lg prose-h2:mt-6 prose-h2:mb-2 prose-h3:text-base prose-p:leading-relaxed prose-li:my-1 prose-a:text-blue-600 prose-a:underline rich-text-content [&_[id]]:scroll-mt-24">
         <div dangerouslySetInnerHTML={{ __html: page.content }} />
       </div>
 

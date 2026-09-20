@@ -59,7 +59,7 @@ export const DEFAULT_PAGES: SitePage[] = [
   <li><strong>Target Partners Program:</strong> We participate in the Target Partner Program via Impact / CJ Affiliate, earning referral fees on eligible purchases on Target.com.</li>
 </ul>
 
-<h2>3. Editorial Independence & Integrity</h2>
+<h2 id="integrity" class="scroll-mt-24">3. Editorial Independence & Integrity</h2>
 <p>Our price ranking and comparisons are completely programmatic and objective. Our software displays the lowest price first based entirely on math and verified stock data. Retailers cannot pay us for top placement or preferential rankings.</p>
     `.trim(),
   },

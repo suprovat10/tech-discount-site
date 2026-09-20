@@ -1,8 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useBranding } from '@/hooks/useBranding';
+import { getCategories } from '@/lib/categoryStore';
+import { CategoryDefinition } from '@/data/catalog';
 import {
   ShieldCheck,
   Mail,
@@ -15,6 +17,16 @@ import {
 export function Footer() {
   const branding = useBranding();
   const currentYear = new Date().getFullYear();
+  const [categories, setCategories] = useState<CategoryDefinition[]>([]);
+
+  useEffect(() => {
+    setCategories(getCategories());
+    const handleUpdate = () => {
+      setCategories(getCategories());
+    };
+    window.addEventListener('smarttech_categories_updated', handleUpdate);
+    return () => window.removeEventListener('smarttech_categories_updated', handleUpdate);
+  }, []);
 
   return (
     <footer className="w-full border-t border-border/70 bg-card/50 text-muted-foreground text-xs transition-all mt-20">
@@ -174,21 +186,33 @@ export function Footer() {
                   Tech Buying Guides & Blog
                 </Link>
               </li>
-              <li>
-                <Link href="/products/laptops" className="hover:text-foreground transition-colors">
-                  Laptops & Computers
-                </Link>
-              </li>
-              <li>
-                <Link href="/products/audio" className="hover:text-foreground transition-colors">
-                  Audio & Headphones
-                </Link>
-              </li>
-              <li>
-                <Link href="/products/mobile" className="hover:text-foreground transition-colors">
-                  Smartphones & Watches
-                </Link>
-              </li>
+              {categories.length > 0 ? (
+                categories.slice(0, 6).map((cat) => (
+                  <li key={cat.id}>
+                    <Link href={`/products/${cat.slug}`} className="hover:text-foreground transition-colors">
+                      {cat.name}
+                    </Link>
+                  </li>
+                ))
+              ) : (
+                <>
+                  <li>
+                    <Link href="/products/laptops" className="hover:text-foreground transition-colors">
+                      Laptops & Computers
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/products/audio" className="hover:text-foreground transition-colors">
+                      Audio & Headphones
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/products/mobile" className="hover:text-foreground transition-colors">
+                      Smartphones & Watches
+                    </Link>
+                  </li>
+                </>
+              )}
             </ul>
           </div>
 

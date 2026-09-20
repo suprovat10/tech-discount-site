@@ -123,6 +123,16 @@ export default function BlogForm({
     if (!category && cats.length > 0) {
       setCategory(cats[0].name);
     }
+
+    const handleCatsUpdate = () => {
+      const updated = getBlogCategories();
+      setCategories(updated);
+      if (!category && updated.length > 0) {
+        setCategory(updated[0].name);
+      }
+    };
+    window.addEventListener('smarttech_blog_categories_updated', handleCatsUpdate);
+    return () => window.removeEventListener('smarttech_blog_categories_updated', handleCatsUpdate);
   }, [category]);
 
   const handleTitleChange = (val: string) => {
