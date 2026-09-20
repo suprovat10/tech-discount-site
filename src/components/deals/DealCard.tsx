@@ -7,7 +7,6 @@ import { UnifiedProduct } from '@/types/product';
 import { formatCurrency, formatPercentage } from '@/lib/utils';
 import { WatchlistButton } from '../watchlist/WatchlistButton';
 import { Star, ArrowRight } from 'lucide-react';
-import { Button } from '../ui/button';
 
 interface DealCardProps {
   product: UnifiedProduct;
@@ -129,17 +128,11 @@ export function DealCard({ product }: DealCardProps) {
           <Link
             href={`/product/${product.slug}`}
             prefetch={true}
-            className="flex-1 min-w-0 block cursor-pointer"
+            className="flex-1 min-w-0 h-8 sm:h-9 px-1.5 sm:px-3 text-[11px] sm:text-xs font-bold border border-border hover:bg-foreground hover:text-background transition-colors flex items-center justify-center gap-1.5 cursor-pointer rounded-none"
             title="Check price and store offers"
           >
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full text-[11px] sm:text-xs font-bold h-8 sm:h-9 px-1.5 sm:px-3 border-border hover:bg-foreground hover:text-background transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-            >
-              <span>Check Price</span>
-              <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
-            </Button>
+            <span>Check Price</span>
+            <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
           </Link>
           <div
             className="shrink-0 cursor-pointer"

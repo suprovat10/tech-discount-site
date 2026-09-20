@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Flame, Sparkles } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { SiteSettings, DEFAULT_SITE_SETTINGS } from '@/types/settings';
 
 interface HeroSectionProps {
@@ -83,17 +82,21 @@ export function HeroSection({ initialSettings }: HeroSectionProps) {
           </p>
 
           <div className="flex flex-wrap items-center gap-3 pt-2">
-            <Link href={primaryUrl}>
-              <Button className="bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 text-white font-bold text-xs h-10 px-5 flex items-center gap-2">
-                <span>{primaryText}</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Button>
+            <Link
+              href={primaryUrl}
+              prefetch={true}
+              className="bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 text-white font-bold text-xs h-10 px-5 inline-flex items-center gap-2 transition-colors cursor-pointer rounded-none"
+            >
+              <span>{primaryText}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
-            <Link href={secondaryUrl}>
-              <Button variant="outline" className="font-bold text-xs h-10 px-5 flex items-center gap-1.5">
-                <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                <span>{secondaryText}</span>
-              </Button>
+            <Link
+              href={secondaryUrl}
+              prefetch={true}
+              className="border border-input bg-background hover:bg-accent hover:text-accent-foreground font-bold text-xs h-10 px-5 inline-flex items-center gap-1.5 transition-colors cursor-pointer rounded-none"
+            >
+              <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+              <span>{secondaryText}</span>
             </Link>
           </div>
         </div>

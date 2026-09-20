@@ -283,6 +283,7 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
         <ChevronRight className="w-3 h-3 text-muted-foreground/40 shrink-0" />
         <Link
           href={`/products/${getCategorySlug(categories, activeProduct.category)}`}
+          prefetch={true}
           className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap"
         >
           {activeProduct.category}
@@ -292,6 +293,7 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
             <ChevronRight className="w-3 h-3 text-muted-foreground/40 shrink-0" />
             <Link
               href={`/products/${getCategorySlug(categories, activeProduct.category)}/${getSubcategorySlug(categories.find((c) => c.name.toLowerCase() === activeProduct.category.toLowerCase()), activeProduct.subcategory)}`}
+              prefetch={true}
               className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap"
             >
               {activeProduct.subcategory}
@@ -319,6 +321,7 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
               </span>
               <Link
                 href="/products"
+                prefetch={true}
                 className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-all"
                 title="Reset / View all products"
                 aria-label="Reset filters"
@@ -337,6 +340,7 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
                 {/* All Categories option */}
                 <Link
                   href="/products"
+                  prefetch={true}
                   className="w-full text-left py-2 px-2.5 rounded-lg flex items-center justify-between transition-all text-slate-700 dark:text-slate-300 hover:text-foreground hover:bg-slate-100 dark:hover:bg-slate-800/60 font-medium"
                 >
                   <span className="tracking-tight">All Categories</span>
@@ -362,6 +366,7 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
                       >
                         <Link
                           href={`/products/${cat.slug || getCategorySlug(categories, cat.name)}`}
+                          prefetch={true}
                           className="flex-1 text-left truncate pr-1 tracking-tight"
                         >
                           {cat.name}
@@ -419,6 +424,7 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
                               <Link
                                   key={sub.id}
                                   href={`/products/${cat.slug || getCategorySlug(categories, cat.name)}/${sub.slug || getSubcategorySlug(cat, sub.name)}`}
+                                  prefetch={true}
                                   className={`w-full text-left py-1 px-2 text-[11px] rounded-md flex items-center justify-between transition-all ${
                                   isSubSelected
                                     ? 'text-blue-600 dark:text-blue-400 font-bold bg-blue-50/80 dark:bg-blue-950/40'
@@ -468,6 +474,7 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
                     <Link
                       key={store.id}
                       href={`/products?platform=${encodeURIComponent(store.id)}`}
+                      prefetch={true}
                       className="flex items-center justify-between py-1 px-2 text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors rounded-sm"
                     >
                       <div className="flex items-center gap-2">
@@ -574,6 +581,7 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
                   <div className="flex items-center gap-2">
                     <Link
                       href={`/brand/${(activeProduct.brand || 'tech').toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+                      prefetch={true}
                       className="uppercase tracking-wider font-bold text-blue-600 hover:underline"
                       title={`View all products by ${activeProduct.brand}`}
                     >
@@ -766,6 +774,7 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
                 </h2>
                 <Link
                   href={`/products/${getCategorySlug(categories, activeProduct.category)}`}
+                  prefetch={true}
                   className="text-xs font-semibold text-blue-600 hover:underline flex items-center gap-1"
                 >
                   <span>View all</span>

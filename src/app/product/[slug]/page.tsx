@@ -10,6 +10,13 @@ import { getCategories, getCategorySlug } from '@/lib/categoryStore';
 
 export const revalidate = 30;
 
+export async function generateStaticParams() {
+  const products = await getDatabaseProducts();
+  return products.map((p) => ({
+    slug: p.slug,
+  }));
+}
+
 interface ProductPageProps {
   params: Promise<{
     slug: string;

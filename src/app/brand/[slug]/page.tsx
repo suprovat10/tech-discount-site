@@ -7,6 +7,12 @@ import { BrandDetailClient } from './BrandDetailClient';
 
 export const revalidate = 30;
 
+export async function generateStaticParams() {
+  return DEFAULT_BRANDS.map((b) => ({
+    slug: b.slug,
+  }));
+}
+
 interface BrandPageProps {
   params: Promise<{ slug: string }>;
 }

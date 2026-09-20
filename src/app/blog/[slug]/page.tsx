@@ -4,13 +4,20 @@ import { getServerSettings } from '@/lib/settingsServer';
 import { getServerBlogs, getServerBlogBySlug } from '@/lib/blogServer';
 import { BlogDetailClient } from './BlogDetailClient';
 
+export const revalidate = 30;
+
+export async function generateStaticParams() {
+  const blogs = await getServerBlogs();
+  return blogs.map((b) => ({
+    slug: b.slug,
+  }));
+}
+
 interface BlogDetailProps {
   params: Promise<{
     slug: string;
   }>;
 }
-
-export const revalidate = 30;
 
 export async function generateMetadata({ params }: BlogDetailProps): Promise<Metadata> {
   const { slug } = await params;

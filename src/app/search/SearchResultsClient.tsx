@@ -399,14 +399,20 @@ export function SearchResultsClient({
     };
 
     loadBrands();
+    const handleClearEvent = () => {
+      setSearchQuery('');
+      setCurrentPage(1);
+    };
     window.addEventListener('smarttech_categories_updated', loadCategories);
     window.addEventListener('smarttech_brands_updated', loadBrands);
     window.addEventListener('smarttech_catalog_updated', handleCatalogUpdate);
+    window.addEventListener('tech_clear_search', handleClearEvent);
 
     return () => {
       window.removeEventListener('smarttech_categories_updated', loadCategories);
       window.removeEventListener('smarttech_brands_updated', loadBrands);
       window.removeEventListener('smarttech_catalog_updated', handleCatalogUpdate);
+      window.removeEventListener('tech_clear_search', handleClearEvent);
     };
   }, []);
 
@@ -795,7 +801,11 @@ export function SearchResultsClient({
   const handleClearSearch = () => {
     setSearchQuery('');
     setCurrentPage(1);
-    router.push('/products');
+    window.dispatchEvent(new CustomEvent('tech_clear_search'));
+    if (window.location.pathname.startsWith('/search') || window.location.search) {
+      window.history.replaceState(null, '', '/products');
+      router.push('/products');
+    }
   };
 
   const handleReset = () => {
@@ -811,6 +821,8 @@ export function SearchResultsClient({
     setSortBy('latest');
     setSearchQuery('');
     setCurrentPage(1);
+    window.dispatchEvent(new CustomEvent('tech_clear_search'));
+    window.history.replaceState(null, '', '/products');
     router.push('/products');
   };
 

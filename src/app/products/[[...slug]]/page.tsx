@@ -10,6 +10,20 @@ import { UnifiedProduct } from '@/types/product';
 
 export const revalidate = 30;
 
+export async function generateStaticParams() {
+  const categories = getCategories();
+  const params: { slug?: string[] }[] = [{ slug: [] }];
+
+  categories.forEach((cat) => {
+    params.push({ slug: [cat.slug] });
+    cat.subcategories?.forEach((sub) => {
+      params.push({ slug: [cat.slug, sub.slug] });
+    });
+  });
+
+  return params;
+}
+
 interface ProductsPageProps {
   params: Promise<{ slug?: string[] }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;

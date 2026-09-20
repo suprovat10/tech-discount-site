@@ -41,6 +41,18 @@ export function Header() {
     }
   }, [searchParams]);
 
+  // Listen for instant clear events across the app
+  useEffect(() => {
+    const handleClearEvent = () => {
+      setSearchQuery('');
+      if (desktopSearchInputRef.current) {
+        desktopSearchInputRef.current.value = '';
+      }
+    };
+    window.addEventListener('tech_clear_search', handleClearEvent);
+    return () => window.removeEventListener('tech_clear_search', handleClearEvent);
+  }, []);
+
   // Close mobile menu when clicking outside or pressing Escape
   useEffect(() => {
     if (!isMobileMenuOpen) return;
@@ -84,7 +96,10 @@ export function Header() {
 
   const handleClearSearch = () => {
     setSearchQuery('');
-    desktopSearchInputRef.current?.focus();
+    if (desktopSearchInputRef.current) {
+      desktopSearchInputRef.current.value = '';
+    }
+    window.dispatchEvent(new CustomEvent('tech_clear_search'));
     // Redirect to main product page when clearing search
     router.push('/products');
   };
