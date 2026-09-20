@@ -6,6 +6,7 @@ import { TopCategorySlider } from '@/components/home/TopCategorySlider';
 import { FeaturedCategorySections } from '@/components/home/FeaturedCategorySections';
 import { BrandShowcaseSection } from '@/components/home/BrandShowcaseSection';
 import { getDatabaseProducts } from '@/lib/catalogDb';
+import { getDatabaseCategories } from '@/lib/categoryStore';
 import { transformCatalogItemToUnified } from '@/lib/adapters';
 import { UnifiedProduct } from '@/types/product';
 import { ArrowRight } from 'lucide-react';
@@ -14,7 +15,8 @@ import { getServerSettings } from '@/lib/settingsServer';
 export const revalidate = 30;
 
 export default async function HomePage() {
-  const settings = getServerSettings();
+  const settings = await getServerSettings();
+  const categories = await getDatabaseCategories();
   let allProducts: UnifiedProduct[] = [];
   try {
     const catalog = await getDatabaseProducts();
@@ -67,7 +69,7 @@ export default async function HomePage() {
         <BrandShowcaseSection />
 
         {/* 5. Homepage Category Showcase Sections (Max 4 categories customizable via Admin) */}
-        <FeaturedCategorySections allProducts={allProducts} />
+        <FeaturedCategorySections initialCategories={categories} allProducts={allProducts} />
       </div>
     </div>
   );

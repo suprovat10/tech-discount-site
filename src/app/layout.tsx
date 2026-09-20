@@ -6,7 +6,7 @@ import { generateWebsiteJsonLd, generateOrganizationJsonLd } from '@/lib/seo/jso
 import { StoreLayoutWrapper } from '@/components/common/StoreLayoutWrapper';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = getServerSettings();
+  const settings = await getServerSettings();
   const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
   const brand = settings.siteBrandName || 'suprodesign';
   const title = settings.siteTitle || `${brand} - Compare Prices & Find Deals`;
@@ -85,12 +85,12 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const settings = getServerSettings();
+  const settings = await getServerSettings();
   const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
   const brand = settings.siteBrandName || 'suprodesign';
   const logoUrl = settings.logoUrl || '/logo.png';

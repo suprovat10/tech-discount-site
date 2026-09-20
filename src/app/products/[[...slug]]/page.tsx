@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 import { SearchResultsClient } from '@/app/search/SearchResultsClient';
 import { Loader2 } from 'lucide-react';
 import { getServerSettings } from '@/lib/settingsServer';
-import { getCategories } from '@/lib/categoryStore';
+import { getCategories, getDatabaseCategories } from '@/lib/categoryStore';
 import { getDatabaseProducts } from '@/lib/catalogDb';
 import { transformCatalogItemToUnified } from '@/lib/adapters';
 import { UnifiedProduct } from '@/types/product';
@@ -11,7 +11,7 @@ import { UnifiedProduct } from '@/types/product';
 export const revalidate = 30;
 
 export async function generateStaticParams() {
-  const categories = getCategories();
+  const categories = await getDatabaseCategories();
   const params: { slug?: string[] }[] = [{ slug: [] }];
 
   categories.forEach((cat) => {
@@ -32,8 +32,8 @@ interface ProductsPageProps {
 export async function generateMetadata({ params }: ProductsPageProps): Promise<Metadata> {
   const resolvedParams = await params;
   const slugs = resolvedParams.slug || [];
-  const categories = getCategories();
-  const settings = getServerSettings();
+  const categories = await getDatabaseCategories();
+  const settings = await getServerSettings();
   const brand = settings.siteBrandName || 'suprodesign';
   const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
 
@@ -95,11 +95,16 @@ export default async function ProductsPage({ params }: ProductsPageProps) {
   const subSlug = slugs[1] || '';
 
   let initialProducts: UnifiedProduct[] = [];
+  let categories: any[] = [];
   try {
-    const catalog = await getDatabaseProducts();
+    const [catalog, cloudCats] = await Promise.all([
+      getDatabaseProducts(),
+      getDatabaseCategories(),
+    ]);
     initialProducts = catalog.map((item) => transformCatalogItemToUnified(item));
+    categories = cloudCats;
   } catch (e) {
-    console.error('Failed to load initial products for page:', e);
+    console.error('Failed to load initial products/categories for page:', e);
   }
 
   return (
@@ -117,6 +122,7 @@ export default async function ProductsPage({ params }: ProductsPageProps) {
           initialCategorySlug={catSlug}
           initialSubcategorySlug={subSlug}
           initialProducts={initialProducts}
+          initialCategories={categories}
         />
       </Suspense>
     </div>

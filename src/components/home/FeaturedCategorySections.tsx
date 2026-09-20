@@ -24,6 +24,12 @@ export function FeaturedCategorySections({
     if (loaded && loaded.length > 0) {
       setCategories(loaded);
     }
+    const handleUpdate = () => {
+      const fresh = getCategories();
+      if (fresh && fresh.length > 0) setCategories(fresh);
+    };
+    window.addEventListener('smarttech_categories_updated', handleUpdate);
+    return () => window.removeEventListener('smarttech_categories_updated', handleUpdate);
   }, []);
 
   // Filter only categories featured on home (limit to max 4)

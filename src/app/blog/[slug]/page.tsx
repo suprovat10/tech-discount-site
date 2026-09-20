@@ -21,7 +21,7 @@ interface BlogDetailProps {
 
 export async function generateMetadata({ params }: BlogDetailProps): Promise<Metadata> {
   const { slug } = await params;
-  const settings = getServerSettings();
+  const settings = await getServerSettings();
   const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
   const brand = settings.siteBrandName || 'suprodesign';
 
@@ -66,7 +66,7 @@ export async function generateMetadata({ params }: BlogDetailProps): Promise<Met
 
 export default async function BlogDetailPage({ params }: BlogDetailProps) {
   const { slug } = await params;
-  const settings = getServerSettings();
+  const settings = await getServerSettings();
   const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
   const brand = settings.siteBrandName || 'suprodesign';
   const logoUrl = settings.logoUrl || '/logo.png';

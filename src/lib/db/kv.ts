@@ -144,6 +144,16 @@ export async function getSiteKV<T>(key: string, forceFresh = false): Promise<T |
 }
 
 /**
+ * Synchronously reads a key from memoryCache (or disk store fallback).
+ */
+export function getSiteKVSync<T>(key: string): T | null {
+  ensureLoaded();
+  const value = memoryCache.get(key);
+  if (value === undefined) return null;
+  return value as T;
+}
+
+/**
  * Saves a key to MongoDB Atlas (and syncs to local store/memory).
  */
 export async function setSiteKV<T>(key: string, value: T): Promise<boolean> {

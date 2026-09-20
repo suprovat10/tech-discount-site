@@ -7,13 +7,13 @@ interface CustomPageRouteProps {
 }
 
 import { getServerSettings } from '@/lib/settingsServer';
-import { getPageBySlug } from '@/lib/pageStore';
+import { getDatabasePageBySlug } from '@/lib/pageStore';
 
 export async function generateMetadata({ params }: CustomPageRouteProps): Promise<Metadata> {
   const { slug } = await params;
-  const settings = getServerSettings();
+  const settings = await getServerSettings();
   const brand = settings.siteBrandName || 'suprodesign';
-  const page = getPageBySlug(slug);
+  const page = await getDatabasePageBySlug(slug);
   const title = page?.title || slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, ' ');
 
   return {

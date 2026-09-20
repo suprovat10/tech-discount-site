@@ -1,14 +1,70 @@
 import { DEFAULT_PAGES, SitePage } from '@/data/defaultPages';
+import { getSiteKV } from '@/lib/db/kv';
 
 const PAGES_STORAGE_KEY = 'smarttech_site_pages';
+let isInitialPagesFetchTriggered = false;
 
 /**
- * Get all site pages from localStorage or fallback to DEFAULT_PAGES
+ * Get all site pages from MongoDB Atlas (with fallback to DEFAULT_PAGES).
+ * Server-side source of truth.
+ */
+export async function getDatabasePages(): Promise<SitePage[]> {
+  try {
+    const cloud = await getSiteKV<SitePage[]>('site_pages');
+    if (cloud && Array.isArray(cloud) && cloud.length > 0) {
+      return cloud;
+    }
+  } catch (err) {
+    console.warn('Error loading pages from database:', err);
+  }
+  return [...DEFAULT_PAGES];
+}
+
+/**
+ * Get a single page by slug directly from MongoDB Atlas.
+ */
+export async function getDatabasePageBySlug(slug: string): Promise<SitePage | null> {
+  const pages = await getDatabasePages();
+  const cleanSlug = slug.toLowerCase().trim().replace(/^\/+|\/+$/g, '');
+  return pages.find((p) => p.slug.toLowerCase().trim() === cleanSlug) || null;
+}
+
+/**
+ * Sync fresh pages from server/database into client localStorage
+ */
+export async function fetchAndSyncPagesFromServer(): Promise<SitePage[]> {
+  if (typeof window === 'undefined') return DEFAULT_PAGES;
+  try {
+    const res = await fetch('/api/pages', { cache: 'no-store' });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+        localStorage.setItem(PAGES_STORAGE_KEY, JSON.stringify(json.data));
+        window.dispatchEvent(new CustomEvent('smarttech_pages_updated'));
+        return json.data;
+      }
+    }
+  } catch (e) {
+    console.warn('Could not sync pages from server:', e);
+  }
+  return getPages();
+}
+
+/**
+ * Get all site pages from localStorage or fallback to DEFAULT_PAGES.
+ * Automatically triggers background server sync on client load so all devices get the latest data.
  */
 export function getPages(): SitePage[] {
   if (typeof window === 'undefined') {
     return DEFAULT_PAGES;
   }
+
+  // Trigger background server sync once per page session
+  if (!isInitialPagesFetchTriggered) {
+    isInitialPagesFetchTriggered = true;
+    fetchAndSyncPagesFromServer().catch(() => {});
+  }
+
   try {
     const raw = localStorage.getItem(PAGES_STORAGE_KEY);
     if (raw) {
@@ -46,7 +102,7 @@ export function getPageBySlug(slug: string): SitePage | undefined {
 }
 
 /**
- * Save or update a page
+ * Save or update a page and sync to server / database
  */
 export function savePage(page: SitePage): void {
   if (typeof window === 'undefined') return;
@@ -62,13 +118,20 @@ export function savePage(page: SitePage): void {
     }
     localStorage.setItem(PAGES_STORAGE_KEY, JSON.stringify(updated));
     window.dispatchEvent(new CustomEvent('smarttech_pages_updated', { detail: page }));
+
+    // Sync to server API in background
+    fetch('/api/pages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(page),
+    }).catch((err) => console.warn('Background page save sync failed:', err));
   } catch (e) {
     console.error('Error saving page:', e);
   }
 }
 
 /**
- * Delete a custom (non-system) page
+ * Delete a custom (non-system) page and sync to server / database
  */
 export function deletePage(id: string): void {
   if (typeof window === 'undefined') return;
@@ -77,19 +140,30 @@ export function deletePage(id: string): void {
     const updated = pages.filter((p) => p.id !== id || p.isSystem);
     localStorage.setItem(PAGES_STORAGE_KEY, JSON.stringify(updated));
     window.dispatchEvent(new CustomEvent('smarttech_pages_updated'));
+
+    // Sync deletion to server API
+    fetch(`/api/pages?id=${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    }).catch((err) => console.warn('Background page delete sync failed:', err));
   } catch (e) {
     console.error('Error deleting page:', e);
   }
 }
 
 /**
- * Reset all pages to initial default content
+ * Reset all pages to initial default content and sync to server
  */
 export function resetPagesToDefault(): SitePage[] {
   if (typeof window !== 'undefined') {
     try {
       localStorage.setItem(PAGES_STORAGE_KEY, JSON.stringify(DEFAULT_PAGES));
       window.dispatchEvent(new CustomEvent('smarttech_pages_updated'));
+
+      fetch('/api/pages', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pages: DEFAULT_PAGES }),
+      }).catch((err) => console.warn('Background page reset sync failed:', err));
     } catch (e) {
       console.error('Error resetting pages:', e);
     }

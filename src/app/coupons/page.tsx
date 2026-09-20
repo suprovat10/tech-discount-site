@@ -7,7 +7,7 @@ import { DEFAULT_COUPONS, CouponItem } from '@/data/coupons';
 export const revalidate = 30;
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = getServerSettings();
+  const settings = await getServerSettings();
   const brand = settings.siteBrandName || 'suprodesign';
   const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
 

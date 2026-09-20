@@ -21,7 +21,7 @@ import { getServerSettings } from '@/lib/settingsServer';
 
 export async function generateMetadata({ params }: BrandPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const settings = getServerSettings();
+  const settings = await getServerSettings();
   const siteBrand = settings.siteBrandName || 'suprodesign';
   const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
 

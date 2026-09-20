@@ -1,14 +1,61 @@
 import { CATEGORIES as DEFAULT_CATEGORIES, CategoryDefinition } from '@/data/catalog';
+import { getSiteKV } from '@/lib/db/kv';
 
 const CATEGORIES_STORAGE_KEY = 'smarttech_categories_catalog';
+let isInitialCategoryFetchTriggered = false;
 
 /**
- * Get all categories from localStorage if available, otherwise from DEFAULT_CATEGORIES
+ * Get all categories from MongoDB Atlas (with fallback to DEFAULT_CATEGORIES).
+ * Server-side single source of truth for categories.
+ */
+export async function getDatabaseCategories(): Promise<CategoryDefinition[]> {
+  try {
+    const cloud = await getSiteKV<CategoryDefinition[]>('categories_catalog');
+    if (cloud && Array.isArray(cloud) && cloud.length > 0) {
+      return cloud;
+    }
+  } catch (err) {
+    console.warn('Error loading categories from database:', err);
+  }
+  return [...DEFAULT_CATEGORIES];
+}
+
+/**
+ * Sync fresh categories from server/database into client localStorage
+ */
+export async function fetchAndSyncCategoriesFromServer(): Promise<CategoryDefinition[]> {
+  if (typeof window === 'undefined') return DEFAULT_CATEGORIES;
+  try {
+    const res = await fetch('/api/categories', { cache: 'no-store' });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+        localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(json.data));
+        window.dispatchEvent(new Event('smarttech_categories_updated'));
+        return json.data;
+      }
+    }
+  } catch (e) {
+    console.warn('Could not sync categories from server:', e);
+  }
+  return getCategories();
+}
+
+/**
+ * Get all categories from localStorage if available, otherwise from DEFAULT_CATEGORIES.
+ * Automatically triggers a background server sync on client load so all devices get the latest data.
  */
 export function getCategories(): CategoryDefinition[] {
   if (typeof window === 'undefined') {
     return DEFAULT_CATEGORIES;
   }
+
+  // Trigger background server sync once per page session
+  if (!isInitialCategoryFetchTriggered) {
+    isInitialCategoryFetchTriggered = true;
+    fetchAndSyncCategoriesFromServer().catch(() => {});
+  }
+
   try {
     const raw = localStorage.getItem(CATEGORIES_STORAGE_KEY);
     if (raw) {

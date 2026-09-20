@@ -5,7 +5,7 @@ import { BlogListClient } from './BlogListClient';
 import { getServerSettings } from '@/lib/settingsServer';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = getServerSettings();
+  const settings = await getServerSettings();
   const brand = settings.siteBrandName || 'suprodesign';
   const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
 

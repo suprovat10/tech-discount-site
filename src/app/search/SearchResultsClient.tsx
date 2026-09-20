@@ -34,18 +34,20 @@ interface SearchResultsClientProps {
   initialCategorySlug?: string;
   initialSubcategorySlug?: string;
   initialProducts?: UnifiedProduct[];
+  initialCategories?: CategoryDefinition[];
 }
 
 export function SearchResultsClient({
   initialCategorySlug = '',
   initialSubcategorySlug = '',
   initialProducts = [],
+  initialCategories,
 }: SearchResultsClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Dynamic Categories list from categoryStore
-  const [categories, setCategories] = useState<CategoryDefinition[]>([]);
+  // Dynamic Categories list from categoryStore / MongoDB
+  const [categories, setCategories] = useState<CategoryDefinition[]>(initialCategories || []);
   const [adminBrands, setAdminBrands] = useState<BrandItem[]>([]);
   const [catalogVersion, setCatalogVersion] = useState(0);
   const [products, setProducts] = useState<UnifiedProduct[]>(initialProducts);

@@ -1,8 +1,8 @@
 import { MetadataRoute } from 'next';
 import { getServerSettings } from '@/lib/settingsServer';
 
-export default function robots(): MetadataRoute.Robots {
-  const settings = getServerSettings();
+export default async function robots(): Promise<MetadataRoute.Robots> {
+  const settings = await getServerSettings();
   const baseUrl = settings.canonicalUrl?.replace(/\/$/, '') || 'https://suprodesign.com';
 
   const isIndexingAllowed = settings.indexingEnabled !== false;

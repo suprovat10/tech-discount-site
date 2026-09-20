@@ -1,13 +1,14 @@
 import { MetadataRoute } from 'next';
 import { getServerSettings } from '@/lib/settingsServer';
-import { CATEGORIES } from '@/data/catalog';
+import { getDatabaseCategories } from '@/lib/categoryStore';
 import { getDatabaseProducts } from '@/lib/catalogDb';
 import { BLOG_POSTS } from '@/data/blogs';
 import { DEFAULT_BRANDS } from '@/data/brands';
 import { DEFAULT_PAGES } from '@/data/defaultPages';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const settings = getServerSettings();
+  const settings = await getServerSettings();
+  const categories = await getDatabaseCategories();
   const baseUrl = settings.canonicalUrl?.replace(/\/$/, '') || 'https://suprodesign.com';
 
   const now = new Date().toISOString();
@@ -28,7 +29,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // 2. Dynamic Category & Subcategory Pages
   const categoryRoutes: MetadataRoute.Sitemap = [];
-  CATEGORIES.forEach((cat) => {
+  categories.forEach((cat) => {
     categoryRoutes.push({
       url: `${baseUrl}/products/${cat.slug}`,
       lastModified: now,
