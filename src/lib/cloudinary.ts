@@ -13,25 +13,34 @@ interface CloudinaryConfig {
  */
 export function getCloudinaryConfig(): CloudinaryConfig | null {
   // 1. Check CLOUDINARY_URL format
-  const cloudinaryUrl = process.env.CLOUDINARY_URL;
-  if (cloudinaryUrl && cloudinaryUrl.startsWith('cloudinary://')) {
-    try {
-      const parsed = new URL(cloudinaryUrl);
-      const apiKey = parsed.username;
-      const apiSecret = parsed.password;
-      const cloudName = parsed.hostname;
-      if (apiKey && apiSecret && cloudName) {
-        return { cloudName, apiKey, apiSecret };
+  let cloudinaryUrl = process.env.CLOUDINARY_URL?.trim();
+  if (cloudinaryUrl) {
+    // In case the user pasted the entire "CLOUDINARY_URL=cloudinary://..." line
+    if (cloudinaryUrl.startsWith('CLOUDINARY_URL=')) {
+      cloudinaryUrl = cloudinaryUrl.replace(/^CLOUDINARY_URL=/, '').trim();
+    }
+    // Remove surrounding quotes if any
+    cloudinaryUrl = cloudinaryUrl.replace(/^["']|["']$/g, '').trim();
+
+    if (cloudinaryUrl.startsWith('cloudinary://')) {
+      try {
+        const parsed = new URL(cloudinaryUrl);
+        const apiKey = parsed.username;
+        const apiSecret = parsed.password;
+        const cloudName = parsed.hostname;
+        if (apiKey && apiSecret && cloudName) {
+          return { cloudName, apiKey, apiSecret };
+        }
+      } catch (e) {
+        console.warn('Error parsing CLOUDINARY_URL:', e);
       }
-    } catch (e) {
-      console.warn('Error parsing CLOUDINARY_URL:', e);
     }
   }
 
   // 2. Check individual environment variables
-  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
-  const apiKey = process.env.CLOUDINARY_API_KEY;
-  const apiSecret = process.env.CLOUDINARY_API_SECRET;
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME?.trim();
+  const apiKey = process.env.CLOUDINARY_API_KEY?.trim();
+  const apiSecret = process.env.CLOUDINARY_API_SECRET?.trim();
 
   if (cloudName && apiKey && apiSecret) {
     return { cloudName, apiKey, apiSecret };
