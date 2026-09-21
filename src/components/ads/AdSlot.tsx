@@ -3,7 +3,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { AdItem, AdPlacementId } from '@/types/ad';
-import { isAdActiveClient, ADS_UPDATED_EVENT } from '@/lib/adStore';
+import {
+  isAdActiveClient,
+  getActiveAdForPlacementClient,
+  clearActiveAdsCache,
+  ADS_UPDATED_EVENT,
+} from '@/lib/adStore';
 
 interface AdSlotProps {
   placement: AdPlacementId;
@@ -21,22 +26,11 @@ export function AdSlot({ placement, initialAd, className = '' }: AdSlotProps) {
   const [hasLoaded, setHasLoaded] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Fetch active ad for this placement from API
+  // Fetch active ad for this placement using shared client-side cache
   const fetchAd = async () => {
     try {
-      const res = await fetch(`/api/ads?placement=${placement}&activeOnly=true`, {
-        cache: 'no-store',
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data && isAdActiveClient(data)) {
-          setAd(data);
-        } else {
-          setAd(null);
-        }
-      } else {
-        setAd(null);
-      }
+      const activeAd = await getActiveAdForPlacementClient(placement);
+      setAd(activeAd);
     } catch (err) {
       console.warn(`Error fetching ad for placement ${placement}:`, err);
     } finally {
@@ -59,6 +53,7 @@ export function AdSlot({ placement, initialAd, className = '' }: AdSlotProps) {
 
     // Listen for admin updates
     const handleUpdate = () => {
+      clearActiveAdsCache();
       fetchAd();
     };
     window.addEventListener(ADS_UPDATED_EVENT, handleUpdate);
@@ -123,6 +118,7 @@ export function AdSlot({ placement, initialAd, className = '' }: AdSlotProps) {
                   isBanner ? 'object-center' : 'object-cover'
                 }`}
                 loading="lazy"
+                decoding="async"
               />
             </a>
           ) : (
@@ -131,6 +127,7 @@ export function AdSlot({ placement, initialAd, className = '' }: AdSlotProps) {
               alt={ad.altText || ad.title}
               className="w-full h-full object-cover"
               loading="lazy"
+              decoding="async"
             />
           )}
         </div>

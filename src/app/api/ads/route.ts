@@ -12,20 +12,24 @@ export async function GET(req: NextRequest) {
 
     const ads = await getServerAds();
 
+    const headers = {
+      'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+    };
+
     if (placement) {
       const filtered = ads.filter((ad) => ad.placement === placement);
       if (activeOnly) {
         const active = filtered.filter(isAdActive);
-        return NextResponse.json(active[0] || null);
+        return NextResponse.json(active[0] || null, { headers });
       }
-      return NextResponse.json(filtered);
+      return NextResponse.json(filtered, { headers });
     }
 
     if (activeOnly) {
-      return NextResponse.json(ads.filter(isAdActive));
+      return NextResponse.json(ads.filter(isAdActive), { headers });
     }
 
-    return NextResponse.json(ads);
+    return NextResponse.json(ads, { headers });
   } catch (error: any) {
     console.error('Error fetching ads:', error);
     return NextResponse.json(

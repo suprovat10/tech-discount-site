@@ -42,13 +42,29 @@ function getInitialAdsFromFile(): AdItem[] {
   return [];
 }
 
+let memoryAdsCache: { data: AdItem[]; timestamp: number } | null = null;
+const CACHE_TTL = 30 * 1000; // 30 seconds
+
 /**
- * Get all ads from MongoDB / site_kv with disk fallback
+ * Invalidate server-side ads memory cache
+ */
+export function invalidateAdsCache(): void {
+  memoryAdsCache = null;
+}
+
+/**
+ * Get all ads from MongoDB / site_kv with disk fallback and in-memory cache
  */
 export async function getServerAds(): Promise<AdItem[]> {
+  const now = Date.now();
+  if (memoryAdsCache && now - memoryAdsCache.timestamp < CACHE_TTL) {
+    return memoryAdsCache.data;
+  }
+
   try {
     const cloud = await getSiteKV<AdItem[]>(DB_ADS_KEY);
     if (cloud !== null && Array.isArray(cloud)) {
+      memoryAdsCache = { data: cloud, timestamp: now };
       return cloud;
     }
 
@@ -57,10 +73,11 @@ export async function getServerAds(): Promise<AdItem[]> {
     if (initialAds.length > 0) {
       await setSiteKV(DB_ADS_KEY, initialAds);
     }
+    memoryAdsCache = { data: initialAds, timestamp: now };
     return initialAds;
   } catch (err) {
     console.warn('Error reading site_ads from database:', err);
-    return getInitialAdsFromFile();
+    return memoryAdsCache ? memoryAdsCache.data : getInitialAdsFromFile();
   }
 }
 
@@ -125,6 +142,7 @@ export async function saveServerAd(ad: AdItem): Promise<AdItem[]> {
   }
 
   await setSiteKV(DB_ADS_KEY, updated);
+  memoryAdsCache = { data: updated, timestamp: Date.now() };
 
   // Sync to local ads.json
   const fs = getFs();
@@ -150,6 +168,7 @@ export async function deleteServerAd(id: string): Promise<AdItem[]> {
   const current = await getServerAds();
   const updated = current.filter((a) => a.id !== id);
   await setSiteKV(DB_ADS_KEY, updated);
+  memoryAdsCache = { data: updated, timestamp: Date.now() };
 
   const fs = getFs();
   const path = getPath();
@@ -168,6 +187,7 @@ export async function deleteServerAd(id: string): Promise<AdItem[]> {
  */
 export async function saveAllServerAds(ads: AdItem[]): Promise<void> {
   await setSiteKV(DB_ADS_KEY, ads);
+  memoryAdsCache = { data: ads, timestamp: Date.now() };
   const fs = getFs();
   const path = getPath();
   if (fs && path) {
