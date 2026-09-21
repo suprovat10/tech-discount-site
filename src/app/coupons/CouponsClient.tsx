@@ -20,6 +20,7 @@ import {
 import { CouponItem, DEFAULT_COUPONS } from '@/data/coupons';
 import { getCoupons, saveCoupons, fetchAndSyncCouponsFromServer, COUPONS_UPDATED_EVENT } from '@/lib/couponStore';
 import { Button } from '@/components/ui/button';
+import { AdSlot } from '@/components/ads/AdSlot';
 
 interface CouponsClientProps {
   initialCoupons?: CouponItem[];
@@ -128,6 +129,9 @@ export function CouponsClient({ initialCoupons }: CouponsClientProps) {
         <ChevronRight className="w-3 h-3 text-muted-foreground/40 shrink-0" />
         <span className="text-foreground font-semibold shrink-0 whitespace-nowrap">Verified Tech Coupons & Promos</span>
       </nav>
+
+      {/* Ad Placement: Below Breadcrumbs Banner */}
+      <AdSlot placement="coupons_below_breadcrumb" />
 
       {/* Hero Banner (Sharp 0px Theme) */}
       <div className="border border-border/80 bg-card p-6 sm:p-8 space-y-4">

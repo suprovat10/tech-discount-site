@@ -11,6 +11,7 @@ import { transformCatalogItemToUnified } from '@/lib/adapters';
 import { UnifiedProduct } from '@/types/product';
 import { ArrowRight } from 'lucide-react';
 import { getServerSettings } from '@/lib/settingsServer';
+import { AdSlot } from '@/components/ads/AdSlot';
 
 export const revalidate = 10;
 
@@ -65,6 +66,9 @@ export default async function HomePage() {
       <div className="container mx-auto px-4 sm:px-6 space-y-10">
         {/* 1. Minimal Hero Section */}
         <HeroSection initialSettings={settings} />
+
+        {/* Ad Placement: Below Hero Section */}
+        <AdSlot placement="home_below_hero" />
 
         {/* 2. Top Category & Subcategory Image Slider (No 'All' Button) */}
         <TopCategorySlider />
@@ -124,6 +128,9 @@ export default async function HomePage() {
             ))}
           </div>
         </section>
+
+        {/* Ad Placement: Below Latest Products */}
+        <AdSlot placement="home_below_latest" />
 
         {/* 4. Popular Brand Partners Showcase Section */}
         <BrandShowcaseSection />

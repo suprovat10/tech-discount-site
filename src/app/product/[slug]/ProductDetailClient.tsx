@@ -33,6 +33,7 @@ import {
 import { Button } from '@/components/ui/button';
 
 import { transformCatalogItemToUnified } from '@/lib/productTransform';
+import { AdSlot } from '@/components/ads/AdSlot';
 
 interface ProductDetailClientProps {
   product?: UnifiedProduct | null;
@@ -532,6 +533,9 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
               </div>
             </div>
           </div>
+
+          {/* Ad Placement: Left Sidebar Bottom Square Ad */}
+          <AdSlot placement="product_detail_sidebar_bottom" />
         </aside>
 
         {/* RIGHT MAIN CONTENT */}
@@ -838,6 +842,9 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
               </div>
             </section>
           )}
+
+          {/* Ad Placement: Below Related Products Banner */}
+          <AdSlot placement="product_detail_below_related" />
 
           {/* PRODUCT DESCRIPTION & RICH SPECIFICATIONS (Requirement 1 & 2: Under Related Products) */}
           <section className="space-y-6 pt-6 border-t border-border/80">

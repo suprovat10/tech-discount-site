@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getRetailerDisplayName, getRetailerHexColor } from '@/lib/utils';
+import { AdSlot } from '@/components/ads/AdSlot';
 
 interface SearchResultsClientProps {
   initialCategorySlug?: string;
@@ -1288,6 +1289,9 @@ export function SearchResultsClient({
         )}
       </nav>
 
+      {/* Ad Placement: Below Breadcrumbs Banner */}
+      <AdSlot placement="products_below_breadcrumb" />
+
       {/* Mobile Slide-in Filter Drawer Backdrop & Drawer (Portaled to document.body with z-[100] to always start from screen top-0) */}
       {isMounted &&
         createPortal(
@@ -1378,6 +1382,9 @@ export function SearchResultsClient({
 
             {renderFilterControls()}
           </div>
+
+          {/* Ad Placement: Left Sidebar Bottom Square Ad */}
+          <AdSlot placement="products_sidebar_bottom" />
         </aside>
 
         {/* RIGHT MAIN PRODUCT AREA */}

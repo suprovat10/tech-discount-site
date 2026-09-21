@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 import { getServerBlogs, getServerBlogCategories } from '@/lib/blogServer';
 import { BlogListClient } from './BlogListClient';
 import { getServerSettings } from '@/lib/settingsServer';
+import { AdSlot } from '@/components/ads/AdSlot';
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getServerSettings();
@@ -32,6 +33,9 @@ export default async function BlogListingPage() {
 
   return (
     <div className="container max-w-[1200px] mx-auto px-4 sm:px-6 py-8">
+      {/* Ad Placement: Top of Blog Page Banner */}
+      <AdSlot placement="blog_top" />
+
       <BlogListClient
         initialPosts={posts}
         initialCategories={categories}

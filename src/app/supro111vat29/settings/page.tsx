@@ -45,6 +45,8 @@ interface AdminSettings {
   socialTwitter: string;
   googleSiteVerification?: string;
   bingSiteVerification?: string;
+  googleAdSenseId?: string;
+  globalAdHeaderCode?: string;
 }
 
 const DEFAULT_SETTINGS: AdminSettings = {
@@ -66,6 +68,8 @@ const DEFAULT_SETTINGS: AdminSettings = {
   socialTwitter: 'https://twitter.com',
   googleSiteVerification: '',
   bingSiteVerification: '',
+  googleAdSenseId: '',
+  globalAdHeaderCode: '',
 
   googleAnalyticsId: 'G-TECH849201X',
   googleTagManagerId: 'GTM-ST9902',
@@ -1035,6 +1039,54 @@ export default function AdminSettingsPage() {
               />
               <span className="text-[10px] text-muted-foreground mt-1 block">
                 For short-form tech review conversion campaigns.
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* SECTION 2.5: GOOGLE ADSENSE & GLOBAL AD SCRIPTS */}
+        <div className="border border-border bg-card p-6 space-y-5">
+          <div className="flex items-center gap-2 pb-3 border-b border-border">
+            <div className="p-2 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-sm font-black text-foreground">Google AdSense & Global Ad Scripts</h2>
+              <p className="text-[11px] text-muted-foreground">
+                Configure your publisher code and header scripts for Google AdSense and ad networks.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-4 text-xs">
+            <div>
+              <label className="font-bold text-foreground block mb-1">
+                Google AdSense Publisher ID
+              </label>
+              <Input
+                value={settings.googleAdSenseId || ''}
+                onChange={(e) => handleChange('googleAdSenseId', e.target.value)}
+                placeholder="ca-pub-XXXXXXXXXXXXXXXX"
+                className="h-9 text-xs font-mono"
+              />
+              <span className="text-[10px] text-muted-foreground mt-1 block">
+                Your Google AdSense Client / Publisher ID. Automatically loads the official Google AdSense script asynchronously across all pages.
+              </span>
+            </div>
+
+            <div>
+              <label className="font-bold text-foreground block mb-1">
+                Global Ad Network Header Code / Custom Script (Optional)
+              </label>
+              <textarea
+                value={settings.globalAdHeaderCode || ''}
+                onChange={(e) => handleChange('globalAdHeaderCode', e.target.value)}
+                placeholder={`<!-- Any third-party ad network script or verification tags -->\n<script async src="..."></script>`}
+                rows={3}
+                className="w-full p-2.5 text-xs font-mono border border-border bg-background rounded-none focus:outline-none focus:border-blue-600"
+              />
+              <span className="text-[10px] text-muted-foreground mt-1 block">
+                Custom HTML or JavaScript to inject for ad networks (Mediavine, Ezoic, BuySellAds, etc.).
               </span>
             </div>
           </div>

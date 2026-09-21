@@ -17,6 +17,7 @@ import {
   BookOpen,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { AdSlot } from '@/components/ads/AdSlot';
 
 interface BlogDetailClientProps {
   slug: string;
@@ -303,6 +304,9 @@ export function BlogDetailClient({
             </div>
           )}
 
+          {/* Ad Placement: Above Related Articles Banner */}
+          <AdSlot placement="blog_detail_above_related" />
+
           {/* Related Articles (4 items in 2 columns) */}
           {relatedPosts.length > 0 && (
             <div className="pt-8 border-t border-border space-y-4">
@@ -354,6 +358,9 @@ export function BlogDetailClient({
 
         {/* Right Sidebar: Featured Products & Brands */}
         <aside className="lg:col-span-4 space-y-6">
+          {/* Ad Placement: Right Sidebar Top Square Ad */}
+          <AdSlot placement="blog_detail_sidebar_top" />
+
           {/* 1. Featured Deals (1 column, 4 products) */}
           {featuredProducts && featuredProducts.length > 0 && (
             <div className="border border-border/80 bg-card p-4 space-y-4 shadow-sm">
@@ -375,6 +382,9 @@ export function BlogDetailClient({
               </div>
             </div>
           )}
+
+          {/* Ad Placement: Right Sidebar Above Popular Brands Square Ad */}
+          <AdSlot placement="blog_detail_sidebar_above_brands" />
 
           {/* 2. Popular Brands (3 columns) */}
           {brands && brands.length > 0 && (

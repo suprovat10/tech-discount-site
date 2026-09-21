@@ -108,6 +108,8 @@ export default async function RootLayout({
   const gaId = settings.googleAnalyticsId?.trim();
   const fbPixelId = settings.facebookPixelId?.trim();
   const tiktokPixelId = settings.tiktokPixelId?.trim();
+  const adsenseId = settings.googleAdSenseId?.trim();
+  const globalAdHeaderCode = settings.globalAdHeaderCode?.trim();
 
   return (
     <html lang="en">
@@ -128,6 +130,25 @@ export default async function RootLayout({
 
       </head>
       <body className="min-h-screen bg-background text-foreground font-sans">
+        {/* Google AdSense Script */}
+        {adsenseId && (
+          <Script
+            id="google-adsense"
+            strategy="afterInteractive"
+            crossOrigin="anonymous"
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseId}`}
+          />
+        )}
+
+        {/* Global Ad Network Header Code */}
+        {globalAdHeaderCode && (
+          <div
+            id="global-ad-header-code"
+            style={{ display: 'none' }}
+            dangerouslySetInnerHTML={{ __html: globalAdHeaderCode }}
+          />
+        )}
+
         {/* Google Tag Manager (Head script) */}
         {gtmId && (
           <Script

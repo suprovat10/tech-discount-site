@@ -20,6 +20,7 @@ import {
   Ticket,
   Globe,
   LogOut,
+  Megaphone,
 } from 'lucide-react';
 import { useBranding } from '@/hooks/useBranding';
 
@@ -54,6 +55,7 @@ export default function AdminLayout({
     { label: 'Categories & Subs', href: '/supro111vat29/categories', icon: Layers },
     { label: 'Brand Partners', href: '/supro111vat29/brands', icon: Award },
     { label: 'Coupons & Deals', href: '/supro111vat29/coupons', icon: Ticket },
+    { label: 'Ads & Banners', href: '/supro111vat29/ads', icon: Megaphone },
     { label: 'Blog Articles', href: '/supro111vat29/blogs', icon: FileText, exact: true },
     { label: 'Blog Categories', href: '/supro111vat29/blogs/categories', icon: FolderPlus, exact: true },
     { label: 'Site Pages & Legal', href: '/supro111vat29/pages', icon: Globe },

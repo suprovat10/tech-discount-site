@@ -19,6 +19,8 @@ export interface SiteSettings {
   tiktokPixelId: string;
   googleSiteVerification?: string;
   bingSiteVerification?: string;
+  googleAdSenseId?: string;
+  globalAdHeaderCode?: string;
   amazonTag: string;
   walmartPartnerId: string;
   bestBuyAffiliateId: string;
@@ -62,6 +64,8 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   tiktokPixelId: '',
   googleSiteVerification: '',
   bingSiteVerification: '',
+  googleAdSenseId: '',
+  globalAdHeaderCode: '',
   amazonTag: 'smarttechdeals-20',
   walmartPartnerId: 'WMT-PARTNER-40291',
   bestBuyAffiliateId: 'BBY-CJ-908122',
