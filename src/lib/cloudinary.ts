@@ -112,10 +112,10 @@ export async function uploadToCloudinary(
 
     const data = await res.json();
     if (res.ok && data.secure_url) {
-      // Auto-inject modern WebP/AVIF format and auto quality optimization
+      // Auto-inject modern WebP/AVIF format, auto quality, and max banner dimension limit
       const secureUrl = data.secure_url as string;
       const optimizedUrl = secureUrl.includes('/upload/')
-        ? secureUrl.replace('/upload/', '/upload/f_auto,q_auto/')
+        ? secureUrl.replace('/upload/', '/upload/f_auto,q_auto,w_1600,c_limit/')
         : secureUrl;
 
       return {

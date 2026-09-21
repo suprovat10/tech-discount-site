@@ -9,6 +9,11 @@ import {
   clearActiveAdsCache,
   ADS_UPDATED_EVENT,
 } from '@/lib/adStore';
+import {
+  optimizeCloudinaryUrl,
+  getAdSrcSet,
+  getAdSizes,
+} from '@/lib/imageOptimization';
 
 interface AdSlotProps {
   placement: AdPlacementId;
@@ -83,6 +88,9 @@ export function AdSlot({ placement, initialAd, className = '' }: AdSlotProps) {
   }
 
   const isBanner = ad.format === 'banner';
+  const optimizedSrc = optimizeCloudinaryUrl(ad.imageUrl, isBanner ? 800 : 400);
+  const srcSet = getAdSrcSet(ad.imageUrl, isBanner);
+  const sizes = getAdSizes(isBanner);
 
   return (
     <div
@@ -112,7 +120,9 @@ export function AdSlot({ placement, initialAd, className = '' }: AdSlotProps) {
               title={ad.title}
             >
               <img
-                src={ad.imageUrl}
+                src={optimizedSrc}
+                srcSet={srcSet}
+                sizes={sizes}
                 alt={ad.altText || ad.title}
                 className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.01] ${
                   isBanner ? 'object-center' : 'object-cover'
@@ -123,7 +133,9 @@ export function AdSlot({ placement, initialAd, className = '' }: AdSlotProps) {
             </a>
           ) : (
             <img
-              src={ad.imageUrl}
+              src={optimizedSrc}
+              srcSet={srcSet}
+              sizes={sizes}
               alt={ad.altText || ad.title}
               className="w-full h-full object-cover"
               loading="lazy"
