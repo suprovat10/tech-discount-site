@@ -34,8 +34,12 @@ export interface SiteSettings {
   heroImageAlt?: string;
   heroPrimaryBtnText?: string;
   heroPrimaryBtnUrl?: string;
+  heroPrimaryBtnNewTab?: boolean;
+  heroPrimaryBtnShowIcon?: boolean;
   heroSecondaryBtnText?: string;
   heroSecondaryBtnUrl?: string;
+  heroSecondaryBtnNewTab?: boolean;
+  heroSecondaryBtnShowIcon?: boolean;
   heroBadgeText?: string;
 }
 
@@ -81,7 +85,11 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   heroImageAlt: 'MacBook and Tech Gear',
   heroPrimaryBtnText: 'Browse Products',
   heroPrimaryBtnUrl: '/products',
+  heroPrimaryBtnNewTab: false,
+  heroPrimaryBtnShowIcon: true,
   heroSecondaryBtnText: "Today's Best Deals",
   heroSecondaryBtnUrl: '/products?sort=highest-savings',
+  heroSecondaryBtnNewTab: false,
+  heroSecondaryBtnShowIcon: true,
   heroBadgeText: '',
 };

@@ -84,18 +84,24 @@ export function HeroSection({ initialSettings }: HeroSectionProps) {
           <div className="flex flex-wrap items-center gap-3 pt-2">
             <Link
               href={primaryUrl}
+              target={settings.heroPrimaryBtnNewTab ? '_blank' : undefined}
+              rel={settings.heroPrimaryBtnNewTab ? 'noopener noreferrer' : undefined}
               prefetch={true}
               className="bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 text-white font-bold text-xs h-10 px-5 inline-flex items-center gap-2 transition-colors cursor-pointer rounded-none"
             >
               <span>{primaryText}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              {settings.heroPrimaryBtnShowIcon !== false && <ArrowRight className="w-3.5 h-3.5" />}
             </Link>
             <Link
               href={secondaryUrl}
+              target={settings.heroSecondaryBtnNewTab ? '_blank' : undefined}
+              rel={settings.heroSecondaryBtnNewTab ? 'noopener noreferrer' : undefined}
               prefetch={true}
               className="border border-input bg-background hover:bg-accent hover:text-accent-foreground font-bold text-xs h-10 px-5 inline-flex items-center gap-1.5 transition-colors cursor-pointer rounded-none"
             >
-              <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+              {settings.heroSecondaryBtnShowIcon !== false && (
+                <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+              )}
               <span>{secondaryText}</span>
             </Link>
           </div>

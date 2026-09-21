@@ -25,8 +25,12 @@ interface HeroSettingsState {
   heroImageAlt: string;
   heroPrimaryBtnText: string;
   heroPrimaryBtnUrl: string;
+  heroPrimaryBtnNewTab?: boolean;
+  heroPrimaryBtnShowIcon?: boolean;
   heroSecondaryBtnText: string;
   heroSecondaryBtnUrl: string;
+  heroSecondaryBtnNewTab?: boolean;
+  heroSecondaryBtnShowIcon?: boolean;
   heroBadgeText: string;
 }
 
@@ -40,8 +44,12 @@ const DEFAULT_HERO_SETTINGS: HeroSettingsState = {
   heroImageAlt: 'MacBook and Tech Gear Showcase',
   heroPrimaryBtnText: 'Browse Products',
   heroPrimaryBtnUrl: '/products',
+  heroPrimaryBtnNewTab: false,
+  heroPrimaryBtnShowIcon: true,
   heroSecondaryBtnText: "Today's Best Deals",
   heroSecondaryBtnUrl: '/products?sort=highest_savings',
+  heroSecondaryBtnNewTab: false,
+  heroSecondaryBtnShowIcon: true,
   heroBadgeText: '',
 };
 
@@ -89,8 +97,12 @@ export default function AdminHeroPage() {
           heroImageAlt: parsed.heroImageAlt ?? prev.heroImageAlt,
           heroPrimaryBtnText: parsed.heroPrimaryBtnText ?? prev.heroPrimaryBtnText,
           heroPrimaryBtnUrl: parsed.heroPrimaryBtnUrl ?? prev.heroPrimaryBtnUrl,
+          heroPrimaryBtnNewTab: parsed.heroPrimaryBtnNewTab ?? prev.heroPrimaryBtnNewTab,
+          heroPrimaryBtnShowIcon: parsed.heroPrimaryBtnShowIcon ?? prev.heroPrimaryBtnShowIcon,
           heroSecondaryBtnText: parsed.heroSecondaryBtnText ?? prev.heroSecondaryBtnText,
           heroSecondaryBtnUrl: parsed.heroSecondaryBtnUrl ?? prev.heroSecondaryBtnUrl,
+          heroSecondaryBtnNewTab: parsed.heroSecondaryBtnNewTab ?? prev.heroSecondaryBtnNewTab,
+          heroSecondaryBtnShowIcon: parsed.heroSecondaryBtnShowIcon ?? prev.heroSecondaryBtnShowIcon,
           heroBadgeText: parsed.heroBadgeText ?? prev.heroBadgeText,
         }));
       }
@@ -113,8 +125,12 @@ export default function AdminHeroPage() {
             heroImageAlt: serverData.heroImageAlt ?? prev.heroImageAlt,
             heroPrimaryBtnText: serverData.heroPrimaryBtnText ?? prev.heroPrimaryBtnText,
             heroPrimaryBtnUrl: serverData.heroPrimaryBtnUrl ?? prev.heroPrimaryBtnUrl,
+            heroPrimaryBtnNewTab: serverData.heroPrimaryBtnNewTab ?? prev.heroPrimaryBtnNewTab,
+            heroPrimaryBtnShowIcon: serverData.heroPrimaryBtnShowIcon ?? prev.heroPrimaryBtnShowIcon,
             heroSecondaryBtnText: serverData.heroSecondaryBtnText ?? prev.heroSecondaryBtnText,
             heroSecondaryBtnUrl: serverData.heroSecondaryBtnUrl ?? prev.heroSecondaryBtnUrl,
+            heroSecondaryBtnNewTab: serverData.heroSecondaryBtnNewTab ?? prev.heroSecondaryBtnNewTab,
+            heroSecondaryBtnShowIcon: serverData.heroSecondaryBtnShowIcon ?? prev.heroSecondaryBtnShowIcon,
             heroBadgeText: serverData.heroBadgeText ?? prev.heroBadgeText,
           }));
         }
@@ -122,7 +138,7 @@ export default function AdminHeroPage() {
       .catch(() => {});
   }, []);
 
-  const handleChange = (field: keyof HeroSettingsState, value: string) => {
+  const handleChange = (field: keyof HeroSettingsState, value: any) => {
     setHero((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -290,11 +306,15 @@ export default function AdminHeroPage() {
               <div className="flex flex-wrap items-center gap-2.5 pt-1">
                 <Button size="sm" className="bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 font-bold text-[11px] h-8 px-4 flex items-center gap-1.5">
                   <span>{hero.heroPrimaryBtnText || 'Browse Products'}</span>
-                  <ArrowRight className="w-3 h-3" />
+                  {hero.heroPrimaryBtnShowIcon !== false && <ArrowRight className="w-3 h-3" />}
+                  {hero.heroPrimaryBtnNewTab && <ExternalLink className="w-2.5 h-2.5 opacity-60 ml-0.5" />}
                 </Button>
                 <Button size="sm" variant="outline" className="font-bold text-[11px] h-8 px-4 flex items-center gap-1.5">
-                  <Flame className="w-3 h-3 text-amber-500 fill-amber-500" />
+                  {hero.heroSecondaryBtnShowIcon !== false && (
+                    <Flame className="w-3 h-3 text-amber-500 fill-amber-500" />
+                  )}
                   <span>{hero.heroSecondaryBtnText || "Today's Best Deals"}</span>
+                  {hero.heroSecondaryBtnNewTab && <ExternalLink className="w-2.5 h-2.5 opacity-60 ml-0.5" />}
                 </Button>
               </div>
             </div>
@@ -611,6 +631,29 @@ export default function AdminHeroPage() {
                   className="h-8 text-xs font-mono"
                 />
               </div>
+
+              {/* Primary Button Options */}
+              <div className="space-y-2 pt-2 border-t border-border/60">
+                <label className="flex items-center gap-2 cursor-pointer text-[11px] font-medium text-foreground">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(hero.heroPrimaryBtnNewTab)}
+                    onChange={(e) => handleChange('heroPrimaryBtnNewTab', e.target.checked)}
+                    className="w-4 h-4 rounded-none accent-blue-600 cursor-pointer"
+                  />
+                  <span>Open link in new tab (target=&quot;_blank&quot;)</span>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer text-[11px] font-medium text-foreground">
+                  <input
+                    type="checkbox"
+                    checked={hero.heroPrimaryBtnShowIcon !== false}
+                    onChange={(e) => handleChange('heroPrimaryBtnShowIcon', e.target.checked)}
+                    className="w-4 h-4 rounded-none accent-blue-600 cursor-pointer"
+                  />
+                  <span>Show button icon (→ arrow)</span>
+                </label>
+              </div>
             </div>
 
             {/* Secondary Button */}
@@ -639,6 +682,29 @@ export default function AdminHeroPage() {
                   placeholder="/products?sort=highest_savings"
                   className="h-8 text-xs font-mono"
                 />
+              </div>
+
+              {/* Secondary Button Options */}
+              <div className="space-y-2 pt-2 border-t border-border/60">
+                <label className="flex items-center gap-2 cursor-pointer text-[11px] font-medium text-foreground">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(hero.heroSecondaryBtnNewTab)}
+                    onChange={(e) => handleChange('heroSecondaryBtnNewTab', e.target.checked)}
+                    className="w-4 h-4 rounded-none accent-blue-600 cursor-pointer"
+                  />
+                  <span>Open link in new tab (target=&quot;_blank&quot;)</span>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer text-[11px] font-medium text-foreground">
+                  <input
+                    type="checkbox"
+                    checked={hero.heroSecondaryBtnShowIcon !== false}
+                    onChange={(e) => handleChange('heroSecondaryBtnShowIcon', e.target.checked)}
+                    className="w-4 h-4 rounded-none accent-blue-600 cursor-pointer"
+                  />
+                  <span>Show button icon (🔥 fire)</span>
+                </label>
               </div>
             </div>
           </div>
