@@ -541,10 +541,10 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
         {/* RIGHT MAIN CONTENT */}
         <div className="lg:col-span-9 space-y-10">
           {/* Product Overview Box: Image Slider on Left, Info/Price on Right */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start border border-border/80 bg-card p-6">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 items-start border-0 md:border border-border/80 bg-transparent md:bg-card p-0 md:p-6">
             {/* Product Image Slider: 5:4 Main Slide + Thumbnail Gallery Underneath */}
             <div className="md:col-span-6 space-y-3">
-              <div className="relative aspect-[5/4] w-full overflow-hidden bg-muted/20 border border-border/50 group">
+              <div className="relative aspect-[5/4] w-full overflow-hidden bg-muted/20 border-0 md:border border-border/50 group">
                 <Image
                   src={images[activeImageIndex] || activeProduct.imageUrl}
                   alt={
