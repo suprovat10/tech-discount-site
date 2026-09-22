@@ -51,9 +51,7 @@ export function HeroSection({ initialSettings }: HeroSectionProps) {
   const subtitle =
     settings.heroSubtitle ||
     'Instantly compare real-time offers and verified discounts from Amazon, Walmart, Best Buy, and Target before making any purchase.';
-  const imageUrl =
-    settings.heroImageUrl ||
-    'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=900&q=80';
+  const imageUrl = settings.heroImageUrl || '/hero.webp';
   const imageAlt = settings.heroImageAlt || 'MacBook and Tech Gear';
   const primaryText = settings.heroPrimaryBtnText || 'Browse Products';
   const primaryUrl = (settings.heroPrimaryBtnUrl === '/search' ? '/products' : settings.heroPrimaryBtnUrl) || '/products';
@@ -124,8 +122,7 @@ export function HeroSection({ initialSettings }: HeroSectionProps) {
               decoding="sync"
               className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
               onError={(e) => {
-                e.currentTarget.src =
-                  'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=480&q=80';
+                e.currentTarget.src = '/hero.webp';
               }}
             />
           </div>

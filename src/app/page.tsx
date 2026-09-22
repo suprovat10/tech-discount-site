@@ -62,9 +62,7 @@ export default async function HomePage() {
     })
     .slice(0, 8);
 
-  const heroImageUrl =
-    settings.heroImageUrl ||
-    'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=900&q=80';
+  const heroImageUrl = settings.heroImageUrl || '/hero.webp';
   const heroPreloadSrc = optimizeImageUrl(heroImageUrl, 480);
   const heroSrcSet = getHeroSrcSet(heroImageUrl);
   const heroSizes = getHeroSizes();

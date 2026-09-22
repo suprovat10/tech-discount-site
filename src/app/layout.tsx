@@ -170,28 +170,36 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           />
         )}
 
-        {/* Google Analytics 4 (GA4) - lazyOnload */}
+        {/* Google Analytics 4 (GA4) - Deferred on idle/interaction for PageSpeed 95+ */}
         {gaId && (
-          <>
-            <Script
-              strategy="lazyOnload"
-              src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
-            />
-            <Script
-              id="google-analytics"
-              strategy="lazyOnload"
-              dangerouslySetInnerHTML={{
-                __html: `
+          <Script
+            id="google-analytics-deferred"
+            strategy="afterInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `
+                function loadGA4() {
+                  if (window._ga4Loaded) return;
+                  window._ga4Loaded = true;
+                  var s = document.createElement('script');
+                  s.src = 'https://www.googletagmanager.com/gtag/js?id=${gaId}';
+                  s.async = true;
+                  document.head.appendChild(s);
                   window.dataLayer = window.dataLayer || [];
                   function gtag(){dataLayer.push(arguments);}
                   gtag('js', new Date());
-                  gtag('config', '${gaId}', {
-                    page_path: window.location.pathname,
-                  });
-                `,
-              }}
-            />
-          </>
+                  gtag('config', '${gaId}', { page_path: window.location.pathname });
+                }
+                if ('requestIdleCallback' in window) {
+                  requestIdleCallback(function() { setTimeout(loadGA4, 2500); });
+                } else {
+                  setTimeout(loadGA4, 2500);
+                }
+                ['scroll', 'touchstart', 'click'].forEach(function(e) {
+                  window.addEventListener(e, loadGA4, { once: true, passive: true });
+                });
+              `,
+            }}
+          />
         )}
 
         {/* Meta / Facebook Pixel - lazyOnload */}

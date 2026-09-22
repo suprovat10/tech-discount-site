@@ -47,6 +47,14 @@ export function optimizeCloudinaryUrl(url?: string, width?: number): string {
 export function optimizeImageUrl(url?: string, width?: number): string {
   if (!url || typeof url !== 'string') return url || '';
 
+  // Local Hero image
+  if (url === '/hero.webp' || url === '/hero-mobile.webp' || url.startsWith('/hero')) {
+    if (width && width <= 480) {
+      return '/hero-mobile.webp';
+    }
+    return '/hero.webp';
+  }
+
   // Cloudinary
   if (url.includes('res.cloudinary.com') && url.includes('/image/upload/')) {
     return optimizeCloudinaryUrl(url, width);
@@ -113,6 +121,10 @@ export function getAdSizes(isBanner: boolean): string | undefined {
  */
 export function getHeroSrcSet(url?: string): string | undefined {
   if (!url || typeof url !== 'string') return undefined;
+
+  if (url === '/hero.webp' || url === '/hero-mobile.webp' || url.startsWith('/hero')) {
+    return '/hero-mobile.webp 480w, /hero.webp 768w';
+  }
 
   if (
     (url.includes('res.cloudinary.com') && url.includes('/image/upload/')) ||
