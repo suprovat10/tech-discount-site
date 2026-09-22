@@ -9,6 +9,43 @@ import { getServerSettings } from '@/lib/settingsServer';
 import { TagDetailClient } from './TagDetailClient';
 
 export const revalidate = 30;
+export const dynamicParams = true;
+
+export async function generateStaticParams() {
+  try {
+    const [allTags, allCatalog] = await Promise.all([
+      getProductTagsServer(),
+      getDatabaseProducts(),
+    ]);
+
+    const slugSet = new Set<string>();
+
+    // 1. Explicit tags from database/store
+    allTags.forEach((t: ProductTag) => {
+      if (t.slug) slugSet.add(t.slug.toLowerCase().trim());
+      else if (t.name) slugSet.add(slugifyTag(t.name));
+    });
+
+    // 2. Tags attached to products
+    allCatalog.forEach((p) => {
+      if (Array.isArray(p.tags)) {
+        p.tags.forEach((tag) => {
+          if (tag) slugSet.add(slugifyTag(tag));
+        });
+      }
+      if (p.brand) slugSet.add(slugifyTag(p.brand));
+      if (p.category) slugSet.add(slugifyTag(p.category));
+      if (p.subcategory) slugSet.add(slugifyTag(p.subcategory));
+    });
+
+    return Array.from(slugSet)
+      .filter(Boolean)
+      .map((slug) => ({ slug }));
+  } catch (err) {
+    console.error('Error generating static params for product tags:', err);
+    return [];
+  }
+}
 
 interface TagPageProps {
   params: Promise<{ slug: string }>;

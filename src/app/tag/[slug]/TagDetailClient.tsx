@@ -61,7 +61,19 @@ export function TagDetailClient({
     }
   };
 
-  const syncTagProducts = async () => {
+  const filterCatalogByTag = (catalog: any[]) => {
+    return catalog.filter((p) => {
+      if (Array.isArray(p.tags) && p.tags.some((t: string) => slugifyTag(t) === slug)) {
+        return true;
+      }
+      if (p.brand && slugifyTag(p.brand) === slug) return true;
+      if (p.category && slugifyTag(p.category) === slug) return true;
+      if (p.subcategory && slugifyTag(p.subcategory) === slug) return true;
+      return false;
+    });
+  };
+
+  const syncTagProducts = (shouldFetchRemote = false) => {
     try {
       const tags = getProductTags();
       const liveTag = tags.find((t) => t.slug === slug || slugifyTag(t.name) === slug);
@@ -69,20 +81,27 @@ export function TagDetailClient({
         setTag(liveTag);
       }
 
-      const allCatalog = await fetchAndSyncCatalogFromServer();
-      if (Array.isArray(allCatalog)) {
-        const matching = allCatalog.filter((p) => {
-          if (Array.isArray(p.tags) && p.tags.some((t) => slugifyTag(t) === slug)) {
-            return true;
-          }
-          if (p.brand && slugifyTag(p.brand) === slug) return true;
-          if (p.category && slugifyTag(p.category) === slug) return true;
-          if (p.subcategory && slugifyTag(p.subcategory) === slug) return true;
-          return false;
-        });
+      // Check local cache first (instant 0ms)
+      const localCatalog = getCatalogProducts();
+      if (Array.isArray(localCatalog) && localCatalog.length > 0) {
+        const matching = filterCatalogByTag(localCatalog);
         if (matching.length > 0) {
           setProducts(matching.map(transformCatalogItemToUnified));
         }
+      }
+
+      // Only fetch from server if explicitly requested or if we have no products at all
+      if (shouldFetchRemote || (initialProducts.length === 0 && (!localCatalog || localCatalog.length === 0))) {
+        fetchAndSyncCatalogFromServer()
+          .then((remoteCatalog) => {
+            if (Array.isArray(remoteCatalog) && remoteCatalog.length > 0) {
+              const matching = filterCatalogByTag(remoteCatalog);
+              if (matching.length > 0) {
+                setProducts(matching.map(transformCatalogItemToUnified));
+              }
+            }
+          })
+          .catch(() => {});
       }
     } catch {
       // ignore
@@ -90,14 +109,17 @@ export function TagDetailClient({
   };
 
   useEffect(() => {
-    syncTagProducts();
-    window.addEventListener('smarttech_catalog_updated', syncTagProducts);
-    window.addEventListener('smarttech_product_tags_updated', syncTagProducts);
-    window.addEventListener('storage', syncTagProducts);
+    // Instant local sync on mount / slug change
+    syncTagProducts(false);
+
+    const handleEventSync = () => syncTagProducts(true);
+    window.addEventListener('smarttech_catalog_updated', handleEventSync);
+    window.addEventListener('smarttech_product_tags_updated', handleEventSync);
+    window.addEventListener('storage', handleEventSync);
     return () => {
-      window.removeEventListener('smarttech_catalog_updated', syncTagProducts);
-      window.removeEventListener('smarttech_product_tags_updated', syncTagProducts);
-      window.removeEventListener('storage', syncTagProducts);
+      window.removeEventListener('smarttech_catalog_updated', handleEventSync);
+      window.removeEventListener('smarttech_product_tags_updated', handleEventSync);
+      window.removeEventListener('storage', handleEventSync);
     };
   }, [slug]);
 

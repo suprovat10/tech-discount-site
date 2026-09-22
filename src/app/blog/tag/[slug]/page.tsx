@@ -6,6 +6,29 @@ import { slugifyTag } from '@/lib/productTagStore';
 import { BlogTagClient } from './BlogTagClient';
 
 export const revalidate = 30;
+export const dynamicParams = true;
+
+export async function generateStaticParams() {
+  try {
+    const allPosts = await getServerBlogs();
+    const slugSet = new Set<string>();
+
+    allPosts.forEach((post) => {
+      if (Array.isArray(post.tags)) {
+        post.tags.forEach((tag) => {
+          if (tag) slugSet.add(slugifyTag(tag));
+        });
+      }
+    });
+
+    return Array.from(slugSet)
+      .filter(Boolean)
+      .map((slug) => ({ slug }));
+  } catch (err) {
+    console.error('Error generating static params for blog tags:', err);
+    return [];
+  }
+}
 
 interface BlogTagPageProps {
   params: Promise<{ slug: string }>;
