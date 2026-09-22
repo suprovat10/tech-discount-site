@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { UnifiedProduct } from '@/types/product';
 import { formatCurrency, formatPercentage } from '@/lib/utils';
 import { WatchlistButton } from '../watchlist/WatchlistButton';
-import { Star, ArrowRight } from 'lucide-react';
+import { Star, ArrowRight, Package } from 'lucide-react';
 import { optimizeImageUrl } from '@/lib/imageOptimization';
 
 interface DealCardProps {
@@ -43,16 +43,25 @@ export function DealCard({ product, priority = false }: DealCardProps) {
         className="relative mb-2 sm:mb-3 block aspect-[5/4] w-full overflow-hidden bg-muted/20 cursor-pointer"
         title={`View ${product.title}`}
       >
-        <Image
-          src={optimizeImageUrl(product.imageUrl, 400)}
-          alt={product.imageAlt || product.title}
-          fill
-          priority={priority}
-          loading={priority ? 'eager' : 'lazy'}
-          className="object-cover transition-transform duration-300 group-hover:scale-105"
-          sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-          unoptimized
-        />
+        {product.imageUrl && product.imageUrl.trim() ? (
+          <Image
+            src={optimizeImageUrl(product.imageUrl, 400)}
+            alt={product.imageAlt || product.title}
+            fill
+            priority={priority}
+            loading={priority ? 'eager' : 'lazy'}
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+            unoptimized
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center bg-muted/30 text-muted-foreground/50 select-none">
+            <Package className="w-8 h-8 sm:w-10 sm:h-10 opacity-30 stroke-[1.5]" />
+            <span className="text-[10px] sm:text-[11px] font-medium mt-1 tracking-wider uppercase opacity-40">
+              No Preview
+            </span>
+          </div>
+        )}
 
         {/* Discount Badge over Image */}
         {discountPercent > 0 && (

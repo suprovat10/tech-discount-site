@@ -6,7 +6,7 @@
     "targetPage": "all",
     "delaySeconds": 3,
     "frequency": "once_per_session",
-    "imageUrl": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&q=80",
+    "imageUrl": "",
     "imageAlt": "Special Tech Deals",
     "badgeText": "LIMITED TIME SPECIAL OFFER",
     "title": "NEW SEASON SALE!",

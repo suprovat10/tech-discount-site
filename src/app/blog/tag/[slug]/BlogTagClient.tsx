@@ -199,14 +199,20 @@ export function BlogTagClient({
             >
               {/* Thumbnail */}
               <Link href={`/blog/${post.slug}`} prefetch={true} className="relative aspect-video overflow-hidden bg-muted block">
-                <img
-                  src={optimizeImageUrl(post.imageUrl, 600)}
-                  alt={post.title}
-                  loading={idx < 2 ? 'eager' : 'lazy'}
-                  decoding={idx < 2 ? 'sync' : 'async'}
-                  fetchPriority={idx === 0 ? 'high' : undefined}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
+                {post.imageUrl ? (
+                  <img
+                    src={optimizeImageUrl(post.imageUrl, 600)}
+                    alt={post.title}
+                    loading={idx < 2 ? 'eager' : 'lazy'}
+                    decoding={idx < 2 ? 'sync' : 'async'}
+                    fetchPriority={idx === 0 ? 'high' : undefined}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-muted">
+                    <BookOpen className="w-8 h-8 opacity-40" />
+                  </div>
+                )}
                 <span className="absolute top-3 left-3 px-2.5 py-1 bg-background/90 backdrop-blur-xs text-[11px] font-bold text-foreground rounded border border-border/50">
                   {post.category}
                 </span>

@@ -67,7 +67,7 @@ export class TargetAdapter extends BaseAdapter {
       const tcin = String(item.tcin || item.item_attributes?.tcin || '');
       const title = item.item_attributes?.title || item.title || 'Target Product';
       const brand = item.item_attributes?.brand || 'Tech';
-      const imageUrl = item.item_attributes?.images?.[0]?.base_url || 'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=500&q=80';
+      const imageUrl = item.item_attributes?.images?.[0]?.base_url || '';
       const price = Number(item.price?.current_retail || 0);
       const regularPrice = item.price?.regular_retail ? Number(item.price.regular_retail) : undefined;
       const isInStock = item.availability_status !== 'OUT_OF_STOCK';
@@ -103,7 +103,7 @@ export class TargetAdapter extends BaseAdapter {
         title: 'Apple AirPods Pro 2nd Gen with MagSafe Case (USB-C)',
         brand: 'Apple',
         category: 'Audio',
-        imageUrl: 'https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=500&q=80',
+        imageUrl: '',
         price: 189.99,
         regularPrice: 249.99,
         productUrl: 'https://www.target.com/p/-/A-89531284',
@@ -119,7 +119,7 @@ export class TargetAdapter extends BaseAdapter {
         title: 'Apple MacBook Air 13" (2024) M3 Chip 8-Core CPU 8-Core GPU 256GB SSD',
         brand: 'Apple',
         category: 'Laptops',
-        imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&q=80',
+        imageUrl: '',
         price: 949.00,
         regularPrice: 1099.00,
         productUrl: 'https://www.target.com/p/-/A-91238472',
@@ -135,7 +135,7 @@ export class TargetAdapter extends BaseAdapter {
         title: 'Sony WH-1000XM5 Noise Canceling Bluetooth Headphones - Black',
         brand: 'Sony',
         category: 'Audio',
-        imageUrl: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=500&q=80',
+        imageUrl: '',
         price: 349.99,
         regularPrice: 399.99,
         productUrl: 'https://www.target.com/p/-/A-86291734',
@@ -151,7 +151,7 @@ export class TargetAdapter extends BaseAdapter {
         title: 'PlayStation 5 Console (Slim) Digital Edition',
         brand: 'Sony',
         category: 'Gaming',
-        imageUrl: 'https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=500&q=80',
+        imageUrl: '',
         price: 449.99,
         regularPrice: 449.99,
         productUrl: 'https://www.target.com/p/-/A-89938461',
@@ -167,7 +167,7 @@ export class TargetAdapter extends BaseAdapter {
         title: 'Samsung 65" Class OLED 4K S90C Smart TV',
         brand: 'Samsung',
         category: 'TV & Home Theater',
-        imageUrl: 'https://images.unsplash.com/photo-1593784991095-a205069470b6?w=500&q=80',
+        imageUrl: '',
         price: 1599.99,
         regularPrice: 2099.99,
         productUrl: 'https://www.target.com/p/-/A-87912304',
@@ -183,7 +183,7 @@ export class TargetAdapter extends BaseAdapter {
         title: 'Apple Watch Series 9 GPS 41mm Midnight Aluminum Case',
         brand: 'Apple',
         category: 'Wearables',
-        imageUrl: 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=500&q=80',
+        imageUrl: '',
         price: 329.99,
         regularPrice: 399.99,
         productUrl: 'https://www.target.com/p/-/A-88294712',

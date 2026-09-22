@@ -288,16 +288,14 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
     ? activeProduct.tags
     : [activeProduct.brand, activeProduct.category, activeProduct.subcategory].filter(Boolean) as string[];
 
-  // Multi-image gallery list
-  const defaultGallery = [
-    activeProduct.imageUrl,
-    'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=800&q=80',
-    'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&q=80',
-    'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80',
-  ];
+  // Multi-image gallery list (strictly product's own uploaded images, no default Unsplash fillers)
+  const candidateImages = activeProduct.images && activeProduct.images.length > 0
+    ? activeProduct.images
+    : (activeProduct.imageUrl ? [activeProduct.imageUrl] : []);
 
-  const images: string[] =
-    activeProduct.images && activeProduct.images.length > 0 ? activeProduct.images : defaultGallery;
+  const images: string[] = candidateImages.filter(
+    (img): img is string => Boolean(img && img.trim() && !img.includes('unsplash.com'))
+  );
 
   // FAQ Accordion State (Requirement 3)
   const productFaqs =
@@ -559,21 +557,27 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
             {/* Product Image Slider: 5:4 Main Slide + Thumbnail Gallery Underneath */}
             <div className="md:col-span-6 space-y-3">
               <div className="relative aspect-[5/4] w-full overflow-hidden bg-muted/20 border-0 md:border border-border/50 group">
-                <Image
-                  src={optimizeImageUrl(images[activeImageIndex] || activeProduct.imageUrl, 640)}
-                  alt={
-                    (activeImageIndex === 0
-                      ? activeProduct.imageAlt
-                      : activeProduct.imageAlts?.[activeImageIndex]) ||
-                    `${activeProduct.title} - Slide ${activeImageIndex + 1}`
-                  }
-                  fill
-                  priority
-                  loading="eager"
-                  className="object-cover transition-all duration-300"
-                  sizes="(max-width: 768px) 100vw, 40vw"
-                  unoptimized
-                />
+                {images.length > 0 && images[activeImageIndex] ? (
+                  <Image
+                    src={optimizeImageUrl(images[activeImageIndex], 640)}
+                    alt={
+                      (activeImageIndex === 0
+                        ? activeProduct.imageAlt
+                        : activeProduct.imageAlts?.[activeImageIndex]) ||
+                      `${activeProduct.title} - Slide ${activeImageIndex + 1}`
+                    }
+                    fill
+                    priority
+                    loading="eager"
+                    className="object-cover transition-all duration-300"
+                    sizes="(max-width: 768px) 100vw, 40vw"
+                    unoptimized
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center bg-muted/30 text-muted-foreground p-6 text-center">
+                    <span className="text-xs font-semibold opacity-60">No Product Image Available</span>
+                  </div>
+                )}
 
                 {/* Navigation Arrows */}
                 {images.length > 1 && (
@@ -598,9 +602,11 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
                 )}
 
                 {/* Counter Badge */}
-                <div className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/70 text-white text-[10px] font-bold">
-                  {activeImageIndex + 1} / {images.length}
-                </div>
+                {images.length > 0 && (
+                  <div className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/70 text-white text-[10px] font-bold">
+                    {activeImageIndex + 1} / {images.length}
+                  </div>
+                )}
               </div>
 
               {/* Thumbnails Underneath */}

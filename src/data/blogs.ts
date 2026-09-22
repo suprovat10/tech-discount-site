@@ -50,7 +50,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'Laptops & Computers',
     date: 'Sep 15, 2026',
     readTime: '5 min read',
-    imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&q=80',
+    imageUrl: '',
     tags: ['Apple', 'MacBook Air', 'Laptops', 'Price Trends'],
   },
   {
@@ -70,7 +70,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'Audio & Sound',
     date: 'Sep 12, 2026',
     readTime: '6 min read',
-    imageUrl: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800&q=80',
+    imageUrl: '',
     tags: ['Audio', 'Sony', 'AirPods', 'Headphones', 'ANC'],
   },
   {
@@ -87,7 +87,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'Shopping Guides',
     date: 'Sep 10, 2026',
     readTime: '4 min read',
-    imageUrl: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=800&q=80',
+    imageUrl: '',
     tags: ['Guide', 'Savings', 'Black Friday', 'Price Tracking'],
   },
 ];

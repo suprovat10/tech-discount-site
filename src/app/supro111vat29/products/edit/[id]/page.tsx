@@ -828,7 +828,7 @@ export default function EditProductStudioPage({
       tags: tags.filter(Boolean),
       rating: parseFloat(rating) || 4.8,
       reviewCount: parseInt(reviewCount, 10) || 100,
-      imageUrl: images[0] || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80',
+      imageUrl: images[0] || '',
       imageAlt: coverAlt.trim() || undefined,
       images,
       imageAlts: imageAlts.length > 0 ? imageAlts : undefined,

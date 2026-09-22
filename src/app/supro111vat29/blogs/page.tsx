@@ -12,6 +12,7 @@ import {
 } from '@/lib/blogStore';
 import {
   FileText,
+  Image as ImageIcon,
   Plus,
   Trash2,
   Pencil,
@@ -198,17 +199,20 @@ export default function AdminBlogsPage() {
                   {/* Article Thumbnail + Title + Excerpt */}
                   <td className="py-3.5 px-4 max-w-md">
                     <div className="flex items-start gap-3">
-                      <div className="relative w-16 h-12 shrink-0 bg-slate-100 dark:bg-slate-800 border border-border overflow-hidden">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={b.imageUrl}
-                          alt={b.title}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src =
-                              'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&q=80';
-                          }}
-                        />
+                      <div className="relative w-16 h-12 shrink-0 bg-slate-100 dark:bg-slate-800 border border-border overflow-hidden flex items-center justify-center">
+                        {b.imageUrl && b.imageUrl.trim() ? (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img
+                            src={b.imageUrl}
+                            alt={b.title}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLElement).style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <ImageIcon className="w-5 h-5 text-slate-400 opacity-60" />
+                        )}
                       </div>
                       <div className="space-y-1">
                         <Link

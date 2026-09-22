@@ -70,7 +70,7 @@ export class BestBuyAdapter extends BaseAdapter {
       const sku = String(item.sku || '');
       const title = item.name || 'Best Buy Product';
       const brand = item.manufacturer || 'Tech';
-      const imageUrl = item.image || item.largeFrontImage || 'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=500&q=80';
+      const imageUrl = item.image || item.largeFrontImage || '';
       const price = Number(item.salePrice || 0);
       const regularPrice = item.regularPrice ? Number(item.regularPrice) : undefined;
       const isInStock = Boolean(item.onlineAvailability || item.inStoreAvailability);
@@ -108,7 +108,7 @@ export class BestBuyAdapter extends BaseAdapter {
         title: 'Apple - AirPods Pro (2nd generation) with MagSafe Case (USB-C) - White',
         brand: 'Apple',
         category: 'Audio',
-        imageUrl: 'https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=500&q=80',
+        imageUrl: '',
         price: 189.99,
         regularPrice: 249.99,
         productUrl: 'https://www.bestbuy.com/site/apple-airpods-pro-2nd-generation-with-magsafe-case-usb-c-white/6447382.p',
@@ -124,7 +124,7 @@ export class BestBuyAdapter extends BaseAdapter {
         title: 'Apple - MacBook Air 13-inch Laptop - M3 chip - 8GB Memory - 256GB SSD - Space Gray',
         brand: 'Apple',
         category: 'Laptops',
-        imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&q=80',
+        imageUrl: '',
         price: 899.00,
         regularPrice: 1099.00,
         productUrl: 'https://www.bestbuy.com/site/apple-macbook-air-13-inch-laptop-m3-chip-8gb-memory-256gb-ssd-space-gray/6565837.p',
@@ -140,7 +140,7 @@ export class BestBuyAdapter extends BaseAdapter {
         title: 'Sony - WH-1000XM5 Wireless Noise-Canceling Over-the-Ear Headphones - Black',
         brand: 'Sony',
         category: 'Audio',
-        imageUrl: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=500&q=80',
+        imageUrl: '',
         price: 329.99,
         regularPrice: 399.99,
         productUrl: 'https://www.bestbuy.com/site/sony-wh-1000xm5-wireless-noise-canceling-over-the-ear-headphones-black/6505727.p',
@@ -156,7 +156,7 @@ export class BestBuyAdapter extends BaseAdapter {
         title: 'Sony - PlayStation 5 Slim Console Digital Edition - White',
         brand: 'Sony',
         category: 'Gaming',
-        imageUrl: 'https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=500&q=80',
+        imageUrl: '',
         price: 449.99,
         regularPrice: 449.99,
         productUrl: 'https://www.bestbuy.com/site/sony-playstation-5-slim-console-digital-edition-white/6564757.p',
@@ -172,7 +172,7 @@ export class BestBuyAdapter extends BaseAdapter {
         title: 'Samsung - 65" Class S90C OLED 4K UHD Smart Tizen TV',
         brand: 'Samsung',
         category: 'TV & Home Theater',
-        imageUrl: 'https://images.unsplash.com/photo-1593784991095-a205069470b6?w=500&q=80',
+        imageUrl: '',
         price: 1599.99,
         regularPrice: 2099.99,
         productUrl: 'https://www.bestbuy.com/site/samsung-65-class-s90c-oled-4k-uhd-smart-tizen-tv/6536965.p',
@@ -188,7 +188,7 @@ export class BestBuyAdapter extends BaseAdapter {
         title: 'Apple - Apple Watch Series 9 GPS 41mm Midnight Aluminum Case',
         brand: 'Apple',
         category: 'Wearables',
-        imageUrl: 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=500&q=80',
+        imageUrl: '',
         price: 329.00,
         regularPrice: 399.00,
         productUrl: 'https://www.bestbuy.com/site/apple-apple-watch-series-9-gps-41mm-midnight-aluminum-case/6340265.p',

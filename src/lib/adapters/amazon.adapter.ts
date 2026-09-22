@@ -120,7 +120,7 @@ export class AmazonAdapter extends BaseAdapter {
       const asin = item.ASIN;
       const title = item.ItemInfo?.Title?.DisplayValue || 'Amazon Product';
       const brand = item.ItemInfo?.ByLineInfo?.Brand?.DisplayValue || 'Unknown';
-      const imageUrl = item.Images?.Primary?.Large?.URL || 'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=500&q=80';
+      const imageUrl = item.Images?.Primary?.Large?.URL || '';
       const listing = item.Offers?.Listings?.[0];
       const price = listing?.Price?.Amount || 0;
       const regularPrice = listing?.SavingBasis?.Amount || undefined;
@@ -206,7 +206,7 @@ export class AmazonAdapter extends BaseAdapter {
         title: 'Apple AirPods Pro (2nd Generation) with MagSafe Case (USB-C)',
         brand: 'Apple',
         category: 'Audio',
-        imageUrl: 'https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=500&q=80',
+        imageUrl: '',
         price: 189.99,
         regularPrice: 249.00,
         productUrl: 'https://www.amazon.com/dp/B0CHWRXH8B',
@@ -222,7 +222,7 @@ export class AmazonAdapter extends BaseAdapter {
         title: 'Apple 2024 MacBook Air 13-inch Laptop with M3 chip: 8GB Unified Memory, 256GB SSD',
         brand: 'Apple',
         category: 'Laptops',
-        imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&q=80',
+        imageUrl: '',
         price: 899.00,
         regularPrice: 1099.00,
         productUrl: 'https://www.amazon.com/dp/B0CX23V258',
@@ -238,7 +238,7 @@ export class AmazonAdapter extends BaseAdapter {
         title: 'Sony WH-1000XM5 Wireless Industry Leading Noise Canceling Headphones - Black',
         brand: 'Sony',
         category: 'Audio',
-        imageUrl: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=500&q=80',
+        imageUrl: '',
         price: 328.00,
         regularPrice: 399.99,
         productUrl: 'https://www.amazon.com/dp/B09XS7JWHH',
@@ -254,7 +254,7 @@ export class AmazonAdapter extends BaseAdapter {
         title: 'PlayStation 5 Console (Slim) - Digital Edition',
         brand: 'Sony',
         category: 'Gaming',
-        imageUrl: 'https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=500&q=80',
+        imageUrl: '',
         price: 449.99,
         regularPrice: 449.99,
         productUrl: 'https://www.amazon.com/dp/B0CL5KNB9M',
@@ -270,7 +270,7 @@ export class AmazonAdapter extends BaseAdapter {
         title: 'Samsung 65-Inch Class OLED 4K S90C Series Smart TV',
         brand: 'Samsung',
         category: 'TV & Home Theater',
-        imageUrl: 'https://images.unsplash.com/photo-1593784991095-a205069470b6?w=500&q=80',
+        imageUrl: '',
         price: 1597.99,
         regularPrice: 2099.99,
         productUrl: 'https://www.amazon.com/dp/B0BDHWDR12',
@@ -286,7 +286,7 @@ export class AmazonAdapter extends BaseAdapter {
         title: 'Apple Watch Series 9 GPS 41mm Midnight Aluminum Case with Midnight Sport Band',
         brand: 'Apple',
         category: 'Wearables',
-        imageUrl: 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=500&q=80',
+        imageUrl: '',
         price: 329.00,
         regularPrice: 399.00,
         productUrl: 'https://www.amazon.com/dp/B0BDJ6LMPD',

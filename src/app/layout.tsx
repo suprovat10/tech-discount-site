@@ -120,9 +120,8 @@ export default async function RootLayout({
   const adsenseId = settings.googleAdSenseId?.trim();
   const globalAdHeaderCode = settings.globalAdHeaderCode?.trim();
 
-  const heroImageUrl =
-    settings.heroImageUrl ||
-    'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=900&q=80';
+  const isDefaultHero = !settings.heroImageUrl || settings.heroImageUrl.includes('v8wowdztetwveiot2ahw') || settings.heroImageUrl.includes('images.unsplash.com');
+  const heroImageUrl = isDefaultHero ? '/hero.webp' : settings.heroImageUrl;
   const heroPreloadSrc = optimizeImageUrl(heroImageUrl, 640);
   const heroSrcSet = getHeroSrcSet(heroImageUrl);
   const heroSizes = getHeroSizes();
@@ -136,8 +135,6 @@ export default async function RootLayout({
         {/* Preconnect to critical image CDNs for instant LCP */}
         <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
-        <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://images.unsplash.com" />
 
         {/* High-priority Preload for Hero Image (LCP) */}
         <link

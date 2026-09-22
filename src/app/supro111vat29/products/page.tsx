@@ -33,6 +33,7 @@ import {
   Download,
   Upload,
   AlertCircle,
+  Package,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -696,14 +697,18 @@ export default function AdminProductsManager() {
                     {/* Product Info */}
                     <td className="py-3.5 pr-4">
                       <div className="flex items-center gap-3">
-                        <div className="relative w-12 h-10 border border-border bg-white overflow-hidden shrink-0">
-                          <Image
-                            src={p.imageUrl}
-                            alt={p.title}
-                            fill
-                            className="object-cover"
-                            unoptimized
-                          />
+                        <div className="relative w-12 h-10 border border-border bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center">
+                          {p.imageUrl && p.imageUrl.trim() ? (
+                            <Image
+                              src={p.imageUrl}
+                              alt={p.title}
+                              fill
+                              className="object-cover"
+                              unoptimized
+                            />
+                          ) : (
+                            <Package className="w-4 h-4 text-muted-foreground/40" />
+                          )}
                         </div>
                         <div>
                           <div className="font-bold text-foreground line-clamp-1 max-w-xs">{p.title}</div>

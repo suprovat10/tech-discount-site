@@ -39,9 +39,8 @@ const DEFAULT_HERO_SETTINGS: HeroSettingsState = {
   heroTitleLine2: 'Never overpay.',
   heroSubtitle:
     'Instantly compare real-time offers and verified discounts from Amazon, Walmart, Best Buy, and Target before making any purchase.',
-  heroImageUrl:
-    'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=900&q=80',
-  heroImageAlt: 'MacBook and Tech Gear Showcase',
+  heroImageUrl: '',
+  heroImageAlt: 'Hero Banner',
   heroPrimaryBtnText: 'Browse Products',
   heroPrimaryBtnUrl: '/products',
   heroPrimaryBtnNewTab: false,
@@ -52,25 +51,6 @@ const DEFAULT_HERO_SETTINGS: HeroSettingsState = {
   heroSecondaryBtnShowIcon: true,
   heroBadgeText: '',
 };
-
-const STOCK_HERO_PRESETS = [
-  {
-    label: 'MacBook Dark Neon',
-    url: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=900&q=80',
-  },
-  {
-    label: 'Minimalist Workspace',
-    url: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=900&q=80',
-  },
-  {
-    label: 'Headphones & Audio Studio',
-    url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=900&q=80',
-  },
-  {
-    label: 'Modern Tech Gadgets',
-    url: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=900&q=80',
-  },
-];
 
 export default function AdminHeroPage() {
   const [hero, setHero] = useState<HeroSettingsState>(DEFAULT_HERO_SETTINGS);
@@ -456,32 +436,6 @@ export default function AdminHeroPage() {
                     Clear Image
                   </Button>
                 )}
-              </div>
-
-              {/* Preset Stock Banners */}
-              <div>
-                <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">
-                  Or Pick a High-Resolution Tech Preset:
-                </label>
-                <div className="grid grid-cols-2 gap-1.5">
-                  {STOCK_HERO_PRESETS.map((p) => (
-                    <button
-                      key={p.url}
-                      type="button"
-                      onClick={() => {
-                        handleChange('heroImageUrl', p.url);
-                        handleChange('heroImageAlt', p.label);
-                      }}
-                      className={`text-left p-2 border text-xs truncate transition-all ${
-                        hero.heroImageUrl === p.url
-                          ? 'border-blue-600 bg-blue-50 dark:bg-blue-950/50 text-blue-600 font-bold'
-                          : 'border-border bg-background hover:bg-muted/50 text-muted-foreground'
-                      }`}
-                    >
-                      📷 {p.label}
-                    </button>
-                  ))}
-                </div>
               </div>
 
               {/* Image URL Manual Input */}

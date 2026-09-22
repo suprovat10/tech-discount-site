@@ -87,6 +87,8 @@ export function StorePopupModal() {
     return null;
   }
 
+  const hasImage = Boolean(activePopup.imageUrl && activePopup.imageUrl.trim());
+
   return (
     <div
       role="dialog"
@@ -96,7 +98,13 @@ export function StorePopupModal() {
         if (e.target === e.currentTarget) handleClose();
       }}
     >
-      <div className="relative bg-white text-slate-900 max-w-2xl w-full border border-slate-200 shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-12 animate-in zoom-in-95 duration-200">
+      <div
+        className={`relative bg-white text-slate-900 border border-slate-200 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 ${
+          hasImage
+            ? 'max-w-2xl w-full grid grid-cols-1 md:grid-cols-12'
+            : 'max-w-md w-full p-6 sm:p-8 flex flex-col justify-center text-center space-y-4'
+        }`}
+      >
         {/* Close Button */}
         <button
           type="button"
@@ -107,22 +115,26 @@ export function StorePopupModal() {
           <X className="w-5 h-5" />
         </button>
 
-        {/* Left Column: Full-Height Cover Image */}
-        <div className="md:col-span-5 bg-slate-100 min-h-[200px] md:min-h-[380px] relative overflow-hidden">
-          {activePopup.imageUrl ? (
+        {/* Left Column: Full-Height Cover Image (Only rendered if an image exists) */}
+        {hasImage && (
+          <div className="md:col-span-5 bg-slate-100 min-h-[200px] md:min-h-[380px] relative overflow-hidden">
             <img
               src={activePopup.imageUrl}
               alt={activePopup.imageAlt || activePopup.title}
               className="w-full h-full object-cover"
               loading="eager"
             />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-slate-200 text-slate-400" />
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* Right Column: Title, Description, and Actions */}
-        <div className="md:col-span-7 p-6 sm:p-8 flex flex-col justify-center text-center space-y-4">
+        {/* Content Column */}
+        <div
+          className={
+            hasImage
+              ? 'md:col-span-7 p-6 sm:p-8 flex flex-col justify-center text-center space-y-4'
+              : 'space-y-4 flex flex-col justify-center text-center'
+          }
+        >
           {/* Subtitle / Badge */}
           {activePopup.badgeText && (
             <span className="text-[10px] sm:text-[11px] font-extrabold tracking-wider uppercase text-slate-600 block">

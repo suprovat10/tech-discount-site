@@ -35,7 +35,7 @@ const DEFAULT_POPUP: PopupItem = {
   frequency: 'once_per_session',
   maxViews: 2,
   hideDays: 7,
-  imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&q=80',
+  imageUrl: '',
   imageAlt: 'Special Offer',
   badgeText: 'LIMITED TIME SPECIAL OFFER',
   title: 'NEW SEASON SALE!',
@@ -827,29 +827,37 @@ export default function AdminPopupsPage() {
                   Live Preview of Popup Modal (Exact Look)
                 </span>
 
-                <div className="bg-white text-slate-900 border border-slate-200 overflow-hidden shadow-xl max-w-xl mx-auto grid grid-cols-1 sm:grid-cols-12 relative">
+                <div
+                  className={`bg-white text-slate-900 border border-slate-200 overflow-hidden shadow-xl mx-auto relative ${
+                    editingPopup.imageUrl
+                      ? 'max-w-xl grid grid-cols-1 sm:grid-cols-12'
+                      : 'max-w-md p-6'
+                  }`}
+                >
                   {/* Close icon dummy */}
                   <div className="absolute top-2 right-2 p-1 text-slate-400">
                     <X className="w-4 h-4" />
                   </div>
 
-                  {/* Left Column (Image) */}
-                  <div className="sm:col-span-5 bg-slate-100 min-h-[160px] sm:min-h-full">
-                    {editingPopup.imageUrl ? (
+                  {/* Left Column (Image) - only if set */}
+                  {editingPopup.imageUrl && (
+                    <div className="sm:col-span-5 bg-slate-100 min-h-[160px] sm:min-h-full">
                       <img
                         src={editingPopup.imageUrl}
                         alt="Preview"
                         className="w-full h-full object-cover"
                       />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center p-4 text-center text-slate-400 text-xs">
-                        No Image
-                      </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
 
                   {/* Right Column (Content) */}
-                  <div className="sm:col-span-7 p-5 flex flex-col justify-center text-center space-y-3">
+                  <div
+                    className={
+                      editingPopup.imageUrl
+                        ? 'sm:col-span-7 p-5 flex flex-col justify-center text-center space-y-3'
+                        : 'p-3 flex flex-col justify-center text-center space-y-3'
+                    }
+                  >
                     {editingPopup.badgeText && (
                       <span className="text-[10px] font-extrabold tracking-wider uppercase text-slate-600">
                         {editingPopup.badgeText}
@@ -918,7 +926,13 @@ export default function AdminPopupsPage() {
       {/* FULL LIVE TEST PREVIEW MODAL */}
       {previewModalOpen && previewPopup && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="relative bg-white text-slate-900 max-w-2xl w-full border border-slate-200 shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-12 animate-in fade-in zoom-in-95 duration-200">
+          <div
+            className={`relative bg-white text-slate-900 border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 ${
+              previewPopup.imageUrl
+                ? 'max-w-2xl w-full grid grid-cols-1 md:grid-cols-12'
+                : 'max-w-md w-full p-6 sm:p-8'
+            }`}
+          >
             {/* Close Button */}
             <button
               onClick={() => {
@@ -931,22 +945,24 @@ export default function AdminPopupsPage() {
             </button>
 
             {/* Left Column Image */}
-            <div className="md:col-span-5 bg-slate-100 min-h-[220px] md:min-h-full">
-              {previewPopup.imageUrl ? (
+            {previewPopup.imageUrl && (
+              <div className="md:col-span-5 bg-slate-100 min-h-[220px] md:min-h-full">
                 <img
                   src={previewPopup.imageUrl}
                   alt={previewPopup.title}
                   className="w-full h-full object-cover"
                 />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-slate-400">
-                  <AppWindow className="w-8 h-8" />
-                </div>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Right Column Content */}
-            <div className="md:col-span-7 p-6 sm:p-8 flex flex-col justify-center text-center space-y-4">
+            <div
+              className={
+                previewPopup.imageUrl
+                  ? 'md:col-span-7 p-6 sm:p-8 flex flex-col justify-center text-center space-y-4'
+                  : 'flex flex-col justify-center text-center space-y-4'
+              }
+            >
               {previewPopup.badgeText && (
                 <span className="text-[11px] font-extrabold tracking-wider uppercase text-slate-600">
                   {previewPopup.badgeText}

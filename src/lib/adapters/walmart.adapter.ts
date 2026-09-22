@@ -79,7 +79,7 @@ export class WalmartAdapter extends BaseAdapter {
       const itemId = String(item.itemId || item.usItemId || '');
       const title = item.name || item.title || 'Walmart Product';
       const brand = item.brandName || item.brand || 'Unknown';
-      const imageUrl = item.largeImage || item.mediumImage || item.imageUrl || 'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=500&q=80';
+      const imageUrl = item.largeImage || item.mediumImage || item.imageUrl || '';
       const price = Number(item.salePrice || item.price || 0);
       const regularPrice = item.msrp ? Number(item.msrp) : undefined;
       const isAvailable = item.stock === 'Available' || item.availableOnline === true || item.inStock === true;
@@ -116,7 +116,7 @@ export class WalmartAdapter extends BaseAdapter {
         title: 'Apple AirPods Pro (2nd Generation) with MagSafe Case (USB-C)',
         brand: 'Apple',
         category: 'Audio',
-        imageUrl: 'https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=500&q=80',
+        imageUrl: '',
         price: 179.99,
         regularPrice: 249.00,
         productUrl: 'https://www.walmart.com/ip/Apple-AirPods-Pro-2nd-Generation-with-MagSafe-Case-USB-C/1982974261',
@@ -132,7 +132,7 @@ export class WalmartAdapter extends BaseAdapter {
         title: 'Apple 2024 MacBook Air 13-inch Laptop with M3 chip: 8GB Unified Memory, 256GB SSD',
         brand: 'Apple',
         category: 'Laptops',
-        imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&q=80',
+        imageUrl: '',
         price: 899.00,
         regularPrice: 1099.00,
         productUrl: 'https://www.walmart.com/ip/Apple-MacBook-Air-13-inch-M3-Chip/5344390977',
@@ -148,7 +148,7 @@ export class WalmartAdapter extends BaseAdapter {
         title: 'Sony WH-1000XM5 Wireless Noise Canceling Headphones - Black',
         brand: 'Sony',
         category: 'Audio',
-        imageUrl: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=500&q=80',
+        imageUrl: '',
         price: 348.00,
         regularPrice: 399.99,
         productUrl: 'https://www.walmart.com/ip/Sony-WH-1000XM5-Wireless-Noise-Canceling-Headphones/1849182390',
@@ -164,7 +164,7 @@ export class WalmartAdapter extends BaseAdapter {
         title: 'Sony PlayStation 5 Console (Slim) Digital Edition',
         brand: 'Sony',
         category: 'Gaming',
-        imageUrl: 'https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=500&q=80',
+        imageUrl: '',
         price: 449.00,
         regularPrice: 449.00,
         productUrl: 'https://www.walmart.com/ip/Sony-PlayStation-5-Console-Slim-Digital/2987163451',
@@ -180,7 +180,7 @@ export class WalmartAdapter extends BaseAdapter {
         title: 'Samsung 65-Inch Class OLED 4K S90C Series Smart TV',
         brand: 'Samsung',
         category: 'TV & Home Theater',
-        imageUrl: 'https://images.unsplash.com/photo-1593784991095-a205069470b6?w=500&q=80',
+        imageUrl: '',
         price: 1597.99,
         regularPrice: 2099.99,
         productUrl: 'https://www.walmart.com/ip/Samsung-65-Inch-OLED-4K-S90C/3819203948',
@@ -196,7 +196,7 @@ export class WalmartAdapter extends BaseAdapter {
         title: 'Apple Watch Series 9 GPS 41mm Midnight Aluminum Case',
         brand: 'Apple',
         category: 'Wearables',
-        imageUrl: 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=500&q=80',
+        imageUrl: '',
         price: 329.00,
         regularPrice: 399.00,
         productUrl: 'https://www.walmart.com/ip/Apple-Watch-Series-9-GPS-41mm/4928172938',

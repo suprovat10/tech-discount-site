@@ -34,14 +34,6 @@ interface BlogFormProps {
   onCancel: () => void;
 }
 
-const STOCK_COVER_IMAGES = [
-  { label: 'MacBook & Workspace', url: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&q=80' },
-  { label: 'Headphones & Audio', url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80' },
-  { label: 'Gadgets & Smartphone', url: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&q=80' },
-  { label: 'Retail Sales & Discounts', url: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=800&q=80' },
-  { label: 'Tech Lab & Hardware', url: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&q=80' },
-];
-
 export default function BlogForm({
   initialData,
   isEdit = false,
@@ -469,33 +461,6 @@ export default function BlogForm({
                     Remove
                   </Button>
                 )}
-              </div>
-            </div>
-
-            {/* Quick Preset Covers */}
-            <div>
-              <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">
-                Or Pick a High-Res Stock Cover:
-              </label>
-              <div className="grid grid-cols-2 gap-1.5">
-                {STOCK_COVER_IMAGES.map((stock) => (
-                  <button
-                    key={stock.url}
-                    type="button"
-                    onClick={() => {
-                      setImageUrl(stock.url);
-                      if (!imageAlt.trim()) setImageAlt(stock.label);
-                    }}
-                    className={`text-left p-1.5 border text-[10px] truncate transition-all ${
-                      imageUrl === stock.url
-                        ? 'border-blue-600 bg-blue-50 dark:bg-blue-950/50 text-blue-600 font-bold'
-                        : 'border-border bg-background hover:bg-slate-100 dark:hover:bg-slate-800 text-muted-foreground'
-                    }`}
-                    title={stock.label}
-                  >
-                    📷 {stock.label}
-                  </button>
-                ))}
               </div>
             </div>
 
