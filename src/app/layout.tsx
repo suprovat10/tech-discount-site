@@ -155,11 +155,11 @@ export default async function RootLayout({
 
       </head>
       <body className="min-h-screen bg-background text-foreground font-sans">
-        {/* Google AdSense Script */}
+        {/* Google AdSense Script - Deferred with lazyOnload to ensure instant paint and 0 click delay */}
         {adsenseId && (
           <Script
             id="google-adsense"
-            strategy="afterInteractive"
+            strategy="lazyOnload"
             crossOrigin="anonymous"
             src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseId}`}
           />
@@ -174,11 +174,11 @@ export default async function RootLayout({
           />
         )}
 
-        {/* Google Tag Manager (Head script) */}
+        {/* Google Tag Manager (Head script) - Deferred with lazyOnload */}
         {gtmId && (
           <Script
             id="gtm-script"
-            strategy="afterInteractive"
+            strategy="lazyOnload"
             dangerouslySetInnerHTML={{
               __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -189,11 +189,11 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           />
         )}
 
-        {/* Google Analytics 4 (GA4) - Deferred to keep initial load instant and mobile 90+ */}
+        {/* Google Analytics 4 (GA4) - Deferred to keep initial load instant and prevent any click latency */}
         {gaId && (
           <Script
             id="google-analytics"
-            strategy="afterInteractive"
+            strategy="lazyOnload"
             dangerouslySetInnerHTML={{
               __html: `
                 (function() {
@@ -212,12 +212,12 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                     gtag('config', '${gaId}', { page_path: window.location.pathname });
                   }
                   if ('requestIdleCallback' in window) {
-                    requestIdleCallback(function() { setTimeout(initGA, 1500); });
+                    requestIdleCallback(function() { setTimeout(initGA, 2500); });
                   } else {
-                    setTimeout(initGA, 2000);
+                    setTimeout(initGA, 3000);
                   }
-                  ['scroll', 'touchstart', 'click'].forEach(function(e) {
-                    window.addEventListener(e, initGA, { once: true, passive: true });
+                  ['scroll', 'touchstart'].forEach(function(e) {
+                    window.addEventListener(e, function() { setTimeout(initGA, 0); }, { once: true, passive: true });
                   });
                 })();
               `,
@@ -225,11 +225,11 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           />
         )}
 
-        {/* Meta / Facebook Pixel */}
+        {/* Meta / Facebook Pixel - Deferred with lazyOnload */}
         {fbPixelId && (
           <Script
             id="facebook-pixel"
-            strategy="afterInteractive"
+            strategy="lazyOnload"
             dangerouslySetInnerHTML={{
               __html: `
                 !function(f,b,e,v,n,t,s)
@@ -247,11 +247,11 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           />
         )}
 
-        {/* TikTok Pixel */}
+        {/* TikTok Pixel - Deferred with lazyOnload */}
         {tiktokPixelId && (
           <Script
             id="tiktok-pixel"
-            strategy="afterInteractive"
+            strategy="lazyOnload"
             dangerouslySetInnerHTML={{
               __html: `
                 !function (w, d, t) {

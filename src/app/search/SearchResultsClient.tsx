@@ -918,6 +918,8 @@ export function SearchResultsClient({
 
   const pageTitle = searchQuery
     ? `Search: "${searchQuery}"`
+    : selectedSubcategory !== 'all'
+    ? selectedSubcategory
     : selectedCategory !== 'all'
     ? selectedCategory
     : 'All Products';
