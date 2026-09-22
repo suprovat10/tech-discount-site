@@ -322,9 +322,9 @@ export function BlogListClient({
           <div className="flex items-center justify-between pb-2 border-b border-border">
             <div>
               <div className="flex items-center gap-2.5 flex-wrap">
-                <h2 className="text-lg font-black text-foreground">
+                <h1 className="text-lg font-black text-foreground">
                   {selectedCategory === 'all' ? 'All Articles' : selectedCategory}
-                </h2>
+                </h1>
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery('')}

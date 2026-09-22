@@ -72,10 +72,14 @@ export function HeroSection({ initialSettings }: HeroSectionProps) {
             </div>
           )}
 
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-foreground leading-[1.1]">
-            {titleLine1} <br />
-            <span className="text-muted-foreground font-semibold">{titleLine2}</span>
-          </h1>
+          <div>
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-foreground leading-[1.1]">
+              {titleLine1}
+            </h1>
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-muted-foreground font-semibold leading-[1.1]">
+              {titleLine2}
+            </h1>
+          </div>
 
           <p className="text-xs sm:text-sm text-muted-foreground max-w-lg font-medium leading-relaxed">
             {subtitle}
