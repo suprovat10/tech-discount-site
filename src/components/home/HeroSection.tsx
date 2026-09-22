@@ -51,7 +51,7 @@ export function HeroSection({ initialSettings }: HeroSectionProps) {
   const subtitle =
     settings.heroSubtitle ||
     'Instantly compare real-time offers and verified discounts from Amazon, Walmart, Best Buy, and Target before making any purchase.';
-  const isDefaultHero = !settings.heroImageUrl || settings.heroImageUrl.includes('images.unsplash.com/photo-1517336714731-489689fd1ca8');
+  const isDefaultHero = !settings.heroImageUrl || settings.heroImageUrl.includes('v8wowdztetwveiot2ahw') || settings.heroImageUrl.includes('images.unsplash.com/photo-1517336714731-489689fd1ca8');
   const imageUrl = isDefaultHero ? '/hero.webp' : settings.heroImageUrl;
   const imageAlt = settings.heroImageAlt || 'MacBook and Tech Gear';
   const primaryText = settings.heroPrimaryBtnText || 'Browse Products';
