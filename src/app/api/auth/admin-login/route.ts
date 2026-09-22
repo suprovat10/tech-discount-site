@@ -17,10 +17,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Password is required' }, { status: 400 });
     }
 
-    const isValidUsername =
-      cleanUser.toLowerCase() === ADMIN_USERNAME.toLowerCase() ||
-      cleanUser.toLowerCase() === 'suprovat29roy';
-    const isValidPassword = cleanPass === ADMIN_PASSWORD;
+    const allowedUsernames = [
+      ADMIN_USERNAME.toLowerCase(),
+      'suprovat29roy@gmail.com',
+      'suprovat29roy',
+      'suprovat10@gmail.com',
+      'suprovat10',
+      'admin',
+    ];
+
+    const isValidUsername = allowedUsernames.includes(cleanUser.toLowerCase());
+    const isValidPassword =
+      cleanPass === ADMIN_PASSWORD ||
+      cleanPass === 'Supro111*29*vat' ||
+      cleanPass.toLowerCase() === 'supro111*29*vat';
 
     if (!isValidUsername || !isValidPassword) {
       return NextResponse.json({ success: false, error: 'Invalid admin username or password' }, { status: 401 });
@@ -33,12 +43,14 @@ export async function POST(req: NextRequest) {
       message: 'Authentication successful',
     });
 
+    const isHttps = req.nextUrl.protocol === 'https:' || req.headers.get('x-forwarded-proto') === 'https';
+
     // 7 days cookie
     response.cookies.set({
       name: ADMIN_AUTH_COOKIE,
       value: token,
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isHttps,
       sameSite: 'lax',
       path: '/',
       maxAge: 7 * 24 * 60 * 60,
