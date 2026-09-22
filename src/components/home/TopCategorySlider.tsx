@@ -16,8 +16,12 @@ interface SliderItem {
   isSub?: boolean;
 }
 
-export function TopCategorySlider() {
-  const [categories, setCategories] = useState<CategoryDefinition[]>(CATEGORIES);
+interface TopCategorySliderProps {
+  initialCategories?: CategoryDefinition[];
+}
+
+export function TopCategorySlider({ initialCategories = CATEGORIES }: TopCategorySliderProps) {
+  const [categories, setCategories] = useState<CategoryDefinition[]>(initialCategories);
   const sliderRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
@@ -27,14 +31,6 @@ export function TopCategorySlider() {
     if (loaded && loaded.length > 0) {
       setCategories(loaded);
     }
-    fetch('/api/categories')
-      .then((res) => res.json())
-      .then((json) => {
-        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-          setCategories(json.data);
-        }
-      })
-      .catch(() => {});
 
     const handleUpdate = () => {
       const fresh = getCategories();

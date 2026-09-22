@@ -33,10 +33,18 @@ export function getCategories(): CategoryDefinition[] {
     return DEFAULT_CATEGORIES;
   }
 
-  // Trigger background server sync once per page session
+  // Trigger background server sync once per page session when browser is idle
   if (!isInitialCategoryFetchTriggered) {
     isInitialCategoryFetchTriggered = true;
-    fetchAndSyncCategoriesFromServer().catch(() => {});
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      (window as any).requestIdleCallback(() => {
+        fetchAndSyncCategoriesFromServer().catch(() => {});
+      }, { timeout: 4000 });
+    } else if (typeof window !== 'undefined') {
+      setTimeout(() => {
+        fetchAndSyncCategoriesFromServer().catch(() => {});
+      }, 2000);
+    }
   }
 
   try {

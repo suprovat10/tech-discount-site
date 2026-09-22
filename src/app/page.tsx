@@ -12,6 +12,7 @@ import { UnifiedProduct } from '@/types/product';
 import { ArrowRight } from 'lucide-react';
 import { getServerSettings } from '@/lib/settingsServer';
 import { AdSlot } from '@/components/ads/AdSlot';
+import { optimizeImageUrl, getHeroSrcSet, getHeroSizes } from '@/lib/imageOptimization';
 
 export const revalidate = 10;
 
@@ -61,8 +62,25 @@ export default async function HomePage() {
     })
     .slice(0, 8);
 
+  const heroImageUrl =
+    settings.heroImageUrl ||
+    'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=900&q=80';
+  const heroPreloadSrc = optimizeImageUrl(heroImageUrl, 640);
+  const heroSrcSet = getHeroSrcSet(heroImageUrl);
+  const heroSizes = getHeroSizes();
+
   return (
     <div className="space-y-12 pb-16">
+      {/* High-priority Preload for Hero Image ONLY on Home Page (LCP) */}
+      <link
+        rel="preload"
+        as="image"
+        href={heroPreloadSrc}
+        imageSrcSet={heroSrcSet}
+        imageSizes={heroSizes}
+        fetchPriority="high"
+      />
+
       <div className="container mx-auto px-4 sm:px-6 space-y-10">
         {/* 1. Minimal Hero Section */}
         <HeroSection initialSettings={settings} />
@@ -71,7 +89,7 @@ export default async function HomePage() {
         <AdSlot placement="home_below_hero" />
 
         {/* 2. Top Category & Subcategory Image Slider (No 'All' Button) */}
-        <TopCategorySlider />
+        <TopCategorySlider initialCategories={categories} />
 
         {/* 3. Featured Deals Grid (Most Viewed) */}
         <section className="space-y-6">

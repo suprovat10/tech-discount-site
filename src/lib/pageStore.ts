@@ -34,10 +34,18 @@ export function getPages(): SitePage[] {
     return DEFAULT_PAGES;
   }
 
-  // Trigger background server sync once per page session
+  // Trigger background server sync once per page session when browser is idle
   if (!isInitialPagesFetchTriggered) {
     isInitialPagesFetchTriggered = true;
-    fetchAndSyncPagesFromServer().catch(() => {});
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      (window as any).requestIdleCallback(() => {
+        fetchAndSyncPagesFromServer().catch(() => {});
+      }, { timeout: 4000 });
+    } else if (typeof window !== 'undefined') {
+      setTimeout(() => {
+        fetchAndSyncPagesFromServer().catch(() => {});
+      }, 2000);
+    }
   }
 
   try {

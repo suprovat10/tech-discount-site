@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { useWatchlist } from '@/hooks/useWatchlist';
 import { useBranding } from '@/hooks/useBranding';
-import { optimizeCloudinaryUrl } from '@/lib/imageOptimization';
+import { optimizeImageUrl } from '@/lib/imageOptimization';
 
 export function Header() {
   const router = useRouter();
@@ -121,7 +121,7 @@ export function Header() {
           className="flex items-center gap-2.5 shrink-0 group cursor-pointer"
         >
           <img
-            src={optimizeCloudinaryUrl(branding.logoUrl, 300) || '/logo.png'}
+            src={optimizeImageUrl(branding.logoUrl, 300) || '/logo.png'}
             alt={branding.brandName || 'suprodesign'}
             width={180}
             height={36}

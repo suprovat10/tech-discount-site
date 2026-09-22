@@ -5,8 +5,6 @@ import { getServerSettings } from '@/lib/settingsServer';
 import { generateWebsiteJsonLd, generateOrganizationJsonLd } from '@/lib/seo/jsonld';
 import { StoreLayoutWrapper } from '@/components/common/StoreLayoutWrapper';
 
-import { optimizeImageUrl, getHeroSrcSet, getHeroSizes } from '@/lib/imageOptimization';
-
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getServerSettings();
   const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
@@ -113,13 +111,6 @@ export default async function RootLayout({
   const adsenseId = settings.googleAdSenseId?.trim();
   const globalAdHeaderCode = settings.globalAdHeaderCode?.trim();
 
-  const heroImageUrl =
-    settings.heroImageUrl ||
-    'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=900&q=80';
-  const heroPreloadSrc = optimizeImageUrl(heroImageUrl, 640);
-  const heroSrcSet = getHeroSrcSet(heroImageUrl);
-  const heroSizes = getHeroSizes();
-
   return (
     <html lang="en">
       <head>
@@ -132,16 +123,6 @@ export default async function RootLayout({
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
 
-        {/* High-priority Preload for Hero Image (LCP) */}
-        <link
-          rel="preload"
-          as="image"
-          href={heroPreloadSrc}
-          imageSrcSet={heroSrcSet}
-          imageSizes={heroSizes}
-          fetchPriority="high"
-        />
-        
         {/* Schema.org WebSite JSON-LD */}
         <script
           type="application/ld+json"
@@ -155,11 +136,11 @@ export default async function RootLayout({
 
       </head>
       <body className="min-h-screen bg-background text-foreground font-sans">
-        {/* Google AdSense Script */}
+        {/* Google AdSense Script - lazyOnload so it never blocks page rendering */}
         {adsenseId && (
           <Script
             id="google-adsense"
-            strategy="afterInteractive"
+            strategy="lazyOnload"
             crossOrigin="anonymous"
             src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseId}`}
           />
@@ -174,11 +155,11 @@ export default async function RootLayout({
           />
         )}
 
-        {/* Google Tag Manager (Head script) */}
+        {/* Google Tag Manager - lazyOnload */}
         {gtmId && (
           <Script
             id="gtm-script"
-            strategy="afterInteractive"
+            strategy="lazyOnload"
             dangerouslySetInnerHTML={{
               __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -189,16 +170,16 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           />
         )}
 
-        {/* Google Analytics 4 (GA4) */}
+        {/* Google Analytics 4 (GA4) - lazyOnload */}
         {gaId && (
           <>
             <Script
-              strategy="afterInteractive"
+              strategy="lazyOnload"
               src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
             />
             <Script
               id="google-analytics"
-              strategy="afterInteractive"
+              strategy="lazyOnload"
               dangerouslySetInnerHTML={{
                 __html: `
                   window.dataLayer = window.dataLayer || [];
@@ -213,11 +194,11 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           </>
         )}
 
-        {/* Meta / Facebook Pixel */}
+        {/* Meta / Facebook Pixel - lazyOnload */}
         {fbPixelId && (
           <Script
             id="facebook-pixel"
-            strategy="afterInteractive"
+            strategy="lazyOnload"
             dangerouslySetInnerHTML={{
               __html: `
                 !function(f,b,e,v,n,t,s)
@@ -235,11 +216,11 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           />
         )}
 
-        {/* TikTok Pixel */}
+        {/* TikTok Pixel - lazyOnload */}
         {tiktokPixelId && (
           <Script
             id="tiktok-pixel"
-            strategy="afterInteractive"
+            strategy="lazyOnload"
             dangerouslySetInnerHTML={{
               __html: `
                 !function (w, d, t) {
