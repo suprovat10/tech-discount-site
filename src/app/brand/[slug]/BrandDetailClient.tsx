@@ -11,6 +11,7 @@ import { DealCard } from '@/components/deals/DealCard';
 import { ChevronRight, ChevronLeft, ExternalLink, ShieldCheck, ArrowLeft, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getRetailerDisplayName } from '@/lib/utils';
+import { optimizeCloudinaryUrl } from '@/lib/imageOptimization';
 
 interface BrandDetailClientProps {
   slug: string;
@@ -135,8 +136,10 @@ export function BrandDetailClient({
           <div className="h-16 w-24 sm:h-20 sm:w-28 p-2 bg-muted/20 border border-border/70 flex items-center justify-center shrink-0">
             {brand?.logoUrl ? (
               <img
-                src={brand.logoUrl}
+                src={optimizeCloudinaryUrl(brand.logoUrl, 300)}
                 alt={brandDisplayName}
+                loading="lazy"
+                decoding="async"
                 className="h-10 sm:h-12 w-auto max-w-[90%] object-contain dark:invert"
                 onError={(e) => {
                   (e.target as HTMLElement).style.display = 'none';

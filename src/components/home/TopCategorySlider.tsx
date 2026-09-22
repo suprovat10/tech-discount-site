@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { CATEGORIES, CategoryDefinition, SubcategoryDefinition } from '@/data/catalog';
 import { getCategories, getCategorySlug, getSubcategorySlug } from '@/lib/categoryStore';
 import { ChevronLeft, ChevronRight, Layers } from 'lucide-react';
+import { optimizeCloudinaryUrl } from '@/lib/imageOptimization';
 
 interface SliderItem {
   id: string;
@@ -138,10 +139,11 @@ export function TopCategorySlider() {
             <div className="h-12 sm:h-14 w-full flex items-center justify-center bg-transparent">
               {item.imageUrl ? (
                 <img
-                  src={item.imageUrl}
+                  src={optimizeCloudinaryUrl(item.imageUrl, 200)}
                   alt={item.name}
                   className="h-10 sm:h-12 w-auto max-w-[85%] max-h-full object-contain transition-transform duration-300 group-hover:scale-110"
                   loading="eager"
+                  decoding="async"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-transparent">

@@ -7,6 +7,7 @@ import { UnifiedProduct } from '@/types/product';
 import { formatCurrency, formatPercentage } from '@/lib/utils';
 import { WatchlistButton } from '../watchlist/WatchlistButton';
 import { Star, ArrowRight } from 'lucide-react';
+import { optimizeCloudinaryUrl } from '@/lib/imageOptimization';
 
 interface DealCardProps {
   product: UnifiedProduct;
@@ -42,11 +43,11 @@ export function DealCard({ product }: DealCardProps) {
         title={`View ${product.title}`}
       >
         <Image
-          src={product.imageUrl}
+          src={optimizeCloudinaryUrl(product.imageUrl, 500)}
           alt={product.imageAlt || product.title}
           fill
           priority={false}
-          loading="eager"
+          loading="lazy"
           className="object-cover transition-transform duration-300 group-hover:scale-105"
           sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
           unoptimized

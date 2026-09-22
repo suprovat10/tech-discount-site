@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AdSlot } from '@/components/ads/AdSlot';
+import { optimizeCloudinaryUrl } from '@/lib/imageOptimization';
 
 interface BlogDetailClientProps {
   slug: string;
@@ -271,9 +272,10 @@ export function BlogDetailClient({
           {post.imageUrl && (
             <div className="relative w-full border border-border overflow-hidden bg-muted">
               <img
-                src={post.imageUrl}
+                src={optimizeCloudinaryUrl(post.imageUrl, 1200)}
                 alt={post.imageAlt || post.title}
                 className="w-full max-h-[520px] object-cover"
+                decoding="async"
                 onError={(e) => {
                   e.currentTarget.src = '/logo.png';
                 }}
@@ -327,8 +329,10 @@ export function BlogDetailClient({
                     <div className="relative w-24 h-20 overflow-hidden shrink-0 bg-muted border border-border">
                       {r.imageUrl ? (
                         <img
-                          src={r.imageUrl}
+                          src={optimizeCloudinaryUrl(r.imageUrl, 300)}
                           alt={r.title}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                           onError={(e) => {
                             e.currentTarget.src = '/logo.png';
@@ -410,8 +414,10 @@ export function BlogDetailClient({
                   >
                     <div className="w-7 h-7 relative flex items-center justify-center mb-1">
                       <img
-                        src={b.logoUrl}
+                        src={optimizeCloudinaryUrl(b.logoUrl, 100)}
                         alt={b.name}
+                        loading="lazy"
+                        decoding="async"
                         className="max-w-full max-h-full object-contain filter dark:invert group-hover:scale-110 transition-transform"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';

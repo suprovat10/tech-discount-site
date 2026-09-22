@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useBranding } from '@/hooks/useBranding';
+import { optimizeCloudinaryUrl } from '@/lib/imageOptimization';
 import { getCategories } from '@/lib/categoryStore';
 import { getPages } from '@/lib/pageStore';
 import { CategoryDefinition } from '@/data/catalog';
@@ -106,9 +107,11 @@ export function Footer() {
           <div className="space-y-4">
             <Link href="/" prefetch={true} className="inline-block group">
               <img
-                src={branding.logoUrl || '/logo.png'}
+                src={optimizeCloudinaryUrl(branding.logoUrl, 300) || '/logo.png'}
                 alt={branding.brandName || 'suprodesign'}
                 className="h-8 w-auto max-w-[170px] object-contain transition-transform group-hover:scale-105"
+                loading="lazy"
+                decoding="async"
                 onError={(e) => {
                   e.currentTarget.src = '/logo.png';
                 }}

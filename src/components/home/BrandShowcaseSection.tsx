@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { BrandItem, DEFAULT_BRANDS } from '@/data/brands';
 import { getBrands, fetchAndSyncBrandsFromServer } from '@/lib/brandStore';
+import { optimizeCloudinaryUrl } from '@/lib/imageOptimization';
 
 export function BrandShowcaseSection() {
   const [brands, setBrands] = useState<BrandItem[]>(DEFAULT_BRANDS);
@@ -25,23 +26,20 @@ export function BrandShowcaseSection() {
   if (visibleBrands.length === 0) return null;
 
   return (
-    <section className="space-y-6 pt-4 border-t border-border/80">
+    <section className="my-6 border border-border/80 bg-card p-4 sm:p-5 shadow-2xs">
       {/* Section Header */}
-      <div className="flex items-center justify-between pb-2 border-b border-border/60">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-black text-foreground tracking-tight flex items-center gap-2">
-            <span>Popular Brands</span>
+      <div className="flex items-center justify-between mb-4 border-b border-border/60 pb-3">
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-blue-600" />
+          <h2 className="text-xs sm:text-sm font-black uppercase tracking-wider text-foreground">
+            Shop by Brand
           </h2>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Compare verified prices and shop deals by your favorite technology brands
-          </p>
         </div>
-
         <Link
-          href="/products"
-          className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1"
+          href="/retailers"
+          className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors"
         >
-          <span>All Deals</span>
+          <span>View all brands</span>
           <ArrowRight className="w-3 h-3" />
         </Link>
       </div>
@@ -59,9 +57,10 @@ export function BrandShowcaseSection() {
             <div className="h-9 sm:h-10 w-full flex items-center justify-center">
               {brand.logoUrl ? (
                 <img
-                  src={brand.logoUrl}
+                  src={optimizeCloudinaryUrl(brand.logoUrl, 160)}
                   alt={brand.name}
-                  loading="eager"
+                  loading="lazy"
+                  decoding="async"
                   className="h-7 sm:h-8 w-auto max-w-[85%] object-contain dark:invert transition-transform duration-200 group-hover:scale-110"
                   onError={(e) => {
                     // fallback to text if logo image fails

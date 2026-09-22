@@ -7,6 +7,7 @@ import { UnifiedProduct } from '@/types/product';
 import { CATEGORIES, CatalogItem } from '@/data/catalog';
 import { getCatalogProductByIdOrSlug, getCatalogProducts, fetchAndSyncCatalogFromServer } from '@/lib/catalogStore';
 import { getCategories, getCategorySlug, getSubcategorySlug } from '@/lib/categoryStore';
+import { optimizeCloudinaryUrl } from '@/lib/imageOptimization';
 import { DealCard } from '@/components/deals/DealCard';
 import { WatchlistButton } from '@/components/watchlist/WatchlistButton';
 import { formatCurrency, getRetailerDisplayName, getRetailerHexColor } from '@/lib/utils';
@@ -546,7 +547,7 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
             <div className="md:col-span-6 space-y-3">
               <div className="relative aspect-[5/4] w-full overflow-hidden bg-muted/20 border-0 md:border border-border/50 group">
                 <Image
-                  src={images[activeImageIndex] || activeProduct.imageUrl}
+                  src={optimizeCloudinaryUrl(images[activeImageIndex] || activeProduct.imageUrl, 900)}
                   alt={
                     (activeImageIndex === 0
                       ? activeProduct.imageAlt
@@ -603,7 +604,7 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
                       }`}
                     >
                       <Image
-                        src={img}
+                        src={optimizeCloudinaryUrl(img, 160)}
                         alt={
                           (idx === 0 ? activeProduct.imageAlt : activeProduct.imageAlts?.[idx]) ||
                           `${activeProduct.title} thumbnail ${idx + 1}`
