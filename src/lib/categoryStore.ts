@@ -1,4 +1,4 @@
-import { CATEGORIES as DEFAULT_CATEGORIES, CategoryDefinition } from '@/data/catalog';
+import { CATEGORIES as DEFAULT_CATEGORIES, CategoryDefinition, SubcategoryDefinition } from '@/data/catalog';
 
 const CATEGORIES_STORAGE_KEY = 'smarttech_categories_catalog';
 let isInitialCategoryFetchTriggered = false;
@@ -52,6 +52,7 @@ export function getCategories(): CategoryDefinition[] {
             ...cat,
             imageUrl: cat.imageUrl || defaultCat.imageUrl,
             description: cat.description || defaultCat.description,
+            richDescription: cat.richDescription || defaultCat.richDescription || cat.description || defaultCat.description,
             isFeaturedOnHome:
               cat.isFeaturedOnHome !== undefined ? cat.isFeaturedOnHome : defaultCat.isFeaturedOnHome,
             showInTopSlider:
@@ -65,6 +66,8 @@ export function getCategories(): CategoryDefinition[] {
                 ...defaultSub,
                 ...sub,
                 imageUrl: sub.imageUrl || defaultSub.imageUrl,
+                description: sub.description || defaultSub.description,
+                richDescription: sub.richDescription || defaultSub.richDescription || sub.description || defaultSub.description,
                 showInTopSlider:
                   sub.showInTopSlider !== undefined ? sub.showInTopSlider : defaultSub.showInTopSlider,
                 showInExploreDeals:
@@ -133,7 +136,7 @@ export function deleteCategory(id: string): CategoryDefinition[] {
  */
 export function addSubcategory(
   categoryId: string,
-  subcategory: { id: string; name: string; slug: string; imageUrl?: string; showInTopSlider?: boolean }
+  subcategory: SubcategoryDefinition
 ): CategoryDefinition[] {
   const current = getCategories();
   const updated = current.map((cat) => {
@@ -157,7 +160,7 @@ export function addSubcategory(
  */
 export function updateSubcategory(
   categoryId: string,
-  subcategory: { id: string; name: string; slug: string; imageUrl?: string; showInTopSlider?: boolean }
+  subcategory: SubcategoryDefinition
 ): CategoryDefinition[] {
   const current = getCategories();
   const updated = current.map((cat) => {

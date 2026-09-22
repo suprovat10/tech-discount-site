@@ -12,6 +12,7 @@ export interface ProductTag {
   name: string;
   slug: string;
   description?: string;
+  richDescription?: string;
   featured?: boolean;
   seo?: TagSEO;
   createdAt?: string;

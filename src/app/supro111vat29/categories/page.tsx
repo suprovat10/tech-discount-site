@@ -37,6 +37,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DeleteConfirmModal } from '@/components/admin/DeleteConfirmModal';
+import { RichTextEditor } from '@/components/admin/RichTextEditor';
 import { ProductTag } from '@/types/tag';
 import {
   getProductTags,
@@ -65,6 +66,7 @@ export default function AdminCategoriesPage() {
   const [newCatName, setNewCatName] = useState('');
   const [newCatSlug, setNewCatSlug] = useState('');
   const [newCatDesc, setNewCatDesc] = useState('');
+  const [newCatRichDesc, setNewCatRichDesc] = useState('');
   const [newCatImage, setNewCatImage] = useState('');
   const [newCatIsFeatured, setNewCatIsFeatured] = useState(false);
   const [newCatShowSlider, setNewCatShowSlider] = useState(true);
@@ -73,6 +75,7 @@ export default function AdminCategoriesPage() {
   // New Subcategory Form State
   const [newSubName, setNewSubName] = useState('');
   const [newSubSlug, setNewSubSlug] = useState('');
+  const [newSubRichDesc, setNewSubRichDesc] = useState('');
   const [newSubImage, setNewSubImage] = useState('');
   const [newSubShowSlider, setNewSubShowSlider] = useState(true);
   const [newSubShowExploreDeals, setNewSubShowExploreDeals] = useState(false);
@@ -90,6 +93,7 @@ export default function AdminCategoriesPage() {
   const [newTagName, setNewTagName] = useState('');
   const [newTagSlug, setNewTagSlug] = useState('');
   const [newTagDesc, setNewTagDesc] = useState('');
+  const [newTagRichDesc, setNewTagRichDesc] = useState('');
   const [newTagMetaTitle, setNewTagMetaTitle] = useState('');
   const [newTagMetaDesc, setNewTagMetaDesc] = useState('');
   const [newTagKeywords, setNewTagKeywords] = useState('');
@@ -103,6 +107,7 @@ export default function AdminCategoriesPage() {
   const [editTagName, setEditTagName] = useState('');
   const [editTagSlug, setEditTagSlug] = useState('');
   const [editTagDesc, setEditTagDesc] = useState('');
+  const [editTagRichDesc, setEditTagRichDesc] = useState('');
   const [editTagMetaTitle, setEditTagMetaTitle] = useState('');
   const [editTagMetaDesc, setEditTagMetaDesc] = useState('');
   const [editTagKeywords, setEditTagKeywords] = useState('');
@@ -199,7 +204,8 @@ export default function AdminCategoriesPage() {
       id: `cat-${Date.now()}`,
       name: newCatName.trim(),
       slug,
-      description: newCatDesc.trim(),
+      description: newCatDesc.trim() || (newCatRichDesc.trim() ? newCatRichDesc.replace(/<[^>]*>/g, '').slice(0, 160) : undefined),
+      richDescription: newCatRichDesc.trim() || undefined,
       imageUrl: newCatImage.trim() || undefined,
       isFeaturedOnHome: newCatIsFeatured,
       showInTopSlider: newCatShowSlider,
@@ -213,6 +219,7 @@ export default function AdminCategoriesPage() {
     setNewCatName('');
     setNewCatSlug('');
     setNewCatDesc('');
+    setNewCatRichDesc('');
     setNewCatImage('');
     setNewCatIsFeatured(false);
     setNewCatShowSlider(true);
@@ -244,12 +251,15 @@ export default function AdminCategoriesPage() {
       imageUrl: newSubImage.trim() || undefined,
       showInTopSlider: newSubShowSlider,
       showInExploreDeals: newSubShowExploreDeals,
+      richDescription: newSubRichDesc.trim() || undefined,
+      description: newSubRichDesc.trim() ? newSubRichDesc.replace(/<[^>]*>/g, '').slice(0, 160) : undefined,
     };
 
     const updated = addSubcategory(activeCategory.id, newSub);
     setCategories(updated);
     setNewSubName('');
     setNewSubSlug('');
+    setNewSubRichDesc('');
     setNewSubImage('');
     setNewSubShowSlider(true);
     setNewSubShowExploreDeals(false);
@@ -321,7 +331,8 @@ export default function AdminCategoriesPage() {
     const newTag: Partial<ProductTag> = {
       name: newTagName.trim(),
       slug: finalSlug,
-      description: newTagDesc.trim() || undefined,
+      description: newTagDesc.trim() || (newTagRichDesc.trim() ? newTagRichDesc.replace(/<[^>]*>/g, '').slice(0, 160) : undefined),
+      richDescription: newTagRichDesc.trim() || undefined,
       seo: {
         metaTitle: newTagMetaTitle.trim() || undefined,
         metaDescription: newTagMetaDesc.trim() || undefined,
@@ -337,6 +348,7 @@ export default function AdminCategoriesPage() {
     setNewTagName('');
     setNewTagSlug('');
     setNewTagDesc('');
+    setNewTagRichDesc('');
     setNewTagMetaTitle('');
     setNewTagMetaDesc('');
     setNewTagKeywords('');
@@ -352,6 +364,7 @@ export default function AdminCategoriesPage() {
     setEditTagName(item.name);
     setEditTagSlug(item.slug);
     setEditTagDesc(item.description || '');
+    setEditTagRichDesc(item.richDescription || item.description || '');
     setEditTagMetaTitle(item.seo?.metaTitle || '');
     setEditTagMetaDesc(item.seo?.metaDescription || '');
     setEditTagKeywords(item.seo?.keywords || '');
@@ -370,7 +383,8 @@ export default function AdminCategoriesPage() {
       ...editingTag,
       name: editTagName.trim(),
       slug: finalSlug,
-      description: editTagDesc.trim() || undefined,
+      description: editTagDesc.trim() || (editTagRichDesc.trim() ? editTagRichDesc.replace(/<[^>]*>/g, '').slice(0, 160) : undefined),
+      richDescription: editTagRichDesc.trim() || undefined,
       seo: {
         metaTitle: editTagMetaTitle.trim() || undefined,
         metaDescription: editTagMetaDesc.trim() || undefined,
@@ -384,6 +398,7 @@ export default function AdminCategoriesPage() {
     const updated = await saveProductTag(updatedTag);
     setProductTags(updated);
     setEditingTag(null);
+    setEditTagRichDesc('');
     showNotification(`Product tag "${updatedTag.name}" updated successfully!`);
   };
 
@@ -622,7 +637,7 @@ export default function AdminCategoriesPage() {
 
               <div>
                 <label className="text-[11px] font-bold text-muted-foreground uppercase">
-                  Category Description Text
+                  Category Short Summary
                 </label>
                 <textarea
                   rows={2}
@@ -630,6 +645,21 @@ export default function AdminCategoriesPage() {
                   value={newCatDesc}
                   onChange={(e) => setNewCatDesc(e.target.value)}
                   className="w-full text-xs p-2 border border-input bg-background focus:outline-none focus:ring-1 focus:ring-ring rounded-none mt-1"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-muted-foreground uppercase block mb-1">
+                  Category Page Bottom Rich Content (WYSIWYG)
+                </label>
+                <p className="text-[10px] text-muted-foreground mb-2">
+                  Displays formatted text, headings, links, or guides below pagination on this category page.
+                </p>
+                <RichTextEditor
+                  value={newCatRichDesc}
+                  onChange={setNewCatRichDesc}
+                  placeholder="Write formatted content, buying guides, FAQ, or SEO text for this category..."
+                  minHeight="160px"
                 />
               </div>
 
@@ -927,6 +957,21 @@ export default function AdminCategoriesPage() {
                   )}
                 </div>
 
+                <div>
+                  <label className="text-[11px] font-bold text-muted-foreground uppercase block mb-1">
+                    Subcategory Page Bottom Rich Content (WYSIWYG)
+                  </label>
+                  <p className="text-[10px] text-muted-foreground mb-2">
+                    Displays formatted text, headings, links, or guides below pagination on this subcategory page.
+                  </p>
+                  <RichTextEditor
+                    value={newSubRichDesc}
+                    onChange={setNewSubRichDesc}
+                    placeholder="Write formatted content, buying guides, FAQ, or SEO text for this subcategory..."
+                    minHeight="160px"
+                  />
+                </div>
+
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
                   <div className="space-y-1.5">
                     <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
@@ -1017,7 +1062,22 @@ export default function AdminCategoriesPage() {
                     placeholder="Brief description for SEO and tag landing page banner..."
                     value={newTagDesc}
                     onChange={(e) => setNewTagDesc(e.target.value)}
-                    className="w-full text-xs bg-muted/40 border border-border p-2.5 rounded-none focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[80px]"
+                    className="w-full text-xs bg-muted/40 border border-border p-2.5 rounded-none focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[60px]"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-foreground block mb-1">
+                    Tag Page Bottom Rich Content (WYSIWYG)
+                  </label>
+                  <p className="text-[10px] text-muted-foreground mb-2">
+                    Displays formatted text, shopping tips, or SEO guides below pagination on this tag page.
+                  </p>
+                  <RichTextEditor
+                    value={newTagRichDesc}
+                    onChange={setNewTagRichDesc}
+                    placeholder="Write formatted content, shopping tips, or SEO text for this tag..."
+                    minHeight="160px"
                   />
                 </div>
 
@@ -1274,7 +1334,7 @@ export default function AdminCategoriesPage() {
             if (e.target === e.currentTarget) setEditingCategory(null);
           }}
         >
-          <div className="bg-card border border-border w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 space-y-4 shadow-xl">
+          <div className="bg-card border border-border w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 space-y-4 shadow-xl">
             <div className="flex items-center justify-between pb-3 border-b border-border">
               <h3 className="text-base font-black text-foreground flex items-center gap-2">
                 <Edit2 className="w-4 h-4 text-blue-600" />
@@ -1288,9 +1348,11 @@ export default function AdminCategoriesPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSaveCategoryEdit} className="space-y-3">
+            <form onSubmit={handleSaveCategoryEdit} className="space-y-4">
               <div>
-                <label className="text-[11px] font-bold text-muted-foreground uppercase">Category Name *</label>
+                <label className="text-[11px] font-bold text-muted-foreground uppercase">
+                  Category Name *
+                </label>
                 <Input
                   type="text"
                   required
@@ -1313,7 +1375,7 @@ export default function AdminCategoriesPage() {
 
               <div>
                 <label className="text-[11px] font-bold text-muted-foreground uppercase">
-                  Category Description Text
+                  Category Short Summary
                 </label>
                 <textarea
                   rows={2}
@@ -1321,6 +1383,21 @@ export default function AdminCategoriesPage() {
                   onChange={(e) => setEditingCategory({ ...editingCategory, description: e.target.value })}
                   placeholder="Category overview shown on homepage..."
                   className="w-full text-xs p-2 border border-input bg-background focus:outline-none focus:ring-1 focus:ring-ring rounded-none mt-1"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-muted-foreground uppercase block mb-1">
+                  Category Page Bottom Rich Content (WYSIWYG)
+                </label>
+                <p className="text-[10px] text-muted-foreground mb-2">
+                  Displays formatted text, headings, links, or guides below pagination on this category page.
+                </p>
+                <RichTextEditor
+                  value={editingCategory.richDescription || ''}
+                  onChange={(val) => setEditingCategory({ ...editingCategory, richDescription: val })}
+                  placeholder="Write formatted content, buying guides, FAQ, or SEO text for this category..."
+                  minHeight="180px"
                 />
               </div>
 
@@ -1440,7 +1517,7 @@ export default function AdminCategoriesPage() {
             if (e.target === e.currentTarget) setEditingSub(null);
           }}
         >
-          <div className="bg-card border border-border w-full max-w-md max-h-[90vh] overflow-y-auto p-6 space-y-4 shadow-xl">
+          <div className="bg-card border border-border w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 space-y-4 shadow-xl">
             <div className="flex items-center justify-between pb-3 border-b border-border">
               <h3 className="text-base font-black text-foreground flex items-center gap-2">
                 <Edit2 className="w-4 h-4 text-blue-600" />
@@ -1484,6 +1561,30 @@ export default function AdminCategoriesPage() {
                     })
                   }
                   className="rounded-none h-9 text-xs mt-1"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-muted-foreground uppercase block mb-1">
+                  Subcategory Page Bottom Rich Content (WYSIWYG)
+                </label>
+                <p className="text-[10px] text-muted-foreground mb-2">
+                  Displays formatted text, headings, links, or guides below pagination on this subcategory page.
+                </p>
+                <RichTextEditor
+                  value={editingSub.sub.richDescription || ''}
+                  onChange={(val) =>
+                    setEditingSub({
+                      ...editingSub,
+                      sub: {
+                        ...editingSub.sub,
+                        richDescription: val,
+                        description: val.trim() ? val.replace(/<[^>]*>/g, '').slice(0, 160) : undefined,
+                      },
+                    })
+                  }
+                  placeholder="Write formatted content, buying guides, FAQ, or SEO text for this subcategory..."
+                  minHeight="160px"
                 />
               </div>
 
@@ -1620,7 +1721,7 @@ export default function AdminCategoriesPage() {
             if (e.target === e.currentTarget) setEditingTag(null);
           }}
         >
-          <div className="bg-card border border-border w-full max-w-md max-h-[90vh] overflow-y-auto p-6 space-y-4 shadow-xl">
+          <div className="bg-card border border-border w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 space-y-4 shadow-xl">
             <div className="flex items-center justify-between pb-3 border-b border-border">
               <h3 className="text-base font-black text-foreground flex items-center gap-2">
                 <Edit2 className="w-4 h-4 text-blue-600" />
@@ -1669,7 +1770,23 @@ export default function AdminCategoriesPage() {
                 <textarea
                   value={editTagDesc}
                   onChange={(e) => setEditTagDesc(e.target.value)}
-                  className="w-full text-xs bg-muted/40 border border-border p-2.5 rounded-none focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[80px]"
+                  placeholder="Brief description for SEO..."
+                  className="w-full text-xs bg-muted/40 border border-border p-2.5 rounded-none focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[60px]"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-muted-foreground uppercase block mb-1">
+                  Tag Page Bottom Rich Content (WYSIWYG)
+                </label>
+                <p className="text-[10px] text-muted-foreground mb-2">
+                  Displays formatted text, shopping tips, or SEO guides below pagination on this tag page.
+                </p>
+                <RichTextEditor
+                  value={editTagRichDesc}
+                  onChange={setEditTagRichDesc}
+                  placeholder="Write formatted content, shopping tips, or SEO text for this tag..."
+                  minHeight="160px"
                 />
               </div>
 

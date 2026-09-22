@@ -924,6 +924,36 @@ export function SearchResultsClient({
     ? selectedCategory
     : 'All Products';
 
+  // Active Category or Subcategory Rich Description (for SEO content block below pagination)
+  const activeRichDescription = useMemo(() => {
+    if (selectedSubcategory && selectedSubcategory !== 'all') {
+      for (const cat of categories) {
+        const sub = cat.subcategories?.find(
+          (s) =>
+            s.name.toLowerCase() === selectedSubcategory.toLowerCase() ||
+            s.slug.toLowerCase() === selectedSubcategory.toLowerCase()
+        );
+        if (sub && (sub.richDescription || sub.description)) {
+          return sub.richDescription || sub.description;
+        }
+      }
+    }
+
+    if (selectedCategory && selectedCategory !== 'all') {
+      const cat = categories.find(
+        (c) =>
+          c.name.toLowerCase() === selectedCategory.toLowerCase() ||
+          c.slug.toLowerCase() === selectedCategory.toLowerCase() ||
+          c.id.toLowerCase() === selectedCategory.toLowerCase()
+      );
+      if (cat && (cat.richDescription || cat.description)) {
+        return cat.richDescription || cat.description;
+      }
+    }
+
+    return null;
+  }, [categories, selectedCategory, selectedSubcategory]);
+
   const renderFilterControls = () => (
     <>
       {/* 1. Category & Subcategory Hierarchy */}
@@ -1571,6 +1601,16 @@ export function SearchResultsClient({
                 </div>
               )}
             </>
+          )}
+
+          {/* Active Category or Subcategory Rich Description Content (SEO Area below Pagination) */}
+          {activeRichDescription && (
+            <div className="mt-12 p-6 sm:p-8 bg-card border border-border/80 shadow-2xs">
+              <div
+                className="text-xs sm:text-sm text-foreground/90 font-normal leading-relaxed prose dark:prose-invert max-w-none [&_h1]:text-xl [&_h1]:font-black [&_h1]:mb-3 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:mb-2 [&_h3]:text-base [&_h3]:font-bold [&_h3]:mb-2 [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-3 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-3 [&_a]:text-blue-600 [&_a]:underline [&_blockquote]:border-l-4 [&_blockquote]:border-blue-500 [&_blockquote]:pl-3 [&_blockquote]:italic [&_img]:rounded-md [&_img]:max-w-full [&_img]:my-3"
+                dangerouslySetInnerHTML={{ __html: activeRichDescription }}
+              />
+            </div>
           )}
         </main>
       </div>

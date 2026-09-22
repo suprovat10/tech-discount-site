@@ -23,6 +23,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DeleteConfirmModal } from '@/components/admin/DeleteConfirmModal';
+import { RichTextEditor } from '@/components/admin/RichTextEditor';
 import { BrandItem } from '@/data/brands';
 import {
   getBrands,
@@ -44,6 +45,7 @@ export default function AdminBrandsPage() {
   const [slug, setSlug] = useState('');
   const [website, setWebsite] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
+  const [richDescription, setRichDescription] = useState('');
   const [isFeatured, setIsFeatured] = useState(true);
   const [showOnHomepage, setShowOnHomepage] = useState(true);
   const [isActive, setIsActive] = useState(true);
@@ -71,6 +73,7 @@ export default function AdminBrandsPage() {
     setSlug('');
     setWebsite('');
     setLogoUrl('');
+    setRichDescription('');
     setIsFeatured(true);
     setShowOnHomepage(true);
     setIsActive(true);
@@ -83,6 +86,7 @@ export default function AdminBrandsPage() {
     setSlug(brand.slug);
     setWebsite(brand.website);
     setLogoUrl(brand.logoUrl || '');
+    setRichDescription(brand.richDescription || brand.description || '');
     setIsFeatured(brand.isFeatured);
     setShowOnHomepage(brand.showOnHomepage ?? true);
     setIsActive(brand.isActive);
@@ -141,6 +145,8 @@ export default function AdminBrandsPage() {
       showOnHomepage,
       isActive,
       order: editingId ? brands.find((b) => b.id === editingId)?.order || 1 : brands.length + 1,
+      richDescription: richDescription.trim() || undefined,
+      description: richDescription.trim() ? richDescription.replace(/<[^>]*>/g, '').slice(0, 160) : undefined,
     };
 
     upsertBrand(brandPayload);
@@ -210,7 +216,7 @@ export default function AdminBrandsPage() {
       {/* Add / Edit Form Modal */}
       {isFormOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-card border-2 border-blue-600 w-full max-w-lg p-6 space-y-5 max-h-[90vh] overflow-y-auto">
+          <div className="bg-card border-2 border-blue-600 w-full max-w-2xl p-6 space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-border">
               <h3 className="text-sm font-black uppercase text-foreground flex items-center gap-2">
                 <Award className="w-4 h-4 text-blue-600" />
@@ -332,6 +338,22 @@ export default function AdminBrandsPage() {
                   </div>
                 )}
               </div>
+
+                {/* Brand Page Bottom Rich Content */}
+                <div>
+                  <label className="text-[11px] font-bold text-muted-foreground uppercase block mb-1">
+                    Brand Page Bottom Rich Content (WYSIWYG)
+                  </label>
+                  <p className="text-[10px] text-muted-foreground mb-2">
+                    Displays formatted text, brand history, warranty info, or guides below pagination on this brand page.
+                  </p>
+                  <RichTextEditor
+                    value={richDescription}
+                    onChange={setRichDescription}
+                    placeholder="Write formatted content, brand overview, warranty details, or SEO text for this brand..."
+                    minHeight="160px"
+                  />
+                </div>
 
               {/* Checkboxes: Show on Homepage & Featured */}
               <div className="space-y-2 pt-1">

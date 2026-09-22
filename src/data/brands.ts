@@ -8,6 +8,8 @@ export interface BrandItem {
   showOnHomepage: boolean;
   isActive: boolean;
   order: number;
+  description?: string;
+  richDescription?: string;
 }
 
 export const DEFAULT_BRANDS: BrandItem[] = [
