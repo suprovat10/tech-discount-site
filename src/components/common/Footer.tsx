@@ -89,13 +89,13 @@ export function Footer() {
           
           {/* Column 1: Brand & Mission */}
           <div className="space-y-4">
-            <Link href="/" prefetch={true} className="inline-block group">
+            <Link href="/" className="inline-block group touch-manipulation cursor-pointer">
               <img
                 src={optimizeImageUrl(branding.logoUrl, 300) || '/logo.png'}
                 alt={branding.brandName || 'suprodesign'}
                 width={170}
                 height={32}
-                className="h-8 w-auto max-w-[170px] object-contain transition-transform group-hover:scale-105"
+                className="h-8 w-auto max-w-[170px] object-contain transition-transform group-hover:scale-105 pointer-events-none"
                 loading="lazy"
                 decoding="async"
                 onError={(e) => {

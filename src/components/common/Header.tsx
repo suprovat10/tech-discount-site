@@ -112,21 +112,20 @@ export function Header() {
         {/* Brand Logo - suprodesign */}
         <Link
           href="/"
-          prefetch={true}
           onClick={(e) => {
             if (pathname === '/') {
               e.preventDefault();
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }
           }}
-          className="flex items-center gap-2.5 shrink-0 group cursor-pointer"
+          className="flex items-center gap-2.5 shrink-0 group cursor-pointer touch-manipulation select-none"
         >
           <img
             src={optimizeImageUrl(branding.logoUrl, 300) || '/logo.png'}
             alt={branding.brandName || 'suprodesign'}
             width={180}
             height={36}
-            className="h-8 sm:h-9 w-auto max-w-[180px] sm:max-w-[210px] object-contain transition-transform group-hover:scale-105"
+            className="h-8 sm:h-9 w-auto max-w-[180px] sm:max-w-[210px] object-contain transition-transform group-hover:scale-105 pointer-events-none"
             decoding="async"
             onError={(e) => {
               e.currentTarget.src = '/logo.png';
@@ -176,14 +175,13 @@ export function Header() {
         <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-muted-foreground">
           <Link
             href="/"
-            prefetch={true}
             onClick={(e) => {
               if (pathname === '/') {
                 e.preventDefault();
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }
             }}
-            className={`hover:text-foreground transition-colors ${
+            className={`hover:text-foreground transition-colors touch-manipulation cursor-pointer ${
               pathname === '/' ? 'text-foreground font-bold' : ''
             }`}
           >
@@ -191,8 +189,7 @@ export function Header() {
           </Link>
           <Link
             href="/products"
-            prefetch={true}
-            className={`hover:text-foreground transition-colors ${
+            className={`hover:text-foreground transition-colors touch-manipulation cursor-pointer ${
               pathname.startsWith('/products') ? 'text-foreground font-bold' : ''
             }`}
           >
@@ -200,8 +197,7 @@ export function Header() {
           </Link>
           <Link
             href="/coupons"
-            prefetch={true}
-            className={`hover:text-foreground transition-colors ${
+            className={`hover:text-foreground transition-colors touch-manipulation cursor-pointer ${
               pathname.startsWith('/coupons') ? 'text-foreground font-bold' : ''
             }`}
           >
@@ -209,8 +205,7 @@ export function Header() {
           </Link>
           <Link
             href="/blog"
-            prefetch={true}
-            className={`hover:text-foreground transition-colors ${
+            className={`hover:text-foreground transition-colors touch-manipulation cursor-pointer ${
               pathname.startsWith('/blog') ? 'text-foreground font-bold' : ''
             }`}
           >
@@ -222,8 +217,7 @@ export function Header() {
         <div className="flex items-center gap-2.5">
           <Link
             href="/watchlist"
-            prefetch={true}
-            className="flex items-center gap-1.5 px-3 py-1.5 border border-border text-xs font-semibold text-foreground hover:bg-muted/50 hover:text-rose-600 transition-colors rounded-none group"
+            className="flex items-center gap-1.5 px-3 py-1.5 border border-border text-xs font-semibold text-foreground hover:bg-muted/50 hover:text-rose-600 transition-colors rounded-none group touch-manipulation cursor-pointer"
             title="View saved items"
           >
             <Heart
@@ -247,7 +241,7 @@ export function Header() {
           <button
             ref={mobileMenuBtnRef}
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 border border-border text-muted-foreground hover:text-foreground md:hidden rounded-none"
+            className="p-2 border border-border text-muted-foreground hover:text-foreground md:hidden rounded-none touch-manipulation cursor-pointer"
             aria-label="Toggle menu"
           >
             {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -289,7 +283,7 @@ export function Header() {
                       handleClearSearch();
                       setIsMobileMenuOpen(false);
                     }}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer touch-manipulation"
                     title="Clear text"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -298,7 +292,7 @@ export function Header() {
               </div>
               <button
                 type="submit"
-                className="px-4 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-border font-bold text-xs rounded-none transition-colors cursor-pointer flex items-center justify-center"
+                className="px-4 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-border font-bold text-xs rounded-none transition-colors cursor-pointer flex items-center justify-center touch-manipulation"
                 title="Search"
                 aria-label="Search"
               >
@@ -309,7 +303,6 @@ export function Header() {
             <div className="flex flex-col text-xs font-bold divide-y divide-border/40">
               <Link
                 href="/"
-                prefetch={true}
                 onClick={(e) => {
                   setIsMobileMenuOpen(false);
                   if (pathname === '/') {
@@ -317,7 +310,7 @@ export function Header() {
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }
                 }}
-                className={`py-2.5 hover:text-blue-600 transition-colors ${
+                className={`py-2.5 hover:text-blue-600 transition-colors touch-manipulation cursor-pointer ${
                   pathname === '/' ? 'text-blue-600' : 'text-foreground'
                 }`}
               >
@@ -325,9 +318,8 @@ export function Header() {
               </Link>
               <Link
                 href="/products"
-                prefetch={true}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className={`py-2.5 hover:text-blue-600 transition-colors ${
+                className={`py-2.5 hover:text-blue-600 transition-colors touch-manipulation cursor-pointer ${
                   pathname.startsWith('/products') ? 'text-blue-600' : 'text-foreground'
                 }`}
               >
@@ -335,17 +327,15 @@ export function Header() {
               </Link>
               <Link
                 href="/coupons"
-                prefetch={true}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="py-2.5 text-foreground hover:text-blue-600 transition-colors"
+                className="py-2.5 text-foreground hover:text-blue-600 transition-colors touch-manipulation cursor-pointer"
               >
                 Coupons & Deals
               </Link>
               <Link
                 href="/blog"
-                prefetch={true}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="py-2.5 text-foreground hover:text-blue-600 transition-colors"
+                className="py-2.5 text-foreground hover:text-blue-600 transition-colors touch-manipulation cursor-pointer"
               >
                 Blog
               </Link>
