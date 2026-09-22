@@ -1,5 +1,9 @@
 import { revalidatePath } from 'next/cache';
 import { invalidateSiteKVCache } from './db/kv';
+import { invalidateCatalogDbCache } from './catalogDb';
+import { invalidateCategoryServerCache } from './categoryServer';
+import { invalidateSettingsServerCache } from './settingsServer';
+import { invalidatePageServerCache } from './pageServer';
 
 export interface PurgeOptions {
   productSlug?: string;
@@ -17,6 +21,10 @@ export function purgeAllCaches(options?: PurgeOptions) {
   try {
     // 0. Invalidate in-memory and KV database cache
     invalidateSiteKVCache();
+    invalidateCatalogDbCache();
+    invalidateCategoryServerCache();
+    invalidateSettingsServerCache();
+    invalidatePageServerCache();
 
     // 1. Root and Layout caches
     revalidatePath('/', 'layout');

@@ -189,28 +189,40 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           />
         )}
 
-        {/* Google Analytics 4 (GA4) */}
+        {/* Google Analytics 4 (GA4) - Deferred to keep initial load instant and mobile 90+ */}
         {gaId && (
-          <>
-            <Script
-              strategy="afterInteractive"
-              src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
-            />
-            <Script
-              id="google-analytics"
-              strategy="afterInteractive"
-              dangerouslySetInnerHTML={{
-                __html: `
-                  window.dataLayer = window.dataLayer || [];
-                  function gtag(){dataLayer.push(arguments);}
-                  gtag('js', new Date());
-                  gtag('config', '${gaId}', {
-                    page_path: window.location.pathname,
+          <Script
+            id="google-analytics"
+            strategy="afterInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `
+                (function() {
+                  var loaded = false;
+                  function initGA() {
+                    if (loaded) return;
+                    loaded = true;
+                    var s = document.createElement('script');
+                    s.async = true;
+                    s.src = 'https://www.googletagmanager.com/gtag/js?id=${gaId}';
+                    document.head.appendChild(s);
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    window.gtag = gtag;
+                    gtag('js', new Date());
+                    gtag('config', '${gaId}', { page_path: window.location.pathname });
+                  }
+                  if ('requestIdleCallback' in window) {
+                    requestIdleCallback(function() { setTimeout(initGA, 1500); });
+                  } else {
+                    setTimeout(initGA, 2000);
+                  }
+                  ['scroll', 'touchstart', 'click'].forEach(function(e) {
+                    window.addEventListener(e, initGA, { once: true, passive: true });
                   });
-                `,
-              }}
-            />
-          </>
+                })();
+              `,
+            }}
+          />
         )}
 
         {/* Meta / Facebook Pixel */}

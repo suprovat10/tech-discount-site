@@ -58,7 +58,7 @@ export function Header() {
   useEffect(() => {
     if (!isMobileMenuOpen) return;
 
-    const handleOutsideClick = (e: MouseEvent | TouchEvent) => {
+    const handleOutsideClick = (e: MouseEvent) => {
       const target = e.target as Node;
       if (
         mobileMenuRef.current &&
@@ -77,12 +77,10 @@ export function Header() {
     };
 
     document.addEventListener('mousedown', handleOutsideClick);
-    document.addEventListener('touchstart', handleOutsideClick, { passive: true });
     document.addEventListener('keydown', handleKeyDown);
 
     return () => {
       document.removeEventListener('mousedown', handleOutsideClick);
-      document.removeEventListener('touchstart', handleOutsideClick);
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [isMobileMenuOpen]);
@@ -112,9 +110,8 @@ export function Header() {
         <Link
           href="/"
           prefetch={true}
-          onClick={(e) => {
+          onClick={() => {
             if (pathname === '/') {
-              e.preventDefault();
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }
           }}
@@ -176,13 +173,12 @@ export function Header() {
           <Link
             href="/"
             prefetch={true}
-            onClick={(e) => {
+            onClick={() => {
               if (pathname === '/') {
-                e.preventDefault();
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }
             }}
-            className={`hover:text-foreground transition-colors ${
+            className={`hover:text-foreground transition-colors cursor-pointer ${
               pathname === '/' ? 'text-foreground font-bold' : ''
             }`}
           >
@@ -309,14 +305,13 @@ export function Header() {
               <Link
                 href="/"
                 prefetch={true}
-                onClick={(e) => {
+                onClick={() => {
                   setIsMobileMenuOpen(false);
                   if (pathname === '/') {
-                    e.preventDefault();
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }
                 }}
-                className={`py-2.5 hover:text-blue-600 transition-colors ${
+                className={`py-2.5 hover:text-blue-600 transition-colors cursor-pointer ${
                   pathname === '/' ? 'text-blue-600' : 'text-foreground'
                 }`}
               >

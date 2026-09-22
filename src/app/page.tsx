@@ -12,8 +12,9 @@ import { UnifiedProduct } from '@/types/product';
 import { ArrowRight } from 'lucide-react';
 import { getServerSettings } from '@/lib/settingsServer';
 import { AdSlot } from '@/components/ads/AdSlot';
+import { optimizeImageUrl, getHeroSrcSet, getHeroSizes } from '@/lib/imageOptimization';
 
-export const revalidate = 10;
+export const revalidate = 300;
 
 export default async function HomePage() {
   const [settings, categories, catalog] = await Promise.all([
@@ -61,8 +62,23 @@ export default async function HomePage() {
     })
     .slice(0, 8);
 
+  const isDefaultHero = !settings.heroImageUrl || settings.heroImageUrl.includes('v8wowdztetwveiot2ahw') || settings.heroImageUrl.includes('images.unsplash.com/photo-1517336714731-489689fd1ca8');
+  const heroImageUrl = isDefaultHero ? '/hero.webp' : settings.heroImageUrl;
+  const heroPreloadSrc = optimizeImageUrl(heroImageUrl, 480);
+  const heroSrcSet = getHeroSrcSet(heroImageUrl);
+  const heroSizes = getHeroSizes();
+
   return (
     <div className="space-y-12 pb-16">
+      {/* High-priority preload for hero image LCP */}
+      <link
+        rel="preload"
+        as="image"
+        href={heroPreloadSrc}
+        imageSrcSet={heroSrcSet}
+        imageSizes={heroSizes}
+        fetchPriority="high"
+      />
       <div className="container mx-auto px-4 sm:px-6 space-y-10">
         {/* 1. Minimal Hero Section */}
         <HeroSection initialSettings={settings} />

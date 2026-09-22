@@ -67,6 +67,10 @@ export function optimizeImageUrl(url?: string, width?: number): string {
     }
   }
 
+  if (url === '/hero.webp' || url === '/hero-mobile.webp' || url.startsWith('/hero')) {
+    return width && width <= 480 ? '/hero-mobile.webp' : '/hero.webp';
+  }
+
   return url;
 }
 
@@ -114,6 +118,10 @@ export function getAdSizes(isBanner: boolean): string | undefined {
 export function getHeroSrcSet(url?: string): string | undefined {
   if (!url || typeof url !== 'string') return undefined;
 
+  if (url === '/hero.webp' || url === '/hero-mobile.webp' || url.startsWith('/hero')) {
+    return '/hero-mobile.webp 480w, /hero.webp 768w';
+  }
+
   if (
     (url.includes('res.cloudinary.com') && url.includes('/image/upload/')) ||
     url.includes('images.unsplash.com')
@@ -131,5 +139,5 @@ export function getHeroSrcSet(url?: string): string | undefined {
 }
 
 export function getHeroSizes(): string {
-  return '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 600px';
+  return '(max-width: 640px) calc(100vw - 32px), (max-width: 1024px) 45vw, 500px';
 }

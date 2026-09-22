@@ -10,7 +10,7 @@ import { getCategories, getCategorySlug } from '@/lib/categoryStore';
 
 import { optimizeImageUrl } from '@/lib/imageOptimization';
 
-export const revalidate = 60;
+export const revalidate = 300;
 
 export async function generateStaticParams() {
   const products = await getDatabaseProducts();

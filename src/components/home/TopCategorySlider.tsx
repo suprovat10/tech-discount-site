@@ -108,7 +108,7 @@ export function TopCategorySlider() {
       {canScrollLeft && (
         <button
           onClick={() => handleScroll('left')}
-          className="absolute -left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-background/95 hover:bg-background border border-border flex items-center justify-center text-foreground shadow-md transition-opacity"
+          className="absolute -left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-background/95 hover:bg-background border border-border flex items-center justify-center text-foreground shadow-md transition-opacity cursor-pointer"
           aria-label="Previous categories"
         >
           <ChevronLeft className="w-4 h-4" />
@@ -118,7 +118,7 @@ export function TopCategorySlider() {
       {canScrollRight && (
         <button
           onClick={() => handleScroll('right')}
-          className="absolute -right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-background/95 hover:bg-background border border-border flex items-center justify-center text-foreground shadow-md transition-opacity"
+          className="absolute -right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-background/95 hover:bg-background border border-border flex items-center justify-center text-foreground shadow-md transition-opacity cursor-pointer"
           aria-label="Next categories"
         >
           <ChevronRight className="w-4 h-4" />

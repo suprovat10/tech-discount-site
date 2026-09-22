@@ -1,14 +1,28 @@
 import { CATEGORIES as DEFAULT_CATEGORIES, CategoryDefinition } from '@/data/catalog';
 import { getSiteKV } from '@/lib/db/kv';
 
+let cachedCategories: CategoryDefinition[] | null = null;
+let lastCategoriesFetch = 0;
+const CATEGORIES_CACHE_TTL = 5 * 60 * 1000;
+
+export function invalidateCategoryServerCache(): void {
+  cachedCategories = null;
+  lastCategoriesFetch = 0;
+}
+
 /**
  * Get all categories from MongoDB Atlas (with fallback to DEFAULT_CATEGORIES).
  * Server-side single source of truth for categories.
  */
-export async function getDatabaseCategories(): Promise<CategoryDefinition[]> {
+export async function getDatabaseCategories(forceFresh = false): Promise<CategoryDefinition[]> {
+  if (!forceFresh && cachedCategories && Date.now() - lastCategoriesFetch < CATEGORIES_CACHE_TTL) {
+    return cachedCategories;
+  }
   try {
-    const cloud = await getSiteKV<CategoryDefinition[]>('categories_catalog');
+    const cloud = await getSiteKV<CategoryDefinition[]>('categories_catalog', forceFresh);
     if (cloud && Array.isArray(cloud) && cloud.length > 0) {
+      cachedCategories = cloud;
+      lastCategoriesFetch = Date.now();
       return cloud;
     }
   } catch (err) {
