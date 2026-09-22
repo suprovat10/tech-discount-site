@@ -10,6 +10,7 @@ import {
   duplicateCatalogProduct,
   saveCatalogProducts,
   fetchAndSyncCatalogFromServer,
+  bulkUpsertCatalogProducts,
 } from '@/lib/catalogStore';
 import {
   PlusCircle,
@@ -26,6 +27,9 @@ import {
   Database,
   ChevronLeft,
   ChevronRight,
+  Download,
+  Upload,
+  AlertCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,9 +40,13 @@ export default function AdminProductsManager() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Pagination (50 per page so all catalog items show on page 1)
   const [productsPerPage, setProductsPerPage] = useState<number>(50);
@@ -158,6 +166,132 @@ export default function AdminProductsManager() {
     }
   };
 
+  // Checkbox Selection Handlers
+  const toggleSelectProduct = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const isAllFilteredSelected =
+    paginatedProducts.length > 0 &&
+    paginatedProducts.every((p) => selectedIds.has(p.id));
+
+  const isSomeFilteredSelected =
+    paginatedProducts.some((p) => selectedIds.has(p.id)) && !isAllFilteredSelected;
+
+  const handleToggleSelectAll = () => {
+    if (isAllFilteredSelected) {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        paginatedProducts.forEach((p) => next.delete(p.id));
+        return next;
+      });
+    } else {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        paginatedProducts.forEach((p) => next.add(p.id));
+        return next;
+      });
+    }
+  };
+
+  const handleClearSelection = () => {
+    setSelectedIds(new Set());
+  };
+
+  // Export Products to JSON file (Selected or All)
+  const handleExportProducts = (onlySelected = false) => {
+    const targetProducts =
+      onlySelected && selectedIds.size > 0
+        ? products.filter((p) => selectedIds.has(p.id))
+        : products;
+
+    if (targetProducts.length === 0) {
+      setErrorMessage('No products available to export.');
+      setTimeout(() => setErrorMessage(null), 3000);
+      return;
+    }
+
+    const exportData = JSON.stringify(targetProducts, null, 2);
+    const blob = new Blob([exportData], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const dateStr = new Date().toISOString().split('T')[0];
+    a.download = `techpricedrop-products-${onlySelected ? 'selected' : 'all'}-${dateStr}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    setSuccessMessage(
+      `Exported ${targetProducts.length} product${targetProducts.length > 1 ? 's' : ''} to JSON!`
+    );
+    setTimeout(() => setSuccessMessage(null), 3500);
+  };
+
+  // Import Products from JSON file
+  const handleFileImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Reset value so user can select the same file again if needed
+    e.target.value = '';
+
+    setIsImporting(true);
+    setErrorMessage(null);
+
+    try {
+      const text = await file.text();
+      let parsed: any;
+      try {
+        parsed = JSON.parse(text);
+      } catch {
+        throw new Error('Invalid JSON file format. Please upload a valid JSON file.');
+      }
+
+      const rawList: any[] = Array.isArray(parsed)
+        ? parsed
+        : Array.isArray(parsed?.products)
+        ? parsed.products
+        : Array.isArray(parsed?.data)
+        ? parsed.data
+        : [parsed];
+
+      const validItems: CatalogItem[] = rawList.filter(
+        (item) => item && typeof item === 'object' && (item.title || item.name)
+      );
+
+      if (validItems.length === 0) {
+        throw new Error('No valid product data found in file. Each product must have a title.');
+      }
+
+      const res = await bulkUpsertCatalogProducts(validItems);
+      if (res.success) {
+        const fresh = await fetchAndSyncCatalogFromServer();
+        setProducts(fresh);
+        setSuccessMessage(
+          `Successfully imported ${validItems.length} product${validItems.length > 1 ? 's' : ''} into inventory!`
+        );
+        setTimeout(() => setSuccessMessage(null), 4000);
+      } else {
+        throw new Error('Server import failed. Please check your data format.');
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Failed to import products.');
+      setTimeout(() => setErrorMessage(null), 4500);
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   return (
     <div className="space-y-8 pb-16">
       {/* Top Header */}
@@ -205,6 +339,41 @@ export default function AdminProductsManager() {
             <span>{isSyncing ? 'Syncing Feeds...' : 'Sync Live Prices'}</span>
           </Button>
 
+          {/* Hidden File Input for JSON import */}
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileImport}
+            accept=".json"
+            className="hidden"
+          />
+
+          {/* Import Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isImporting || isSyncing}
+            className="text-xs font-bold h-9 px-3 flex items-center gap-1.5 cursor-pointer"
+            title="Import products from a JSON file"
+          >
+            <Upload className={`w-3.5 h-3.5 ${isImporting ? 'animate-spin text-blue-600' : 'text-blue-600'}`} />
+            <span>{isImporting ? 'Importing...' : 'Import Products'}</span>
+          </Button>
+
+          {/* Export Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleExportProducts(selectedIds.size > 0)}
+            disabled={products.length === 0}
+            className="text-xs font-bold h-9 px-3 flex items-center gap-1.5 cursor-pointer"
+            title={selectedIds.size > 0 ? `Export ${selectedIds.size} selected products` : 'Export all products to JSON'}
+          >
+            <Download className="w-3.5 h-3.5 text-emerald-600" />
+            <span>{selectedIds.size > 0 ? `Export Selected (${selectedIds.size})` : 'Export All'}</span>
+          </Button>
+
           <Link
             href="/supro111vat29/products/new"
             className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-9 px-4 flex items-center gap-2 inline-flex items-center justify-center whitespace-nowrap transition-colors"
@@ -220,6 +389,14 @@ export default function AdminProductsManager() {
         <div className="p-4 border border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200 flex items-center gap-3 text-xs font-semibold">
           <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
           <span>{successMessage}</span>
+        </div>
+      )}
+
+      {/* Error Notification */}
+      {errorMessage && (
+        <div className="p-4 border border-red-500 bg-red-50 dark:bg-red-950/40 text-red-800 dark:text-red-200 flex items-center gap-3 text-xs font-semibold">
+          <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
+          <span>{errorMessage}</span>
         </div>
       )}
 
@@ -252,12 +429,58 @@ export default function AdminProductsManager() {
         </div>
       </div>
 
+      {/* Selected Items Action Banner */}
+      {selectedIds.size > 0 && (
+        <div className="p-3 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-900/60 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-blue-700 dark:text-blue-300">
+              {selectedIds.size} of {products.length} product{selectedIds.size > 1 ? 's' : ''} selected
+            </span>
+            <button
+              onClick={handleClearSelection}
+              className="text-[11px] text-muted-foreground hover:text-foreground underline ml-2 cursor-pointer"
+            >
+              Clear selection
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              onClick={() => handleExportProducts(true)}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold h-7 px-3 flex items-center gap-1 cursor-pointer"
+            >
+              <Download className="w-3 h-3" />
+              <span>Export Selected ({selectedIds.size})</span>
+            </Button>
+            <button
+              onClick={() => setSelectedIds(new Set(products.map((p) => p.id)))}
+              className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline px-2 py-1 cursor-pointer"
+            >
+              Select All {products.length} Products
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Products Inventory Table */}
       <div className="border border-border bg-card p-6 shadow-sm space-y-4">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="border-b border-border text-muted-foreground font-bold uppercase text-[10px] tracking-wider">
+                <th className="pb-3 w-10 pr-2">
+                  <input
+                    type="checkbox"
+                    checked={isAllFilteredSelected}
+                    ref={(el) => {
+                      if (el) el.indeterminate = isSomeFilteredSelected;
+                    }}
+                    onChange={handleToggleSelectAll}
+                    className="w-4 h-4 rounded-none border-border text-blue-600 focus:ring-0 cursor-pointer accent-blue-600"
+                    title={isAllFilteredSelected ? 'Deselect all visible' : 'Select all visible'}
+                  />
+                </th>
                 <th className="pb-3">Product</th>
                 <th className="pb-3">Category</th>
                 <th className="pb-3">Amazon</th>
@@ -276,9 +499,26 @@ export default function AdminProductsManager() {
                 const tgt = p.offers.find((o) => o.retailer === 'target');
                 const imageCount = p.images?.length || 1;
                 const faqCount = p.faqs?.length || 0;
+                const isSelected = selectedIds.has(p.id);
 
                 return (
-                  <tr key={p.id} className="hover:bg-muted/30 transition-colors">
+                  <tr
+                    key={p.id}
+                    className={`hover:bg-muted/30 transition-colors ${
+                      isSelected ? 'bg-blue-50/50 dark:bg-blue-950/20' : ''
+                    }`}
+                  >
+                    {/* Checkbox */}
+                    <td className="py-3.5 pr-2 w-10">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleSelectProduct(p.id)}
+                        className="w-4 h-4 rounded-none border-border text-blue-600 focus:ring-0 cursor-pointer accent-blue-600"
+                        title={isSelected ? 'Deselect product' : 'Select product'}
+                      />
+                    </td>
+
                     {/* Product Info */}
                     <td className="py-3.5 pr-4">
                       <div className="flex items-center gap-3">

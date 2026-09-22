@@ -5,6 +5,7 @@ import { adapterRegistry } from '@/lib/adapters';
 import {
   getDatabaseProducts,
   saveDatabaseProduct,
+  saveDatabaseProductsBatch,
   deleteDatabaseProduct,
 } from '@/lib/catalogDb';
 
@@ -16,6 +17,35 @@ export const revalidate = 0;
 
 function purgeServerCaches(slug?: string) {
   purgeAllCaches({ productSlug: slug });
+}
+
+function sanitizeProductItem(body: any): CatalogItem {
+  return {
+    id: body.id || `prod-dyn-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+    slug: body.slug || (body.title || 'untitled').toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+    title: body.title || 'Untitled Product',
+    brand: body.brand || 'No Brand',
+    category: body.category || 'Electronics',
+    subcategory: body.subcategory || '',
+    rating: typeof body.rating === 'number' ? body.rating : (parseFloat(body.rating) || 4.8),
+    reviewCount: typeof body.reviewCount === 'number' ? body.reviewCount : (parseInt(body.reviewCount, 10) || 100),
+    badge: body.badge || 'New',
+    tags: Array.isArray(body.tags) ? body.tags : (typeof body.tags === 'string' ? [body.tags] : undefined),
+    imageUrl: body.imageUrl || 'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=800&q=80',
+    imageAlt: body.imageAlt || '',
+    images: body.images && body.images.length > 0 ? body.images : [body.imageUrl || 'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=800&q=80'],
+    imageAlts: Array.isArray(body.imageAlts) ? body.imageAlts : [],
+    description: body.description || '',
+    richDescription: body.richDescription || '',
+    features: Array.isArray(body.features) ? body.features : [],
+    specs: (typeof body.specs === 'object' && body.specs !== null) ? body.specs : {},
+    keySpecs: (typeof body.keySpecs === 'object' && body.keySpecs !== null) ? body.keySpecs : {},
+    faqs: Array.isArray(body.faqs) ? body.faqs : [],
+    seo: body.seo || {},
+    offers: Array.isArray(body.offers) ? body.offers : [],
+    createdAt: body.createdAt || new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
 }
 
 export async function GET(request: Request) {
@@ -76,6 +106,34 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
+
+    // Check if this is a bulk import batch (either raw array or { products: [...] })
+    const isBatch = Array.isArray(body) || (body && Array.isArray(body.products));
+    if (isBatch) {
+      const rawList: any[] = Array.isArray(body) ? body : body.products;
+      const validItems = rawList.filter((item) => item && typeof item === 'object' && (item.title || item.name));
+      if (validItems.length === 0) {
+        return NextResponse.json(
+          { success: false, error: 'No valid products found in import batch. Each product must have a title.' },
+          { status: 400 }
+        );
+      }
+
+      const sanitizedList = validItems.map(sanitizeProductItem);
+      const updatedCatalog = await saveDatabaseProductsBatch(sanitizedList);
+      purgeServerCaches();
+
+      return NextResponse.json(
+        {
+          success: true,
+          count: sanitizedList.length,
+          totalInCatalog: updatedCatalog.length,
+          products: sanitizedList,
+        },
+        { status: 201 }
+      );
+    }
+
     if (!body.title) {
       return NextResponse.json(
         { success: false, error: 'Product title is required' },
@@ -83,36 +141,10 @@ export async function POST(request: Request) {
       );
     }
 
-    const newProduct: CatalogItem = {
-      id: body.id || `prod-dyn-${Date.now()}`,
-      slug: body.slug || body.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-      title: body.title,
-      brand: body.brand || 'No Brand',
-      category: body.category || 'Electronics',
-      subcategory: body.subcategory || '',
-      rating: typeof body.rating === 'number' ? body.rating : (parseFloat(body.rating) || 4.8),
-      reviewCount: typeof body.reviewCount === 'number' ? body.reviewCount : (parseInt(body.reviewCount, 10) || 100),
-      badge: body.badge || 'New',
-      tags: Array.isArray(body.tags) ? body.tags : (typeof body.tags === 'string' ? [body.tags] : undefined),
-      imageUrl: body.imageUrl || 'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=800&q=80',
-      imageAlt: body.imageAlt || '',
-      images: body.images && body.images.length > 0 ? body.images : [body.imageUrl || 'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=800&q=80'],
-      imageAlts: Array.isArray(body.imageAlts) ? body.imageAlts : [],
-      description: body.description || '',
-      richDescription: body.richDescription || '',
-      features: Array.isArray(body.features) ? body.features : [],
-      specs: (typeof body.specs === 'object' && body.specs !== null) ? body.specs : {},
-      keySpecs: (typeof body.keySpecs === 'object' && body.keySpecs !== null) ? body.keySpecs : {},
-      faqs: Array.isArray(body.faqs) ? body.faqs : [],
-      seo: body.seo || {},
-      offers: Array.isArray(body.offers) ? body.offers : [],
-      createdAt: body.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    const newProduct = sanitizeProductItem(body);
 
     // Save permanently to database
     await saveDatabaseProduct(newProduct);
-
     purgeServerCaches(newProduct.slug);
 
     return NextResponse.json(

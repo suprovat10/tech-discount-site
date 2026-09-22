@@ -105,6 +105,47 @@ export async function saveDatabaseProduct(product: CatalogItem): Promise<Catalog
 }
 
 /**
+ * Add or update multiple products in the cloud database in a single batch.
+ */
+export async function saveDatabaseProductsBatch(incoming: CatalogItem[]): Promise<CatalogItem[]> {
+  if (!incoming || incoming.length === 0) {
+    return getDatabaseProducts();
+  }
+
+  // Unmark any incoming product IDs/slugs from deleted_product_ids
+  try {
+    const oldDeleted = (await getSiteKV<string[]>('deleted_product_ids')) || [];
+    if (oldDeleted.length > 0) {
+      const incomingIds = new Set<string>();
+      incoming.forEach((p) => {
+        if (p.id) incomingIds.add(p.id);
+        if (p.slug) incomingIds.add(p.slug);
+      });
+      const updatedDeleted = oldDeleted.filter((id) => !incomingIds.has(id));
+      if (updatedDeleted.length !== oldDeleted.length) {
+        await setSiteKV('deleted_product_ids', updatedDeleted);
+      }
+    }
+  } catch {}
+
+  const current = await getDatabaseProducts();
+  const productList: CatalogItem[] = [...current];
+
+  incoming.forEach((newProd) => {
+    const index = productList.findIndex((p) => p.id === newProd.id || p.slug === newProd.slug);
+    if (index >= 0) {
+      productList[index] = newProd;
+    } else {
+      productList.unshift(newProd);
+    }
+  });
+
+  await setSiteKV(DB_CATALOG_KEY, productList);
+  invalidateCatalogDbCache();
+  return productList;
+}
+
+/**
  * Permanently delete a product from the cloud database.
  * Once deleted here, it is gone from the database forever and will never re-appear.
  */

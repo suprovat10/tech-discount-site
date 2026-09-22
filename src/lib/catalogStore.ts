@@ -171,6 +171,54 @@ export async function upsertCatalogProduct(product: CatalogItem): Promise<boolea
 }
 
 /**
+ * Bulk import/upsert multiple products in catalog and persist to cloud database
+ */
+export async function bulkUpsertCatalogProducts(incoming: CatalogItem[]): Promise<{ success: boolean; count: number }> {
+  if (!incoming || incoming.length === 0) {
+    return { success: true, count: 0 };
+  }
+
+  incoming.forEach((p) => {
+    unmarkProductDeleted(p.id);
+    if (p.slug) unmarkProductDeleted(p.slug);
+  });
+
+  const current = getCatalogProducts();
+  const productList = [...current];
+
+  incoming.forEach((newProd) => {
+    const index = productList.findIndex((p) => p.id === newProd.id || p.slug === newProd.slug);
+    if (index >= 0) {
+      productList[index] = newProd;
+    } else {
+      productList.unshift(newProd);
+    }
+  });
+
+  saveCatalogProducts(productList);
+
+  if (typeof window === 'undefined') {
+    return { success: true, count: incoming.length };
+  }
+
+  try {
+    const res = await fetch('/api/products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(incoming),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return { success: true, count: data.count || incoming.length };
+    }
+    return { success: false, count: 0 };
+  } catch (e) {
+    console.warn('Server bulk import failed:', e);
+    return { success: false, count: 0 };
+  }
+}
+
+/**
  * Delete product by id and remove immediately from database
  */
 export async function deleteCatalogProduct(id: string): Promise<boolean> {
