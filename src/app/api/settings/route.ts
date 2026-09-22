@@ -12,8 +12,8 @@ const SETTINGS_FILE = path.join(process.cwd(), 'src', 'data', 'settings.json');
 
 export async function GET() {
   try {
-    // 1. Check persistent store first
-    const cloudSettings = await getSiteKV('settings');
+    // 1. Check persistent store first (always fresh for admin/API)
+    const cloudSettings = await getSiteKV('settings', true);
     if (cloudSettings && typeof cloudSettings === 'object' && Object.keys(cloudSettings).length > 0) {
       return NextResponse.json(cloudSettings);
     }

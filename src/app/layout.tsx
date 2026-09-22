@@ -8,9 +8,9 @@ import { StoreLayoutWrapper } from '@/components/common/StoreLayoutWrapper';
 import { optimizeImageUrl, getHeroSrcSet, getHeroSizes } from '@/lib/imageOptimization';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await getServerSettings();
-  const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
-  const brand = settings.siteBrandName || 'suprodesign';
+  const settings = await getServerSettings(true);
+  const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
+  const brand = settings.siteBrandName || 'TechPriceDrop';
   const title = settings.siteTitle || `${brand} - Compare Prices & Find Deals`;
   const description =
     settings.metaDescription ||
@@ -19,6 +19,11 @@ export async function generateMetadata(): Promise<Metadata> {
     .split(',')
     .map((k) => k.trim())
     .filter(Boolean);
+
+  const ogImg =
+    settings.ogImageUrl && !settings.ogImageUrl.includes('photo-1519389950473-47ba0277781c')
+      ? settings.ogImageUrl
+      : 'https://res.cloudinary.com/koayelts/image/upload/f_auto,q_auto,w_1600,c_limit/v1790111032/techpricedrop/branding/uc66jnomvw4tnewyy2mq.jpg';
 
   const verification: Record<string, any> = {};
   if (settings.googleSiteVerification) {
@@ -65,10 +70,12 @@ export async function generateMetadata(): Promise<Metadata> {
       type: 'website',
       images: [
         {
-          url: settings.ogImageUrl || '/logo.png',
+          url: ogImg,
+          secureUrl: ogImg,
           width: 1200,
           height: 630,
           alt: title,
+          type: 'image/jpeg',
         },
       ],
     },
@@ -76,12 +83,12 @@ export async function generateMetadata(): Promise<Metadata> {
       card: 'summary_large_image',
       title,
       description,
-      images: [settings.ogImageUrl || '/logo.png'],
+      images: [ogImg],
     },
     icons: {
-      icon: settings.faviconUrl || '/favicon.png',
-      shortcut: settings.faviconUrl || '/favicon.png',
-      apple: settings.faviconUrl || '/apple-touch-icon.png',
+      icon: settings.faviconUrl || '/favicon-techpricedrop.png',
+      shortcut: settings.faviconUrl || '/favicon-techpricedrop.png',
+      apple: settings.faviconUrl || '/favicon-techpricedrop.png',
     },
     ...(Object.keys(verification).length > 0 ? { verification } : {}),
   };
@@ -92,10 +99,10 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const settings = await getServerSettings();
-  const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
-  const brand = settings.siteBrandName || 'suprodesign';
-  const logoUrl = settings.logoUrl || '/logo.png';
+  const settings = await getServerSettings(true);
+  const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
+  const brand = settings.siteBrandName || 'TechPriceDrop';
+  const logoUrl = settings.logoUrl || '/logo-techpricedrop.png';
   const socials = [
     settings.socialFacebook,
     settings.socialInstagram,

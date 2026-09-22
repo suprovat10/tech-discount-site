@@ -54,7 +54,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
     'deals, discounts, price comparison, amazon, walmart, best buy, target, tech gadgets, laptops, electronics price tracker',
   canonicalUrl: 'https://www.techpricedrop.com',
   ogImageUrl:
-    'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1200&q=80',
+    'https://res.cloudinary.com/koayelts/image/upload/f_auto,q_auto,w_1600,c_limit/v1790111032/techpricedrop/branding/uc66jnomvw4tnewyy2mq.jpg',
   indexingEnabled: true,
   logoUrl: '/logo-techpricedrop.png',
   faviconUrl: '/favicon-techpricedrop.png',
@@ -65,7 +65,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   socialInstagram: 'https://instagram.com',
   socialYoutube: 'https://youtube.com',
   socialTwitter: 'https://twitter.com',
-  googleAnalyticsId: '',
+  googleAnalyticsId: 'G-7LLKVZYHWG',
   googleTagManagerId: '',
   facebookPixelId: '',
   tiktokPixelId: '',
@@ -80,11 +80,11 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   defaultCurrency: 'USD ($)',
   priceCheckIntervalMinutes: 60,
   heroTitleLine1: 'Compare tech prices.',
-  heroTitleLine2: 'Never overpay.',
+  heroTitleLine2: 'Never overpay today!',
   heroSubtitle:
     'Instantly compare real-time offers and verified discounts from Amazon, Walmart, Best Buy, and Target before making any purchase.',
   heroImageUrl:
-    'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=900&q=80',
+    'https://res.cloudinary.com/koayelts/image/upload/f_auto,q_auto,w_1600,c_limit/v1790111669/techpricedrop/hero/brrklc8lesvqxe3zkqrg.jpg',
   heroImageAlt: 'MacBook and Tech Gear',
   heroPrimaryBtnText: 'Browse Products',
   heroPrimaryBtnUrl: '/products',
@@ -95,7 +95,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   heroSecondaryBtnNewTab: false,
   heroSecondaryBtnShowIcon: true,
   heroBadgeText: '',
-  categorySliderAlignment: 'left',
+  categorySliderAlignment: 'center',
   categorySliderLayout: 'slider',
   categorySliderHidden: false,
 };

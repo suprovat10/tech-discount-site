@@ -54,11 +54,11 @@ const DEFAULT_SETTINGS: AdminSettings = {
   metaDescription: 'Find the lowest prices and best discounts on tech gadgets, laptops, smartphones, and accessories across major US retailers.',
   keywords: 'deals, discounts, price comparison, amazon, walmart, best buy, target, tech gadgets',
   canonicalUrl: 'https://www.techpricedrop.com',
-  ogImageUrl: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1200&q=80',
+  ogImageUrl: 'https://res.cloudinary.com/koayelts/image/upload/f_auto,q_auto,w_1600,c_limit/v1790111032/techpricedrop/branding/uc66jnomvw4tnewyy2mq.jpg',
   indexingEnabled: true,
 
-  logoUrl: '/logo.png',
-  faviconUrl: '/favicon.png',
+  logoUrl: '/logo-techpricedrop.png',
+  faviconUrl: '/favicon-techpricedrop.png',
   siteBrandName: 'TechPriceDrop',
 
   footerBioText: 'TechPriceDrop is a real-time price comparison and deals discovery engine. We scan authorized retailers like Amazon, Walmart, Best Buy, and Target so you never overpay for tech.',
@@ -71,10 +71,10 @@ const DEFAULT_SETTINGS: AdminSettings = {
   googleAdSenseId: '',
   globalAdHeaderCode: '',
 
-  googleAnalyticsId: 'G-TECH849201X',
-  googleTagManagerId: 'GTM-ST9902',
-  facebookPixelId: '984021948201948',
-  tiktokPixelId: 'TT-48201948',
+  googleAnalyticsId: 'G-7LLKVZYHWG',
+  googleTagManagerId: '',
+  facebookPixelId: '',
+  tiktokPixelId: '',
 
   amazonTag: 'smarttechdeals-20',
   walmartPartnerId: 'WMT-PARTNER-40291',
@@ -88,6 +88,8 @@ const DEFAULT_SETTINGS: AdminSettings = {
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<AdminSettings>(DEFAULT_SETTINGS);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const [uploadingFavicon, setUploadingFavicon] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [faviconSuccessMsg, setFaviconSuccessMsg] = useState('');
@@ -114,7 +116,13 @@ export default function AdminSettingsPage() {
       .then((res) => res.json())
       .then((serverData) => {
         if (serverData && !serverData.error && Object.keys(serverData).length > 0) {
-          setSettings((prev) => ({ ...prev, ...serverData }));
+          setSettings((prev) => {
+            const updated = { ...prev, ...serverData };
+            try {
+              localStorage.setItem('smarttech_admin_settings', JSON.stringify(updated));
+            } catch {}
+            return updated;
+          });
         }
       })
       .catch(() => {});
@@ -278,22 +286,37 @@ export default function AdminSettingsPage() {
     }
   };
 
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setIsSaving(true);
+    setSaveError('');
+    setSavedSuccess(false);
+
     try {
       localStorage.setItem('smarttech_admin_settings', JSON.stringify(settings));
-      fetch('/api/settings', {
+
+      const res = await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settings),
-      }).catch(() => {});
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Server error while saving settings.');
+      }
+
       window.dispatchEvent(new Event('smarttech_branding_updated'));
       updateFaviconInDocument(settings.faviconUrl);
-    } catch {
-      // ignore
+      setSavedSuccess(true);
+      setTimeout(() => setSavedSuccess(false), 4500);
+    } catch (err: any) {
+      console.error('Failed to save settings:', err);
+      setSaveError(err.message || 'Error saving settings. Please verify database connection.');
+      setTimeout(() => setSaveError(''), 7000);
+    } finally {
+      setIsSaving(false);
     }
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 3500);
   };
 
   return (
@@ -308,11 +331,13 @@ export default function AdminSettingsPage() {
         </div>
 
         <Button
-          onClick={handleSave}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-9 px-4 flex items-center gap-2"
+          type="button"
+          onClick={() => handleSave()}
+          disabled={isSaving}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-9 px-4 flex items-center gap-2 cursor-pointer shadow-xs disabled:opacity-60"
         >
-          <Save className="w-4 h-4" />
-          <span>Save Changes</span>
+          {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+          <span>{isSaving ? 'Saving Changes...' : 'Save Changes'}</span>
         </Button>
       </div>
 
@@ -320,7 +345,15 @@ export default function AdminSettingsPage() {
       {savedSuccess && (
         <div className="p-4 border border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200 flex items-center gap-3 text-xs font-semibold">
           <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-          <span>Settings successfully saved and persisted! Logo, Favicon, tracking codes, and SEO metadata are now active.</span>
+          <span>Settings successfully saved and persisted to database! Logo, Favicon, tracking codes, and SEO metadata are now active.</span>
+        </div>
+      )}
+
+      {/* Error Notification */}
+      {saveError && (
+        <div className="p-4 border border-rose-500 bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-200 flex items-center gap-3 text-xs font-semibold">
+          <span className="font-bold">Error:</span>
+          <span>{saveError}</span>
         </div>
       )}
 
@@ -839,6 +872,26 @@ export default function AdminSettingsPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Social Scraper Cache Tip Box */}
+              <div className="mt-2 p-3 bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                <div className="space-y-0.5">
+                  <div className="font-bold text-blue-900 dark:text-blue-200 flex items-center gap-1.5">
+                    <span>Social Media Preview Cache (Facebook, WhatsApp, Twitter)</span>
+                  </div>
+                  <p className="text-[11px] text-blue-800/80 dark:text-blue-300/80">
+                    Facebook &amp; WhatsApp cache link preview cards for up to 30 days. When you upload or replace this OG Image, click the debugger button to re-scrape and update preview cards immediately.
+                  </p>
+                </div>
+                <a
+                  href={`https://developers.facebook.com/tools/debug/?q=${encodeURIComponent(settings.canonicalUrl || 'https://www.techpricedrop.com')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="shrink-0 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] inline-flex items-center gap-1 transition-colors"
+                >
+                  Clear Cache (Facebook Debugger) ↗
+                </a>
+              </div>
             </div>
 
             {/* Webmaster Tools Verification */}
@@ -1208,10 +1261,11 @@ export default function AdminSettingsPage() {
         <div className="flex justify-end pt-2">
           <Button
             type="submit"
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-10 px-6 flex items-center gap-2"
+            disabled={isSaving}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-10 px-6 flex items-center gap-2 cursor-pointer shadow-xs disabled:opacity-60"
           >
-            <Save className="w-4 h-4" />
-            <span>Save All Configurations</span>
+            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            <span>{isSaving ? 'Saving All Configurations...' : 'Save All Configurations'}</span>
           </Button>
         </div>
       </form>

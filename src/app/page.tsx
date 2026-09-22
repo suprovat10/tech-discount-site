@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { HeroSection } from '@/components/home/HeroSection';
 import { DealCard } from '@/components/deals/DealCard';
@@ -15,6 +16,53 @@ import { AdSlot } from '@/components/ads/AdSlot';
 import { optimizeImageUrl, getHeroSrcSet, getHeroSizes } from '@/lib/imageOptimization';
 
 export const revalidate = 10;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getServerSettings(true);
+  const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
+  const brand = settings.siteBrandName || 'TechPriceDrop';
+  const title = settings.siteTitle || `${brand} - Compare Prices across Amazon, Walmart, Best Buy & Target`;
+  const description =
+    settings.metaDescription ||
+    'Find the lowest prices and best discounts on tech gadgets, laptops, smartphones, and accessories across major US retailers.';
+  const ogImg =
+    settings.ogImageUrl && !settings.ogImageUrl.includes('photo-1519389950473-47ba0277781c')
+      ? settings.ogImageUrl
+      : 'https://res.cloudinary.com/koayelts/image/upload/f_auto,q_auto,w_1600,c_limit/v1790111032/techpricedrop/branding/uc66jnomvw4tnewyy2mq.jpg';
+
+  return {
+    metadataBase: new URL(siteUrl),
+    title,
+    description,
+    alternates: {
+      canonical: siteUrl,
+    },
+    openGraph: {
+      title,
+      description,
+      url: siteUrl,
+      siteName: brand,
+      locale: 'en_US',
+      type: 'website',
+      images: [
+        {
+          url: ogImg,
+          secureUrl: ogImg,
+          width: 1200,
+          height: 630,
+          alt: title,
+          type: 'image/jpeg',
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [ogImg],
+    },
+  };
+}
 
 export default async function HomePage() {
   const [settings, categories, catalog] = await Promise.all([

@@ -7,7 +7,7 @@ export { DEFAULT_SITE_SETTINGS };
 
 let cachedSettings: SiteSettings | null = null;
 let lastSettingsFetch = 0;
-const SETTINGS_CACHE_TTL = 5 * 60 * 1000;
+const SETTINGS_CACHE_TTL = 5 * 1000;
 
 export function invalidateSettingsServerCache(): void {
   cachedSettings = null;
@@ -29,6 +29,9 @@ export async function getServerSettings(forceFresh = false): Promise<SiteSetting
       if (!merged.heroImageUrl || merged.heroImageUrl.includes('v8wowdztetwveiot2ahw') || merged.heroImageUrl.includes('images.unsplash.com/photo-1517336714731-489689fd1ca8')) {
         merged.heroImageUrl = '/hero.webp';
       }
+      if (!merged.ogImageUrl || merged.ogImageUrl.includes('photo-1519389950473-47ba0277781c')) {
+        merged.ogImageUrl = DEFAULT_SITE_SETTINGS.ogImageUrl;
+      }
       cachedSettings = merged;
       lastSettingsFetch = Date.now();
       return merged;
@@ -39,6 +42,9 @@ export async function getServerSettings(forceFresh = false): Promise<SiteSetting
   const syncSettings = getServerSettingsSync();
   if (!syncSettings.heroImageUrl || syncSettings.heroImageUrl.includes('v8wowdztetwveiot2ahw') || syncSettings.heroImageUrl.includes('images.unsplash.com/photo-1517336714731-489689fd1ca8')) {
     syncSettings.heroImageUrl = '/hero.webp';
+  }
+  if (!syncSettings.ogImageUrl || syncSettings.ogImageUrl.includes('photo-1519389950473-47ba0277781c')) {
+    syncSettings.ogImageUrl = DEFAULT_SITE_SETTINGS.ogImageUrl;
   }
   cachedSettings = syncSettings;
   lastSettingsFetch = Date.now();
