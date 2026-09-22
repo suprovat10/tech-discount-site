@@ -121,9 +121,8 @@ export function getHeroSrcSet(url?: string): string | undefined {
     return [
       `${optimizeImageUrl(url, 360)} 360w`,
       `${optimizeImageUrl(url, 480)} 480w`,
-      `${optimizeImageUrl(url, 640)} 640w`,
-      `${optimizeImageUrl(url, 800)} 800w`,
-      `${optimizeImageUrl(url, 1024)} 1024w`,
+      `${optimizeImageUrl(url, 600)} 600w`,
+      `${optimizeImageUrl(url, 768)} 768w`,
     ].join(', ');
   }
 
@@ -131,5 +130,5 @@ export function getHeroSrcSet(url?: string): string | undefined {
 }
 
 export function getHeroSizes(): string {
-  return '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 600px';
+  return '(max-width: 640px) calc(100vw - 32px), (max-width: 1024px) 45vw, 500px';
 }

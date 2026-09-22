@@ -39,8 +39,7 @@ export function DealCard({ product, priority = false }: DealCardProps) {
       {/* 1. Product Image - Clickable to View Product */}
       <Link
         href={`/product/${product.slug}`}
-        prefetch={true}
-        className="relative mb-2 sm:mb-3 block aspect-[5/4] w-full overflow-hidden bg-muted/20 cursor-pointer"
+        className="relative mb-2 sm:mb-3 block aspect-[5/4] w-full overflow-hidden bg-muted/20 cursor-pointer touch-manipulation"
         title={`View ${product.title}`}
       >
         <Image
@@ -52,7 +51,7 @@ export function DealCard({ product, priority = false }: DealCardProps) {
           fetchPriority={priority ? 'high' : undefined}
           decoding={priority ? 'sync' : 'async'}
           className="object-cover transition-transform duration-300 group-hover:scale-105"
-          sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+          sizes="(max-width: 640px) 48vw, (max-width: 1024px) 30vw, 260px"
           unoptimized
         />
 
@@ -85,8 +84,7 @@ export function DealCard({ product, priority = false }: DealCardProps) {
             product.brand.trim() !== '' && (
               <Link
                 href={`/brand/${product.brand.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
-                prefetch={true}
-                className="uppercase tracking-wider text-[9px] sm:text-[10px] font-black text-muted-foreground hover:text-blue-600 transition-colors truncate max-w-[65px] sm:max-w-none text-right cursor-pointer"
+                className="uppercase tracking-wider text-[9px] sm:text-[10px] font-black text-muted-foreground hover:text-blue-600 transition-colors truncate max-w-[65px] sm:max-w-none text-right cursor-pointer touch-manipulation"
                 title={`View all ${product.brand} deals`}
               >
                 {product.brand}
@@ -97,8 +95,7 @@ export function DealCard({ product, priority = false }: DealCardProps) {
         {/* Title - Clickable to View Product */}
         <Link
           href={`/product/${product.slug}`}
-          prefetch={true}
-          className="block cursor-pointer group/title"
+          className="block cursor-pointer group/title touch-manipulation"
           title={`View ${product.title}`}
         >
           <h3 className="font-bold text-xs sm:text-sm text-foreground group-hover/title:text-blue-600 transition-colors line-clamp-2 leading-snug min-h-[32px] sm:min-h-[40px]">
@@ -136,8 +133,7 @@ export function DealCard({ product, priority = false }: DealCardProps) {
         <div className="flex items-center gap-1.5 sm:gap-2 pt-1">
           <Link
             href={`/product/${product.slug}`}
-            prefetch={true}
-            className="flex-1 min-w-0 h-9 px-1.5 sm:px-3 text-[11px] sm:text-xs font-bold border border-border hover:bg-foreground hover:text-background transition-colors flex items-center justify-center gap-1.5 cursor-pointer rounded-none"
+            className="flex-1 min-w-0 h-9 px-1.5 sm:px-3 text-[11px] sm:text-xs font-bold border border-border hover:bg-foreground hover:text-background transition-colors flex items-center justify-center gap-1.5 cursor-pointer rounded-none touch-manipulation"
             title="Check price and store offers"
           >
             <span>Check Price</span>

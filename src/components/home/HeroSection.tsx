@@ -87,8 +87,7 @@ export function HeroSection({ initialSettings }: HeroSectionProps) {
               href={primaryUrl}
               target={settings.heroPrimaryBtnNewTab ? '_blank' : undefined}
               rel={settings.heroPrimaryBtnNewTab ? 'noopener noreferrer' : undefined}
-              prefetch={true}
-              className="bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 text-white font-bold text-xs h-10 px-5 inline-flex items-center gap-2 transition-colors cursor-pointer rounded-none"
+              className="bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 text-white font-bold text-xs h-10 px-5 inline-flex items-center gap-2 transition-colors cursor-pointer rounded-none touch-manipulation"
             >
               <span>{primaryText}</span>
               {settings.heroPrimaryBtnShowIcon !== false && <ArrowRight className="w-3.5 h-3.5" />}
@@ -97,8 +96,7 @@ export function HeroSection({ initialSettings }: HeroSectionProps) {
               href={secondaryUrl}
               target={settings.heroSecondaryBtnNewTab ? '_blank' : undefined}
               rel={settings.heroSecondaryBtnNewTab ? 'noopener noreferrer' : undefined}
-              prefetch={true}
-              className="border border-input bg-background hover:bg-accent hover:text-accent-foreground font-bold text-xs h-10 px-5 inline-flex items-center gap-1.5 transition-colors cursor-pointer rounded-none"
+              className="border border-input bg-background hover:bg-accent hover:text-accent-foreground font-bold text-xs h-10 px-5 inline-flex items-center gap-1.5 transition-colors cursor-pointer rounded-none touch-manipulation"
             >
               {settings.heroSecondaryBtnShowIcon !== false && (
                 <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
@@ -113,7 +111,7 @@ export function HeroSection({ initialSettings }: HeroSectionProps) {
           <div className="relative aspect-[4/3] w-full border border-border/80 bg-muted/20 p-2 sm:p-4 flex items-center justify-center overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={optimizeImageUrl(imageUrl, 640)}
+              src={optimizeImageUrl(imageUrl, 480)}
               srcSet={getHeroSrcSet(imageUrl)}
               sizes={getHeroSizes()}
               alt={imageAlt}
@@ -125,7 +123,7 @@ export function HeroSection({ initialSettings }: HeroSectionProps) {
               className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
               onError={(e) => {
                 e.currentTarget.src =
-                  'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=640&q=80';
+                  'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=480&q=80';
               }}
             />
           </div>

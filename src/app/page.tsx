@@ -14,7 +14,7 @@ import { getServerSettings } from '@/lib/settingsServer';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { optimizeImageUrl, getHeroSrcSet, getHeroSizes } from '@/lib/imageOptimization';
 
-export const revalidate = 10;
+export const revalidate = 60;
 
 export default async function HomePage() {
   const [settings, categories, catalog] = await Promise.all([
@@ -65,7 +65,7 @@ export default async function HomePage() {
   const heroImageUrl =
     settings.heroImageUrl ||
     'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=900&q=80';
-  const heroPreloadSrc = optimizeImageUrl(heroImageUrl, 640);
+  const heroPreloadSrc = optimizeImageUrl(heroImageUrl, 480);
   const heroSrcSet = getHeroSrcSet(heroImageUrl);
   const heroSizes = getHeroSizes();
 
@@ -105,8 +105,7 @@ export default async function HomePage() {
 
             <Link
               href="/products"
-              prefetch={true}
-              className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1"
+              className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1 touch-manipulation cursor-pointer"
             >
               <span>View all</span>
               <ArrowRight className="w-3 h-3" />
@@ -114,8 +113,8 @@ export default async function HomePage() {
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-5">
-            {featuredDeals.map((product, idx) => (
-              <DealCard key={product.id} product={product} priority={idx < 2} />
+            {featuredDeals.map((product) => (
+              <DealCard key={product.id} product={product} priority={false} />
             ))}
           </div>
         </section>
@@ -134,8 +133,7 @@ export default async function HomePage() {
 
             <Link
               href="/products?sort=latest"
-              prefetch={true}
-              className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1"
+              className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1 touch-manipulation cursor-pointer"
             >
               <span>View all</span>
               <ArrowRight className="w-3 h-3" />

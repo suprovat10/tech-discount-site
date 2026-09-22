@@ -132,8 +132,7 @@ export function TopCategorySlider({ initialCategories = CATEGORIES }: TopCategor
           <Link
             key={item.id}
             href={item.href}
-            prefetch={true}
-            className="group relative flex flex-col items-center justify-between p-3 sm:p-3.5 bg-card hover:bg-muted/30 border border-border/80 hover:border-foreground/30 transition-all rounded-sm shrink-0 w-28 sm:w-32 min-w-[115px] sm:min-w-[130px] min-h-[108px] sm:min-h-[116px] shadow-sm hover:shadow-md cursor-pointer"
+            className="group relative flex flex-col items-center justify-between p-3 sm:p-3.5 bg-card hover:bg-muted/30 border border-border/80 hover:border-foreground/30 transition-all rounded-sm shrink-0 w-28 sm:w-32 min-w-[115px] sm:min-w-[130px] min-h-[108px] sm:min-h-[116px] shadow-sm hover:shadow-md cursor-pointer touch-manipulation"
             title={item.name}
           >
             {/* Image Container on TOP (Transparent, no background box behind image for transparent PNGs) */}
