@@ -7,7 +7,7 @@ import { UnifiedProduct } from '@/types/product';
 import { CATEGORIES, CatalogItem } from '@/data/catalog';
 import { getCatalogProductByIdOrSlug, getCatalogProducts, fetchAndSyncCatalogFromServer } from '@/lib/catalogStore';
 import { getCategories, getCategorySlug, getSubcategorySlug } from '@/lib/categoryStore';
-import { optimizeCloudinaryUrl } from '@/lib/imageOptimization';
+import { optimizeImageUrl } from '@/lib/imageOptimization';
 import { DealCard } from '@/components/deals/DealCard';
 import { WatchlistButton } from '@/components/watchlist/WatchlistButton';
 import { formatCurrency, getRetailerDisplayName, getRetailerHexColor } from '@/lib/utils';
@@ -83,17 +83,20 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
         }
       }
 
-      fetchAndSyncCatalogFromServer().then((fresh) => {
-        if (fresh && Array.isArray(fresh)) {
-          setCatalogProducts(fresh);
-          const stillExists = fresh.find((p) => p.slug === slug || p.id === slug);
-          if (stillExists) {
-            setActiveProduct(transformCatalogItemToUnified(stillExists));
-          } else if (!product) {
-            setActiveProduct(null);
+      // Only fetch catalog if product was not already supplied via SSR props
+      if (!product) {
+        fetchAndSyncCatalogFromServer().then((fresh) => {
+          if (fresh && Array.isArray(fresh)) {
+            setCatalogProducts(fresh);
+            const stillExists = fresh.find((p) => p.slug === slug || p.id === slug);
+            if (stillExists) {
+              setActiveProduct(transformCatalogItemToUnified(stillExists));
+            } else {
+              setActiveProduct(null);
+            }
           }
-        }
-      });
+        });
+      }
     } catch {
       // ignore
     }
@@ -557,7 +560,7 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
             <div className="md:col-span-6 space-y-3">
               <div className="relative aspect-[5/4] w-full overflow-hidden bg-muted/20 border-0 md:border border-border/50 group">
                 <Image
-                  src={optimizeCloudinaryUrl(images[activeImageIndex] || activeProduct.imageUrl, 900)}
+                  src={optimizeImageUrl(images[activeImageIndex] || activeProduct.imageUrl, 640)}
                   alt={
                     (activeImageIndex === 0
                       ? activeProduct.imageAlt
@@ -566,6 +569,7 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
                   }
                   fill
                   priority
+                  loading="eager"
                   className="object-cover transition-all duration-300"
                   sizes="(max-width: 768px) 100vw, 40vw"
                   unoptimized
@@ -614,7 +618,7 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
                       }`}
                     >
                       <Image
-                        src={optimizeCloudinaryUrl(img, 160)}
+                        src={optimizeImageUrl(img, 160)}
                         alt={
                           (idx === 0 ? activeProduct.imageAlt : activeProduct.imageAlts?.[idx]) ||
                           `${activeProduct.title} thumbnail ${idx + 1}`

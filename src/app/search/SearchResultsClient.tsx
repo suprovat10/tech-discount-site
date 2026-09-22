@@ -1494,8 +1494,8 @@ export function SearchResultsClient({
           ) : (
             <>
               <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-2.5 sm:gap-5">
-                {paginatedProducts.map((product) => (
-                  <DealCard key={product.id} product={product} />
+                {paginatedProducts.map((product, idx) => (
+                  <DealCard key={product.id} product={product} priority={idx < 4} />
                 ))}
               </div>
 

@@ -8,8 +8,9 @@ import { generateProductJsonLd, generateBreadcrumbJsonLd } from '@/lib/seo/jsonl
 import { ProductDetailClient } from './ProductDetailClient';
 import { getCategories, getCategorySlug } from '@/lib/categoryStore';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+import { optimizeImageUrl } from '@/lib/imageOptimization';
+
+export const revalidate = 60;
 
 export async function generateStaticParams() {
   const products = await getDatabaseProducts();
@@ -126,6 +127,16 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 py-6">
+      {/* High-priority Image Preload for LCP */}
+      {product?.imageUrl && (
+        <link
+          rel="preload"
+          as="image"
+          href={optimizeImageUrl(product.imageUrl, 640)}
+          fetchPriority="high"
+        />
+      )}
+
       {/* Schema.org Product Structured Data */}
       {productJsonLd && (
         <script

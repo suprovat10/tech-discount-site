@@ -11,9 +11,10 @@ import { optimizeImageUrl } from '@/lib/imageOptimization';
 
 interface DealCardProps {
   product: UnifiedProduct;
+  priority?: boolean;
 }
 
-export function DealCard({ product }: DealCardProps) {
+export function DealCard({ product, priority = false }: DealCardProps) {
   const rating = product.rating || 4.8;
   const regularPrice = product.regularPrice;
   const lowestPrice = product.lowestPrice;
@@ -46,8 +47,8 @@ export function DealCard({ product }: DealCardProps) {
           src={optimizeImageUrl(product.imageUrl, 400)}
           alt={product.imageAlt || product.title}
           fill
-          priority={false}
-          loading="lazy"
+          priority={priority}
+          loading={priority ? 'eager' : 'lazy'}
           className="object-cover transition-transform duration-300 group-hover:scale-105"
           sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
           unoptimized
