@@ -62,11 +62,12 @@ export default function EditBlogPage({
         <p className="text-xs text-muted-foreground">
           The requested article ID &ldquo;{resolvedParams.id}&rdquo; could not be located in local storage.
         </p>
-        <Link href="/supro111vat29/blogs">
-          <Button variant="outline" size="sm" className="text-xs font-bold gap-1.5">
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Return to Articles</span>
-          </Button>
+        <Link
+          href="/supro111vat29/blogs"
+          className="border border-border bg-background hover:bg-muted text-foreground text-xs font-bold gap-1.5 h-9 px-4 inline-flex items-center justify-center transition-colors rounded-none cursor-pointer"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Return to Articles</span>
         </Link>
       </div>
     );

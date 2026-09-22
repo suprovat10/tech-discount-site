@@ -91,16 +91,12 @@ export function RetailerOfferRow({ offer, isLowestPrice }: RetailerOfferRowProps
           )}
         </div>
 
-        <a
-          href={offer.internalGoUrl}
-          target="_blank"
-          rel="nofollow sponsored noopener"
-          className="shrink-0"
-        >
-          <Button
-            size="default"
-            disabled={!offer.isInStock}
-            className={`font-semibold text-xs flex items-center gap-1.5 min-w-[130px] justify-center ${
+        {offer.isInStock ? (
+          <a
+            href={offer.internalGoUrl}
+            target="_blank"
+            rel="nofollow sponsored noopener"
+            className={`shrink-0 font-semibold text-xs inline-flex items-center gap-1.5 min-w-[130px] justify-center h-10 px-4 transition-colors cursor-pointer ${
               isLowestPrice
                 ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20'
                 : 'bg-primary text-primary-foreground hover:bg-primary/90'
@@ -108,8 +104,14 @@ export function RetailerOfferRow({ offer, isLowestPrice }: RetailerOfferRowProps
           >
             <span>Shop at {offer.retailerName || getRetailerDisplayName(offer.retailer)}</span>
             <ExternalLink className="w-3.5 h-3.5" />
-          </Button>
-        </a>
+          </a>
+        ) : (
+          <span
+            className="shrink-0 font-semibold text-xs inline-flex items-center gap-1.5 min-w-[130px] justify-center h-10 px-4 bg-muted text-muted-foreground opacity-50 cursor-not-allowed"
+          >
+            <span>Out of Stock</span>
+          </span>
+        )}
       </div>
     </div>
   );

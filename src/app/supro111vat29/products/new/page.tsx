@@ -746,11 +746,12 @@ export default function CreateProductStudioPage() {
       {/* Top Navigation */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
         <div className="flex items-center gap-3">
-          <Link href="/supro111vat29/products">
-            <Button variant="outline" size="sm" className="h-9 px-3 text-xs font-bold flex items-center gap-1.5">
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Back to Products</span>
-            </Button>
+          <Link
+            href="/supro111vat29/products"
+            className="h-9 px-3 text-xs font-bold border border-border bg-background hover:bg-muted text-foreground inline-flex items-center gap-1.5 transition-colors rounded-none cursor-pointer"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to Products</span>
           </Link>
           <div>
             <h1 className="text-2xl font-black text-foreground">Create New Affiliate Product</h1>
@@ -2265,10 +2266,11 @@ export default function CreateProductStudioPage() {
 
         {/* Bottom Actions */}
         <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
-          <Link href="/supro111vat29/products">
-            <Button variant="outline" type="button" className="text-xs font-bold h-10 px-5">
-              Cancel
-            </Button>
+          <Link
+            href="/supro111vat29/products"
+            className="text-xs font-bold h-10 px-5 border border-border bg-background hover:bg-muted text-foreground inline-flex items-center justify-center transition-colors rounded-none cursor-pointer"
+          >
+            Cancel
           </Link>
           <Button
             type="submit"

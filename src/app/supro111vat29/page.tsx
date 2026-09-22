@@ -348,11 +348,12 @@ export default function AdminDashboardPage() {
               Direct access to recent products saved in your cloud database.
             </p>
           </div>
-          <Link href="/supro111vat29/products">
-            <Button variant="outline" size="sm" className="text-xs font-bold h-8 flex items-center gap-1.5">
-              <span>Manage All Products</span>
-              <ArrowRight className="w-3 h-3" />
-            </Button>
+          <Link
+            href="/supro111vat29/products"
+            className="text-xs font-bold h-8 px-3 border border-border bg-background hover:bg-muted text-foreground inline-flex items-center gap-1.5 transition-colors rounded-none cursor-pointer"
+          >
+            <span>Manage All Products</span>
+            <ArrowRight className="w-3 h-3" />
           </Link>
         </div>
 
@@ -401,15 +402,18 @@ export default function AdminDashboardPage() {
                     </td>
                     <td className="px-3 py-2.5 text-right">
                       <div className="flex items-center justify-end gap-1.5">
-                        <Link href={`/supro111vat29/products/${p.id}`}>
-                          <Button variant="ghost" size="sm" className="h-7 px-2 text-[11px] font-bold text-blue-600 hover:text-blue-700">
-                            Edit
-                          </Button>
+                        <Link
+                          href={`/supro111vat29/products/edit/${encodeURIComponent(p.id)}`}
+                          className="h-7 px-2 text-[11px] font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/40 inline-flex items-center justify-center transition-colors rounded-none cursor-pointer"
+                        >
+                          Edit
                         </Link>
-                        <Link href={`/product/${p.slug}`} target="_blank">
-                          <Button variant="ghost" size="sm" className="h-7 px-2 text-[11px] font-bold text-muted-foreground hover:text-foreground">
-                            View
-                          </Button>
+                        <Link
+                          href={`/product/${p.slug}`}
+                          target="_blank"
+                          className="h-7 px-2 text-[11px] font-bold text-muted-foreground hover:text-foreground hover:bg-muted inline-flex items-center justify-center transition-colors rounded-none cursor-pointer"
+                        >
+                          View
                         </Link>
                       </div>
                     </td>

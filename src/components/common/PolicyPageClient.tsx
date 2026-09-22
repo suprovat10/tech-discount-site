@@ -55,7 +55,7 @@ export function PolicyPageClient({ slug }: PolicyPageClientProps) {
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to Home</span>
         </Link>
-        <Link href="/products" className="text-blue-600 hover:underline">
+        <Link href="/products" prefetch={true} className="text-blue-600 hover:underline">
           Explore Verified Tech Deals &rarr;
         </Link>
       </div>

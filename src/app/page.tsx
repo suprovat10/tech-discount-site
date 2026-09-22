@@ -87,6 +87,7 @@ export default async function HomePage() {
 
             <Link
               href="/products"
+              prefetch={true}
               className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1"
             >
               <span>View all</span>
@@ -115,6 +116,7 @@ export default async function HomePage() {
 
             <Link
               href="/products?sort=latest"
+              prefetch={true}
               className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1"
             >
               <span>View all</span>

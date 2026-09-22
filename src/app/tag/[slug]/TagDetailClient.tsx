@@ -141,7 +141,7 @@ export function TagDetailClient({
           Home
         </Link>
         <ChevronRight className="w-3 h-3 text-muted-foreground/40 shrink-0" />
-        <Link href="/products" className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
+        <Link href="/products" prefetch={true} className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
           Products
         </Link>
         <ChevronRight className="w-3 h-3 text-muted-foreground/40 shrink-0" />
@@ -179,11 +179,13 @@ export function TagDetailClient({
             <div className="text-2xl font-black text-blue-600">{products.length}</div>
             <div className="text-[11px] font-medium text-muted-foreground">Active Deals</div>
           </div>
-          <Link href="/products">
-            <Button variant="outline" size="sm" className="text-xs font-bold gap-1.5">
-              <Layers className="w-3.5 h-3.5" />
-              All Deals
-            </Button>
+          <Link
+            href="/products"
+            prefetch={true}
+            className="border border-border bg-background hover:bg-muted text-foreground text-xs font-bold gap-1.5 h-9 px-3 rounded-none inline-flex items-center justify-center transition-colors cursor-pointer"
+          >
+            <Layers className="w-3.5 h-3.5" />
+            <span>All Deals</span>
           </Link>
         </div>
       </div>
@@ -237,11 +239,13 @@ export function TagDetailClient({
               There are currently no products tagged with &quot;{displayName}&quot;. Check back soon or explore other deals!
             </p>
           </div>
-          <Link href="/products">
-            <Button size="sm" className="font-bold text-xs gap-1.5">
-              <Search className="w-3.5 h-3.5" />
-              Browse All Products
-            </Button>
+          <Link
+            href="/products"
+            prefetch={true}
+            className="font-bold text-xs gap-1.5 h-9 px-4 bg-slate-900 text-white dark:bg-white dark:text-slate-900 inline-flex items-center justify-center transition-opacity hover:opacity-90 cursor-pointer rounded-none"
+          >
+            <Search className="w-3.5 h-3.5" />
+            <span>Browse All Products</span>
           </Link>
         </div>
       )}

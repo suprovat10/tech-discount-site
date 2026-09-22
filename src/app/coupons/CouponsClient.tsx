@@ -375,15 +375,10 @@ export function CouponsClient({ initialCoupons }: CouponsClientProps) {
                       href={coupon.affiliateUrl}
                       target="_blank"
                       rel="nofollow sponsored noopener"
-                      className="inline-flex"
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-8 px-3 inline-flex items-center gap-1.5 transition-colors cursor-pointer rounded-none"
                     >
-                      <Button
-                        size="sm"
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-8 px-3 flex items-center gap-1.5"
-                      >
-                        <span>Apply Deal</span>
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </Button>
+                      <span>Apply Deal</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
                     </a>
                   </div>
                 </div>

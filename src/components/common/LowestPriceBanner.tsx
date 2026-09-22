@@ -56,15 +56,10 @@ export function LowestPriceBanner({ bestOffer, highestPrice }: LowestPriceBanner
             href={bestOffer.internalGoUrl}
             target="_blank"
             rel="nofollow sponsored noopener"
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto h-11 px-5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-lg shadow-emerald-600/25 inline-flex items-center justify-center gap-2 text-base transition-colors cursor-pointer"
           >
-            <Button
-              size="lg"
-              className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 text-base"
-            >
-              <span>Shop at {bestOffer.retailerName || getRetailerDisplayName(bestOffer.retailer)}</span>
-              <ExternalLink className="w-4 h-4" />
-            </Button>
+            <span>Shop at {bestOffer.retailerName || getRetailerDisplayName(bestOffer.retailer)}</span>
+            <ExternalLink className="w-4 h-4" />
           </a>
         </div>
       </div>

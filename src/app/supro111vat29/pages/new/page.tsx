@@ -85,10 +85,11 @@ export default function AdminNewPage() {
         </div>
 
         <div className="flex items-center gap-2.5">
-          <Link href="/supro111vat29/pages">
-            <Button variant="outline" className="text-xs font-bold">
-              Cancel
-            </Button>
+          <Link
+            href="/supro111vat29/pages"
+            className="text-xs font-bold h-9 px-4 border border-border bg-background hover:bg-muted text-foreground inline-flex items-center justify-center transition-colors rounded-none cursor-pointer"
+          >
+            Cancel
           </Link>
 
           <Button
@@ -234,10 +235,11 @@ export default function AdminNewPage() {
 
         {/* Publish Bar */}
         <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
-          <Link href="/supro111vat29/pages">
-            <Button type="button" variant="outline" className="text-xs font-bold">
-              Cancel
-            </Button>
+          <Link
+            href="/supro111vat29/pages"
+            className="text-xs font-bold h-9 px-4 border border-border bg-background hover:bg-muted text-foreground inline-flex items-center justify-center transition-colors rounded-none cursor-pointer"
+          >
+            Cancel
           </Link>
           <Button
             type="submit"

@@ -237,16 +237,20 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
           </p>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-          <Link href="/products">
-            <Button className="font-bold text-xs gap-1.5">
-              <Search className="w-3.5 h-3.5" />
-              <span>Browse All Deals & Products</span>
-            </Button>
+          <Link
+            href="/products"
+            prefetch={true}
+            className="inline-flex items-center justify-center font-bold text-xs gap-1.5 px-4 h-9 bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:opacity-90 transition-opacity"
+          >
+            <Search className="w-3.5 h-3.5" />
+            <span>Browse All Deals & Products</span>
           </Link>
-          <Link href="/" prefetch={true}>
-            <Button variant="outline" className="font-bold text-xs">
-              Go to Homepage
-            </Button>
+          <Link
+            href="/"
+            prefetch={true}
+            className="inline-flex items-center justify-center font-bold text-xs px-4 h-9 border border-border bg-background hover:bg-muted text-foreground transition-colors"
+          >
+            Go to Homepage
           </Link>
         </div>
       </div>
@@ -803,18 +807,14 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
                             href={offer.productUrl || offer.internalGoUrl}
                             target="_blank"
                             rel="nofollow sponsored noopener"
+                            className={`inline-flex items-center justify-center text-xs font-bold h-8 px-3 sm:px-4 rounded-none transition-colors cursor-pointer ${
+                              offer.isLowestPrice
+                                ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                                : 'bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 text-white'
+                            }`}
                           >
-                            <Button
-                              size="sm"
-                              className={`text-xs font-bold h-8 px-3 sm:px-4 ${
-                                offer.isLowestPrice
-                                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                                  : 'bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 text-white'
-                              }`}
-                            >
-                              <span>Buy Now</span>
-                              <ExternalLink className="w-3 h-3 ml-1" />
-                            </Button>
+                            <span>Buy Now</span>
+                            <ExternalLink className="w-3 h-3 ml-1" />
                           </a>
                         </td>
                       </tr>
@@ -1023,6 +1023,7 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
                     <Link
                       key={idx}
                       href={`/tag/${tagSlug}`}
+                      prefetch={true}
                       className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-muted/60 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-foreground hover:text-blue-600 border border-border/60 hover:border-blue-300 dark:hover:border-blue-800 transition-all duration-150 group"
                     >
                       <span className="text-blue-500 group-hover:scale-110 transition-transform">#</span>

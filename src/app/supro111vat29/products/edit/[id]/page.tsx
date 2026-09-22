@@ -866,10 +866,11 @@ export default function EditProductStudioPage({
     return (
       <div className="p-8 text-center space-y-3">
         <p className="text-sm font-bold text-red-600">Product not found.</p>
-        <Link href="/supro111vat29/products">
-          <Button variant="outline" size="sm" className="text-xs font-bold">
-            Back to Products List
-          </Button>
+        <Link
+          href="/supro111vat29/products"
+          className="border border-border bg-background hover:bg-muted text-foreground text-xs font-bold h-9 px-3 inline-flex items-center justify-center transition-colors rounded-none cursor-pointer"
+        >
+          Back to Products List
         </Link>
       </div>
     );
@@ -880,11 +881,12 @@ export default function EditProductStudioPage({
       {/* Top Navigation */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
         <div className="flex items-center gap-3">
-          <Link href="/supro111vat29/products">
-            <Button variant="outline" size="sm" className="h-9 px-3 text-xs font-bold flex items-center gap-1.5">
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Back to Products</span>
-            </Button>
+          <Link
+            href="/supro111vat29/products"
+            className="h-9 px-3 text-xs font-bold border border-border bg-background hover:bg-muted text-foreground inline-flex items-center gap-1.5 transition-colors rounded-none cursor-pointer"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to Products</span>
           </Link>
           <div>
             <h1 className="text-2xl font-black text-foreground">Edit Product: {title}</h1>
@@ -895,11 +897,13 @@ export default function EditProductStudioPage({
         </div>
 
         <div className="flex items-center gap-2">
-          <Link href={`/product/${customSlug || productId}`} target="_blank">
-            <Button variant="outline" size="sm" className="h-9 text-xs font-bold flex items-center gap-1.5">
-              <span>View Live</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </Button>
+          <Link
+            href={`/product/${customSlug || productId}`}
+            target="_blank"
+            className="h-9 px-3 text-xs font-bold border border-border bg-background hover:bg-muted text-foreground inline-flex items-center gap-1.5 transition-colors rounded-none cursor-pointer"
+          >
+            <span>View Live</span>
+            <ExternalLink className="w-3.5 h-3.5" />
           </Link>
           <Button
             onClick={handleSubmit}
@@ -2372,10 +2376,11 @@ export default function EditProductStudioPage({
 
         {/* Bottom Actions */}
         <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
-          <Link href="/supro111vat29/products">
-            <Button variant="outline" type="button" className="text-xs font-bold h-10 px-5">
-              Cancel
-            </Button>
+          <Link
+            href="/supro111vat29/products"
+            className="text-xs font-bold h-10 px-5 border border-border bg-background hover:bg-muted text-foreground inline-flex items-center justify-center transition-colors rounded-none cursor-pointer"
+          >
+            Cancel
           </Link>
           <Button
             type="submit"

@@ -96,10 +96,11 @@ export default function EditCouponPage() {
     return (
       <div className="text-center py-16 space-y-4">
         <h2 className="text-lg font-bold text-foreground">Coupon not found</h2>
-        <Link href="/supro111vat29/coupons">
-          <Button size="sm" variant="outline">
-            Back to Coupons
-          </Button>
+        <Link
+          href="/supro111vat29/coupons"
+          className="text-xs font-bold h-8 px-3 border border-border bg-background hover:bg-muted text-foreground inline-flex items-center justify-center transition-colors rounded-none cursor-pointer"
+        >
+          Back to Coupons
         </Link>
       </div>
     );
@@ -116,11 +117,12 @@ export default function EditCouponPage() {
 
       <div className="flex items-center justify-between pb-4 border-b border-border">
         <div className="flex items-center gap-3">
-          <Link href="/supro111vat29/coupons">
-            <Button variant="outline" size="sm" className="h-8 px-2 text-xs">
-              <ArrowLeft className="w-4 h-4 mr-1" />
-              Back
-            </Button>
+          <Link
+            href="/supro111vat29/coupons"
+            className="h-8 px-2.5 text-xs font-bold border border-border bg-background hover:bg-muted text-foreground inline-flex items-center gap-1 transition-colors rounded-none cursor-pointer"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back</span>
           </Link>
           <h1 className="text-xl font-black text-foreground">Edit Coupon & Promo</h1>
         </div>
@@ -277,10 +279,11 @@ export default function EditCouponPage() {
         </div>
 
         <div className="pt-4 border-t border-border flex items-center justify-end gap-3">
-          <Link href="/supro111vat29/coupons">
-            <Button type="button" variant="outline" size="sm" className="text-xs font-bold">
-              Cancel
-            </Button>
+          <Link
+            href="/supro111vat29/coupons"
+            className="text-xs font-bold h-9 px-4 border border-border bg-background hover:bg-muted text-foreground inline-flex items-center justify-center transition-colors rounded-none cursor-pointer"
+          >
+            Cancel
           </Link>
           <Button type="submit" size="sm" className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-5">
             Save Changes

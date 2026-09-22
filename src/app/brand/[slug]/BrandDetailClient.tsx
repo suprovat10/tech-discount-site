@@ -122,7 +122,7 @@ export function BrandDetailClient({
           Home
         </Link>
         <ChevronRight className="w-3 h-3 text-muted-foreground/40 shrink-0" />
-        <Link href="/products" className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
+        <Link href="/products" prefetch={true} className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
           Brands
         </Link>
         <ChevronRight className="w-3 h-3 text-muted-foreground/40 shrink-0" />
@@ -175,16 +175,10 @@ export function BrandDetailClient({
             href={brand.website}
             target="_blank"
             rel="noopener noreferrer"
-            className="shrink-0"
+            className="shrink-0 text-xs font-bold h-9 px-4 border border-border bg-background hover:bg-muted text-foreground inline-flex items-center gap-1.5 transition-colors cursor-pointer rounded-none"
           >
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-xs font-bold h-9 px-4 flex items-center gap-1.5"
-            >
-              <span>Visit Official Site</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </Button>
+            <span>Visit Official Site</span>
+            <ExternalLink className="w-3.5 h-3.5" />
           </a>
         )}
       </div>
@@ -309,10 +303,12 @@ export function BrandDetailClient({
                 We couldn&apos;t find any active deals under this brand. Check back soon or explore our featured deals!
               </p>
             </div>
-            <Link href="/products">
-              <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs">
-                Browse All Deals
-              </Button>
+            <Link
+              href="/products"
+              prefetch={true}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-9 px-4 inline-flex items-center justify-center transition-colors cursor-pointer rounded-none"
+            >
+              Browse All Deals
             </Link>
           </div>
         )}
