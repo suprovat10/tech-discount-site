@@ -118,6 +118,8 @@ export default function AdminCategoriesPage() {
   const editCatFileInputRef = useRef<HTMLInputElement>(null);
   const subFileInputRef = useRef<HTMLInputElement>(null);
   const editSubFileInputRef = useRef<HTMLInputElement>(null);
+  const newTagOgFileInputRef = useRef<HTMLInputElement>(null);
+  const editTagOgFileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const loaded = getCategories();
@@ -160,14 +162,15 @@ export default function AdminCategoriesPage() {
 
   const handleImageUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
-    callback: (dataUrl: string) => void
+    callback: (dataUrl: string) => void,
+    folder: string = 'categories'
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('folder', 'categories');
+      formData.append('folder', folder);
       const res = await fetch('/api/upload', { method: 'POST', body: formData });
       const data = await res.json();
       if (data.success && data.url) {
@@ -175,7 +178,7 @@ export default function AdminCategoriesPage() {
         return;
       }
     } catch (err) {
-      console.warn('Category image upload API failed:', err);
+      console.warn('Image upload API failed:', err);
     }
     const reader = new FileReader();
     reader.onload = (uploadEvent) => {
@@ -1090,13 +1093,44 @@ export default function AdminCategoriesPage() {
                         <label className="text-[11px] font-bold text-foreground block mb-1">
                           OG Image URL (Social Share)
                         </label>
-                        <Input
-                          type="text"
-                          placeholder="https://.../banner.jpg"
-                          value={newTagOgImage}
-                          onChange={(e) => setNewTagOgImage(e.target.value)}
-                          className="text-xs rounded-none h-8"
-                        />
+                        <div className="flex gap-2 items-center">
+                          <Input
+                            type="text"
+                            placeholder="https://... or upload image"
+                            value={newTagOgImage}
+                            onChange={(e) => setNewTagOgImage(e.target.value)}
+                            className="text-xs rounded-none h-8 flex-1"
+                          />
+                          <input
+                            type="file"
+                            ref={newTagOgFileInputRef}
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => handleImageUpload(e, (url) => setNewTagOgImage(url), 'tags')}
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => newTagOgFileInputRef.current?.click()}
+                            className="rounded-none h-8 text-xs flex items-center gap-1 shrink-0"
+                          >
+                            <Upload className="w-3.5 h-3.5" />
+                            <span>Upload</span>
+                          </Button>
+                        </div>
+                        {newTagOgImage && (
+                          <div className="mt-2 relative w-20 h-14 border border-border bg-muted overflow-hidden">
+                            <img src={newTagOgImage} alt="OG Preview" className="w-full h-full object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => setNewTagOgImage('')}
+                              className="absolute -top-1 -right-1 bg-rose-600 text-white p-0.5 shadow-sm"
+                              title="Remove image"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        )}
                       </div>
 
                       <div className="pt-1">
@@ -1696,13 +1730,44 @@ export default function AdminCategoriesPage() {
                       <label className="text-[11px] font-bold text-foreground block mb-1">
                         OG Image URL (Social Share)
                       </label>
-                      <Input
-                        type="text"
-                        placeholder="https://.../banner.jpg"
-                        value={editTagOgImage}
-                        onChange={(e) => setEditTagOgImage(e.target.value)}
-                        className="text-xs rounded-none h-8"
-                      />
+                      <div className="flex gap-2 items-center">
+                        <Input
+                          type="text"
+                          placeholder="https://... or upload image"
+                          value={editTagOgImage}
+                          onChange={(e) => setEditTagOgImage(e.target.value)}
+                          className="text-xs rounded-none h-8 flex-1"
+                        />
+                        <input
+                          type="file"
+                          ref={editTagOgFileInputRef}
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleImageUpload(e, (url) => setEditTagOgImage(url), 'tags')}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => editTagOgFileInputRef.current?.click()}
+                          className="rounded-none h-8 text-xs flex items-center gap-1 shrink-0"
+                        >
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>Upload</span>
+                        </Button>
+                      </div>
+                      {editTagOgImage && (
+                        <div className="mt-2 relative w-20 h-14 border border-border bg-muted overflow-hidden">
+                          <img src={editTagOgImage} alt="OG Preview" className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => setEditTagOgImage('')}
+                            className="absolute -top-1 -right-1 bg-rose-600 text-white p-0.5 shadow-sm"
+                            title="Remove image"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                     <div className="pt-1">
