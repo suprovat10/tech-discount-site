@@ -4,6 +4,8 @@ import { adapterRegistry } from '@/lib/adapters';
 import { getDatabaseProducts, saveDatabaseProduct } from '@/lib/catalogDb';
 import { setSiteKV } from '@/lib/db/kv';
 
+import { isRequestAdminAuthenticated } from '@/lib/auth';
+
 const POPULAR_QUERIES = [
   'airpods pro',
   'macbook air',
@@ -20,7 +22,10 @@ export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization');
   const cronSecret = process.env.CRON_SECRET;
 
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  const isCronAuthorized = Boolean(cronSecret && authHeader === `Bearer ${cronSecret}`);
+  const isAdmin = isRequestAdminAuthenticated(request);
+
+  if (!isCronAuthorized && !isAdmin) {
     return NextResponse.json({ error: 'Unauthorized cron request' }, { status: 401 });
   }
 

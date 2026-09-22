@@ -96,18 +96,39 @@ function persistToDisk(): void {
   }
 }
 
+// In-memory TTL cache to protect MongoDB Atlas from connection pool exhaustion under 100k+ visitor spikes
+interface TtlEntry {
+  value: any;
+  cachedAt: number;
+}
+const ttlCache = new Map<string, TtlEntry>();
+const DEFAULT_TTL_MS = 30000; // 30 seconds
+
 export function invalidateSiteKVCache(key?: string): void {
   isInitialized = false;
   lastMtime = 0;
   memoryCache.clear();
+  if (key) {
+    ttlCache.delete(key);
+  } else {
+    ttlCache.clear();
+  }
   ensureLoaded(true);
 }
 
 /**
  * Reads a key from MongoDB Atlas (or local store fallback).
- * If key does not exist in MongoDB yet, it automatically seeds from local store.
+ * Uses a 30-second in-memory TTL cache to handle 100k+ visitors smoothly.
  */
 export async function getSiteKV<T>(key: string, forceFresh = false): Promise<T | null> {
+  // Check short TTL cache first to prevent database thrashing
+  if (!forceFresh) {
+    const cached = ttlCache.get(key);
+    if (cached && Date.now() - cached.cachedAt < DEFAULT_TTL_MS) {
+      return cached.value as T;
+    }
+  }
+
   if (isMongoConfigured()) {
     try {
       const db = await getMongoDb();
@@ -115,6 +136,7 @@ export async function getSiteKV<T>(key: string, forceFresh = false): Promise<T |
         const doc = await db.collection('site_kv').findOne({ key });
         if (doc && doc.value !== undefined) {
           memoryCache.set(key, doc.value);
+          ttlCache.set(key, { value: doc.value, cachedAt: Date.now() });
           return doc.value as T;
         }
 
@@ -127,6 +149,7 @@ export async function getSiteKV<T>(key: string, forceFresh = false): Promise<T |
             { $set: { key, value: seedValue, updatedAt: new Date() } },
             { upsert: true }
           );
+          ttlCache.set(key, { value: seedValue, cachedAt: Date.now() });
           return seedValue as T;
         }
         return null;
@@ -140,6 +163,7 @@ export async function getSiteKV<T>(key: string, forceFresh = false): Promise<T |
   ensureLoaded(forceFresh);
   const value = memoryCache.get(key);
   if (value === undefined) return null;
+  ttlCache.set(key, { value, cachedAt: Date.now() });
   return value as T;
 }
 
@@ -159,6 +183,7 @@ export function getSiteKVSync<T>(key: string): T | null {
 export async function setSiteKV<T>(key: string, value: T): Promise<boolean> {
   ensureLoaded();
   memoryCache.set(key, value);
+  ttlCache.set(key, { value, cachedAt: Date.now() });
   persistToDisk();
 
   if (isMongoConfigured()) {

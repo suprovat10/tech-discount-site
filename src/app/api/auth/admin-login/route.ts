@@ -1,8 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_AUTH_COOKIE, generateAdminToken } from '@/lib/auth';
+import { checkRateLimit } from '@/lib/ratelimit/limiter';
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '127.0.0.1';
+
+    // Protect against brute-force attacks: max 5 login attempts per 15 minutes (900s)
+    const rateCheck = checkRateLimit(`login:${ip}`, 5, 900);
+    if (!rateCheck.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Too many failed login attempts. For security reasons, please wait 15 minutes before trying again.',
+        },
+        { status: 429, headers: { 'Retry-After': '900' } }
+      );
+    }
+
     const body = await req.json();
     const { username, password } = body;
 
