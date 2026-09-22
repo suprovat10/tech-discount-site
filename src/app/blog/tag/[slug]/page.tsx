@@ -27,6 +27,10 @@ export async function generateMetadata({ params }: BlogTagPageProps): Promise<Me
     alternates: {
       canonical: tagUrl,
     },
+    robots: {
+      index: true,
+      follow: true,
+    },
     openGraph: {
       title: `${tagName} Tech Articles & Guides | ${brand}`,
       description: `Expert articles and deal reviews tagged with #${tagName}.`,
@@ -39,6 +43,10 @@ export async function generateMetadata({ params }: BlogTagPageProps): Promise<Me
 export default async function BlogTagPage({ params }: BlogTagPageProps) {
   const { slug } = await params;
   const cleanSlug = decodeURIComponent(slug).toLowerCase().trim();
+
+  const settings = await getServerSettings();
+  const brand = settings.siteBrandName || 'suprodesign';
+  const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
 
   const allPosts = await getServerBlogs();
   const categories = await getServerBlogCategories();
@@ -53,12 +61,46 @@ export default async function BlogTagPage({ params }: BlogTagPageProps) {
     }
   }
 
+  const tagUrl = `${siteUrl}/blog/tag/${cleanSlug}`;
+
   const tagPosts = allPosts.filter((p) =>
     p.tags?.some((t) => slugifyTag(t) === cleanSlug)
   );
 
+  // Schema.org Structured Data
+  const jsonLdBreadcrumb = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: siteUrl },
+      { '@type': 'ListItem', position: 2, name: 'Blog', item: `${siteUrl}/blog` },
+      { '@type': 'ListItem', position: 3, name: matchedTagName, item: tagUrl },
+    ],
+  };
+
+  const jsonLdCollection = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: `${matchedTagName} - Tech Guides & Articles`,
+    description: `Expert tech articles and buying advice tagged with #${matchedTagName}.`,
+    url: tagUrl,
+    publisher: {
+      '@type': 'Organization',
+      name: brand,
+      url: siteUrl,
+    },
+  };
+
   return (
     <div className="container max-w-[1200px] mx-auto px-4 sm:px-6 py-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdBreadcrumb) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdCollection) }}
+      />
       <BlogTagClient
         slug={cleanSlug}
         tagName={matchedTagName}

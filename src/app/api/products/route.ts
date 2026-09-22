@@ -22,6 +22,7 @@ function purgeServerCaches(slug?: string) {
     revalidatePath('/search', 'page');
     revalidatePath('/brand/[slug]', 'page');
     revalidatePath('/product/[slug]', 'page');
+    revalidatePath('/tag/[slug]', 'page');
     if (slug) {
       revalidatePath(`/product/${slug}`, 'page');
     }
@@ -101,6 +102,7 @@ export async function POST(request: Request) {
       rating: typeof body.rating === 'number' ? body.rating : (parseFloat(body.rating) || 4.8),
       reviewCount: typeof body.reviewCount === 'number' ? body.reviewCount : (parseInt(body.reviewCount, 10) || 100),
       badge: body.badge || 'New',
+      tags: Array.isArray(body.tags) ? body.tags : (typeof body.tags === 'string' ? [body.tags] : undefined),
       imageUrl: body.imageUrl || 'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=800&q=80',
       imageAlt: body.imageAlt || '',
       images: body.images && body.images.length > 0 ? body.images : [body.imageUrl || 'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=800&q=80'],

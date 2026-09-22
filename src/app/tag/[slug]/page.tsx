@@ -32,6 +32,10 @@ export async function generateMetadata({ params }: TagPageProps): Promise<Metada
     alternates: {
       canonical: tagUrl,
     },
+    robots: {
+      index: true,
+      follow: true,
+    },
     openGraph: {
       title: `${tagName} Deals & Price Drops | ${siteBrand}`,
       description: matchedTag?.description || `Compare live prices and discounts on ${tagName} products across Amazon, Walmart, Best Buy, and Target.`,
@@ -45,9 +49,14 @@ export default async function TagPage({ params }: TagPageProps) {
   const { slug } = await params;
   const cleanSlug = decodeURIComponent(slug).toLowerCase().trim();
 
+  const settings = await getServerSettings();
+  const siteBrand = settings.siteBrandName || 'suprodesign';
+  const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
+
   const allTags = await getProductTagsServer();
   const matchedTag = allTags.find((t: ProductTag) => t.slug === cleanSlug || slugifyTag(t.name) === cleanSlug);
   const tagName = matchedTag?.name || cleanSlug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  const tagUrl = `${siteUrl}/tag/${cleanSlug}`;
 
   // Fetch all products matching this tag
   const allCatalog = await getDatabaseProducts();
@@ -65,8 +74,40 @@ export default async function TagPage({ params }: TagPageProps) {
     })
     .map(transformCatalogItemToUnified);
 
+  // Schema.org Structured Data
+  const jsonLdBreadcrumb = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: siteUrl },
+      { '@type': 'ListItem', position: 2, name: 'Products', item: `${siteUrl}/products` },
+      { '@type': 'ListItem', position: 3, name: tagName, item: tagUrl },
+    ],
+  };
+
+  const jsonLdCollection = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: `${tagName} Deals & Price Drops`,
+    description: `Compare prices and deals on ${tagName} products across top retailers.`,
+    url: tagUrl,
+    publisher: {
+      '@type': 'Organization',
+      name: siteBrand,
+      url: siteUrl,
+    },
+  };
+
   return (
     <div className="container mx-auto px-4 sm:px-6 py-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdBreadcrumb) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdCollection) }}
+      />
       <TagDetailClient
         key={cleanSlug}
         slug={cleanSlug}

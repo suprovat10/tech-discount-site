@@ -72,7 +72,8 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { oldName, newName } = body;
+    const newName = body.newName || body.newTag || body.tag || body.name;
+    const oldName = body.oldName || body.oldTag;
 
     if (!newName || !newName.trim()) {
       return NextResponse.json({ error: 'Tag name is required' }, { status: 400 });
@@ -83,9 +84,10 @@ export async function POST(req: NextRequest) {
     let customTags = (await getSiteKV<string[]>(DB_BLOG_TAGS_KEY)) || [];
 
     let updatedBlogs = false;
+    let updatedCount = 0;
 
     // If renaming an existing tag across blog posts
-    if (oldName && oldName.trim() !== cleanNew) {
+    if (oldName && oldName.trim().toLowerCase() !== cleanNew.toLowerCase()) {
       const cleanOld = oldName.trim().toLowerCase();
       blogs.forEach((post) => {
         if (Array.isArray(post.tags)) {
@@ -93,6 +95,7 @@ export async function POST(req: NextRequest) {
           if (idx >= 0) {
             post.tags[idx] = cleanNew;
             updatedBlogs = true;
+            updatedCount += 1;
           }
         }
       });
@@ -109,7 +112,11 @@ export async function POST(req: NextRequest) {
       await setSiteKV(DB_BLOGS_KEY, blogs);
     }
 
-    return NextResponse.json({ success: true, tag: cleanNew });
+    return NextResponse.json({
+      success: true,
+      tag: cleanNew,
+      updatedPostsCount: updatedCount,
+    });
   } catch (error: any) {
     console.error('Error saving blog tag:', error);
     return NextResponse.json(
@@ -133,12 +140,14 @@ export async function DELETE(req: NextRequest) {
     let customTags = (await getSiteKV<string[]>(DB_BLOG_TAGS_KEY)) || [];
 
     let updatedBlogs = false;
+    let affectedCount = 0;
     blogs.forEach((post) => {
       if (Array.isArray(post.tags)) {
         const initialLen = post.tags.length;
         post.tags = post.tags.filter((t) => t.trim().toLowerCase() !== cleanTarget);
         if (post.tags.length !== initialLen) {
           updatedBlogs = true;
+          affectedCount += 1;
         }
       }
     });
@@ -150,7 +159,11 @@ export async function DELETE(req: NextRequest) {
       await setSiteKV(DB_BLOGS_KEY, blogs);
     }
 
-    return NextResponse.json({ success: true, removed: tag });
+    return NextResponse.json({
+      success: true,
+      removed: tag,
+      affectedPostsCount: affectedCount,
+    });
   } catch (error: any) {
     console.error('Error deleting blog tag:', error);
     return NextResponse.json(
