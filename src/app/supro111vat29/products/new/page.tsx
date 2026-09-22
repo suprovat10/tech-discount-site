@@ -8,6 +8,8 @@ import { CATEGORIES, CatalogItem, CategoryDefinition } from '@/data/catalog';
 import { upsertCatalogProduct } from '@/lib/catalogStore';
 import { getCategories } from '@/lib/categoryStore';
 import { getBrands } from '@/lib/brandStore';
+import { getProductTags } from '@/lib/productTagStore';
+import { ProductTag } from '@/types/tag';
 import { RichTextEditor } from '@/components/admin/RichTextEditor';
 import {
   ArrowLeft,
@@ -35,6 +37,7 @@ import {
   Check,
   Store,
   Globe,
+  Tag,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -129,6 +132,7 @@ export default function CreateProductStudioPage() {
     const standardBrands = ['Apple', 'Samsung', 'Sony', 'Bose', 'Dell', 'HP', 'Asus', 'Nintendo', 'LG', 'Google', 'Microsoft', 'Lenovo', 'Logitech', 'Anker', 'Razer'];
     const mergedBrands = Array.from(new Set([...standardBrands, ...brands])).filter(Boolean).sort();
     setAvailableBrands(mergedBrands);
+    setAvailableProductTags(getProductTags());
   }, []);
 
   // Basic Information (Starts completely blank)
@@ -142,6 +146,24 @@ export default function CreateProductStudioPage() {
   const [badge, setBadge] = useState('');
   const [rating, setRating] = useState('');
   const [reviewCount, setReviewCount] = useState('');
+
+  // Product Tags
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
+  const [availableProductTags, setAvailableProductTags] = useState<ProductTag[]>([]);
+
+  const handleAddTag = (tagToAdd: string) => {
+    const trimmed = tagToAdd.trim();
+    if (!trimmed) return;
+    if (!tags.includes(trimmed)) {
+      setTags([...tags, trimmed]);
+    }
+    setTagInput('');
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    setTags(tags.filter((t) => t !== tagToRemove));
+  };
 
   // Rich Text Description & Short Description (Starts blank)
   const [richDescription, setRichDescription] = useState('');
@@ -683,6 +705,7 @@ export default function CreateProductStudioPage() {
       category: category.trim(),
       subcategory: subcategory.trim() || undefined,
       badge: badge.trim() || undefined,
+      tags: tags.filter(Boolean),
       rating: parseFloat(rating) || 5.0,
       reviewCount: parseInt(reviewCount, 10) || 0,
       imageUrl: images[0] || '',
@@ -896,6 +919,102 @@ export default function CreateProductStudioPage() {
                   onChange={(e) => setReviewCount(e.target.value)}
                   className="h-9 text-xs"
                 />
+              </div>
+            </div>
+
+            {/* Product Tags */}
+            <div className="pt-4 border-t border-border space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="font-bold text-foreground flex items-center gap-1.5 text-xs">
+                  <Tag className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Product Tags</span>
+                  <span className="text-[11px] font-normal text-muted-foreground">
+                    (Click suggestions or type custom tags)
+                  </span>
+                </label>
+                <span className="text-[11px] text-muted-foreground font-semibold">
+                  {tags.length} selected
+                </span>
+              </div>
+
+              {/* Tag Suggestions */}
+              {availableProductTags.length > 0 && (
+                <div className="space-y-1.5">
+                  <span className="text-[11px] font-bold text-muted-foreground">Quick Suggestions:</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {availableProductTags.map((t) => {
+                      const isSelected = tags.includes(t.name);
+                      return (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => {
+                            if (isSelected) {
+                              handleRemoveTag(t.name);
+                            } else {
+                              handleAddTag(t.name);
+                            }
+                          }}
+                          className={`text-xs px-2.5 py-1 rounded-full border transition-all ${
+                            isSelected
+                              ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                              : 'bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground border-border'
+                          }`}
+                        >
+                          #{t.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Tag Input & Active Tags Chips */}
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <Input
+                    type="text"
+                    placeholder="Type a tag and press Add (e.g. Wireless, Noise-Cancelling, OLED)"
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddTag(tagInput);
+                      }
+                    }}
+                    className="h-9 text-xs flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => handleAddTag(tagInput)}
+                    className="h-9 text-xs font-bold gap-1 px-4"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Add Tag
+                  </Button>
+                </div>
+
+                {tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {tags.map((t) => (
+                      <span
+                        key={t}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800"
+                      >
+                        <span>#{t}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveTag(t)}
+                          className="hover:text-rose-600 transition-colors"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>

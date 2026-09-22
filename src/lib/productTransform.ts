@@ -104,6 +104,7 @@ export function transformCatalogItemToUnified(item: any): UnifiedProduct {
     rating: item.rating || 4.8,
     ratingCount: item.reviewCount || 100,
     views: typeof item.views === 'number' ? item.views : (item.reviewCount || 0),
+    tags: Array.isArray(item.tags) ? item.tags : undefined,
     createdAt: item.createdAt || dynTimestamp || undefined,
     updatedAt: item.updatedAt || item.createdAt || dynTimestamp || undefined,
   };

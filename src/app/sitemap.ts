@@ -5,6 +5,9 @@ import { getDatabaseProducts } from '@/lib/catalogDb';
 import { getServerBlogs } from '@/lib/blogServer';
 import { DEFAULT_BRANDS } from '@/data/brands';
 import { DEFAULT_PAGES } from '@/data/defaultPages';
+import { getProductTagsServer } from '@/lib/productTagServer';
+import { slugifyTag } from '@/lib/productTagStore';
+import { ProductTag } from '@/types/tag';
 
 function formatW3CDate(dateInput?: string | null): string {
   if (!dateInput) return new Date().toISOString();
@@ -89,6 +92,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
+  // 7. Dynamic Product Tag Pages
+  const productTags = await getProductTagsServer();
+  const productTagRoutes = productTags.map((tag: ProductTag) => ({
+    url: `${baseUrl}/tag/${tag.slug}`,
+    lastModified: now,
+    changeFrequency: 'daily' as const,
+    priority: 0.7,
+  }));
+
+  // 8. Dynamic Blog Tag Pages
+  const uniqueBlogTagSlugs = new Set<string>();
+  blogs.forEach((post) => {
+    (post.tags || []).forEach((t) => {
+      const s = slugifyTag(t);
+      if (s) uniqueBlogTagSlugs.add(s);
+    });
+  });
+  const blogTagRoutes = Array.from(uniqueBlogTagSlugs).map((slug) => ({
+    url: `${baseUrl}/blog/tag/${slug}`,
+    lastModified: now,
+    changeFrequency: 'weekly' as const,
+    priority: 0.65,
+  }));
+
   return [
     ...coreRoutes,
     ...categoryRoutes,
@@ -96,5 +123,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...blogRoutes,
     ...brandRoutes,
     ...cmsRoutes,
+    ...productTagRoutes,
+    ...blogTagRoutes,
   ];
 }

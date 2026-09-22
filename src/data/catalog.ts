@@ -43,6 +43,7 @@ export interface CatalogItem {
   specs: Record<string, string>;
   keySpecs?: Record<string, string>;
   faqs?: { question: string; answer: string }[];
+  tags?: string[];
   seo?: {
     metaTitle?: string;
     metaDescription?: string;

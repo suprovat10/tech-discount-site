@@ -30,10 +30,23 @@ import {
   Star,
   X,
   ImageIcon,
+  Search,
+  Hash,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DeleteConfirmModal } from '@/components/admin/DeleteConfirmModal';
+import { ProductTag } from '@/types/tag';
+import {
+  getProductTags,
+  fetchAndSyncProductTagsFromServer,
+  saveProductTag,
+  deleteProductTag,
+  slugifyTag,
+  PRODUCT_TAGS_UPDATED_EVENT,
+} from '@/lib/productTagStore';
+import { getCatalogProducts } from '@/lib/catalogStore';
+import { CatalogItem } from '@/data/catalog';
 
 export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<CategoryDefinition[]>([]);
@@ -67,6 +80,25 @@ export default function AdminCategoriesPage() {
   const [editingCategory, setEditingCategory] = useState<CategoryDefinition | null>(null);
   const [editingSub, setEditingSub] = useState<{ categoryId: string; sub: SubcategoryDefinition } | null>(null);
 
+  const [activeTab, setActiveTab] = useState<'categories' | 'tags'>('categories');
+  const [productTags, setProductTags] = useState<ProductTag[]>([]);
+  const [catalogProducts, setCatalogProducts] = useState<CatalogItem[]>([]);
+  const [tagSearchQuery, setTagSearchQuery] = useState('');
+
+  // Product Tag Form State
+  const [newTagName, setNewTagName] = useState('');
+  const [newTagSlug, setNewTagSlug] = useState('');
+  const [newTagDesc, setNewTagDesc] = useState('');
+
+  // Edit Product Tag State
+  const [editingTag, setEditingTag] = useState<ProductTag | null>(null);
+  const [editTagName, setEditTagName] = useState('');
+  const [editTagSlug, setEditTagSlug] = useState('');
+  const [editTagDesc, setEditTagDesc] = useState('');
+
+  // Delete Product Tag State
+  const [deleteTargetTag, setDeleteTargetTag] = useState<ProductTag | null>(null);
+
   const catFileInputRef = useRef<HTMLInputElement>(null);
   const editCatFileInputRef = useRef<HTMLInputElement>(null);
   const subFileInputRef = useRef<HTMLInputElement>(null);
@@ -78,6 +110,24 @@ export default function AdminCategoriesPage() {
     if (loaded.length > 0 && !selectedCatId) {
       setSelectedCatId(loaded[0].id);
     }
+
+    const loadTags = () => {
+      setProductTags(getProductTags());
+      setCatalogProducts(getCatalogProducts());
+    };
+    loadTags();
+    fetchAndSyncProductTagsFromServer().then((fresh) => {
+      if (fresh && Array.isArray(fresh)) setProductTags(fresh);
+    });
+
+    window.addEventListener(PRODUCT_TAGS_UPDATED_EVENT, loadTags);
+    window.addEventListener('smarttech_catalog_updated', loadTags);
+    window.addEventListener('storage', loadTags);
+    return () => {
+      window.removeEventListener(PRODUCT_TAGS_UPDATED_EVENT, loadTags);
+      window.removeEventListener('smarttech_catalog_updated', loadTags);
+      window.removeEventListener('storage', loadTags);
+    };
   }, []);
 
   const activeCategory = categories.find((c) => c.id === selectedCatId) || categories[0];
@@ -244,6 +294,64 @@ export default function AdminCategoriesPage() {
     }
   };
 
+  // Product Tag handlers
+  const handleCreateProductTag = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTagName.trim()) return;
+
+    const finalSlug = newTagSlug.trim() ? slugifyTag(newTagSlug) : slugifyTag(newTagName);
+    const newTag: Partial<ProductTag> = {
+      name: newTagName.trim(),
+      slug: finalSlug,
+      description: newTagDesc.trim() || undefined,
+    };
+
+    const updated = await saveProductTag(newTag);
+    setProductTags(updated);
+    setNewTagName('');
+    setNewTagSlug('');
+    setNewTagDesc('');
+    showNotification(`Product tag "${newTagName.trim()}" added successfully!`);
+  };
+
+  const openEditTagModal = (item: ProductTag) => {
+    setEditingTag(item);
+    setEditTagName(item.name);
+    setEditTagSlug(item.slug);
+    setEditTagDesc(item.description || '');
+  };
+
+  const handleSaveEditProductTag = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTag || !editTagName.trim()) return;
+
+    const finalSlug = editTagSlug.trim() ? slugifyTag(editTagSlug) : slugifyTag(editTagName);
+    const updatedTag: ProductTag = {
+      ...editingTag,
+      name: editTagName.trim(),
+      slug: finalSlug,
+      description: editTagDesc.trim() || undefined,
+    };
+
+    const updated = await saveProductTag(updatedTag);
+    setProductTags(updated);
+    setEditingTag(null);
+    showNotification(`Product tag "${updatedTag.name}" updated successfully!`);
+  };
+
+  const handleConfirmDeleteProductTag = async () => {
+    if (!deleteTargetTag) return;
+    const updated = await deleteProductTag(deleteTargetTag.id);
+    setProductTags(updated);
+    showNotification(`Product tag "${deleteTargetTag.name}" removed successfully.`);
+    setDeleteTargetTag(null);
+  };
+
+  const filteredProductTags = productTags.filter((t) =>
+    t.name.toLowerCase().includes(tagSearchQuery.toLowerCase()) ||
+    t.slug.toLowerCase().includes(tagSearchQuery.toLowerCase())
+  );
+
   return (
     <div className="space-y-8 max-w-[1200px] mx-auto">
       {/* Top Header */}
@@ -299,7 +407,36 @@ export default function AdminCategoriesPage() {
         </div>
       )}
 
-      {/* Two-Column Layout */}
+      {/* Tab Switcher */}
+      <div className="flex border-b border-border gap-2">
+        <button
+          type="button"
+          onClick={() => setActiveTab('categories')}
+          className={`pb-3 px-4 text-xs font-bold border-b-2 transition-colors flex items-center gap-2 ${
+            activeTab === 'categories'
+              ? 'border-blue-600 text-blue-600'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <Layers className="w-4 h-4" />
+          <span>Categories & Subcategories ({categories.length})</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('tags')}
+          className={`pb-3 px-4 text-xs font-bold border-b-2 transition-colors flex items-center gap-2 ${
+            activeTab === 'tags'
+              ? 'border-blue-600 text-blue-600'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <Tag className="w-4 h-4" />
+          <span>Product Tags ({productTags.length})</span>
+        </button>
+      </div>
+
+      {activeTab === 'categories' ? (
+      /* Two-Column Layout */
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         {/* Left Column: Categories List & Create Form */}
         <div className="md:col-span-5 space-y-6">
@@ -774,6 +911,179 @@ export default function AdminCategoriesPage() {
           )}
         </div>
       </div>
+      ) : (
+        /* Product Tags Management Tab */
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column: Create New Product Tag */}
+          <div className="lg:col-span-1">
+            <div className="bg-card border border-border p-5 space-y-5 sticky top-20">
+              <div className="flex items-center gap-2 pb-3 border-b border-border">
+                <Tag className="w-4 h-4 text-blue-600" />
+                <h2 className="text-sm font-bold text-foreground">Add New Product Tag</h2>
+              </div>
+
+              <form onSubmit={handleCreateProductTag} className="space-y-4">
+                <div>
+                  <label className="text-xs font-bold text-foreground block mb-1.5">
+                    Tag Name <span className="text-rose-500">*</span>
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="e.g. Wireless, Gaming, OLED, Fast Charging"
+                    value={newTagName}
+                    onChange={(e) => {
+                      setNewTagName(e.target.value);
+                      setNewTagSlug(slugifyTag(e.target.value));
+                    }}
+                    className="text-xs rounded-none"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-foreground block mb-1.5">
+                    URL Slug
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="e.g. wireless"
+                    value={newTagSlug}
+                    onChange={(e) => setNewTagSlug(slugifyTag(e.target.value))}
+                    className="text-xs font-mono rounded-none"
+                  />
+                  {newTagSlug && (
+                    <p className="text-[11px] text-muted-foreground mt-1">
+                      Page URL: <code className="text-blue-600 font-mono">/tag/{newTagSlug}</code>
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-foreground block mb-1.5">
+                    Description (for SEO & Banner)
+                  </label>
+                  <textarea
+                    placeholder="Brief description for SEO and tag landing page banner..."
+                    value={newTagDesc}
+                    onChange={(e) => setNewTagDesc(e.target.value)}
+                    className="w-full text-xs bg-muted/40 border border-border p-2.5 rounded-none focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[80px]"
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full text-xs font-bold gap-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-none"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Product Tag
+                </Button>
+              </form>
+            </div>
+          </div>
+
+          {/* Right Column: Existing Product Tags Table */}
+          <div className="lg:col-span-2 space-y-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="relative flex-1 max-w-sm">
+                <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Search product tags..."
+                  value={tagSearchQuery}
+                  onChange={(e) => setTagSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 text-xs bg-card border border-border rounded-none text-foreground focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+              <div className="text-xs font-semibold text-muted-foreground">
+                {filteredProductTags.length} {filteredProductTags.length === 1 ? 'tag' : 'tags'}
+              </div>
+            </div>
+
+            <div className="border border-border bg-card overflow-hidden">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-muted/50 border-b border-border text-muted-foreground font-bold">
+                  <tr>
+                    <th className="py-3 px-4">Tag Name</th>
+                    <th className="py-3 px-4">Slug</th>
+                    <th className="py-3 px-4">Description</th>
+                    <th className="py-3 px-4 text-center">Products</th>
+                    <th className="py-3 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/60">
+                  {filteredProductTags.length > 0 ? (
+                    filteredProductTags.map((t) => {
+                      const count = catalogProducts.filter((p) => {
+                        if (Array.isArray(p.tags) && p.tags.some((pt) => slugifyTag(pt) === t.slug)) return true;
+                        if (p.brand && slugifyTag(p.brand) === t.slug) return true;
+                        if (p.category && slugifyTag(p.category) === t.slug) return true;
+                        if (p.subcategory && slugifyTag(p.subcategory) === t.slug) return true;
+                        return false;
+                      }).length;
+
+                      return (
+                        <tr key={t.id} className="hover:bg-muted/30 transition-colors">
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-2">
+                              <span className="text-blue-500 font-bold">#</span>
+                              <span className="font-bold text-foreground">{t.name}</span>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 font-mono text-[11px] text-muted-foreground">
+                            {t.slug}
+                          </td>
+                          <td className="py-3 px-4 text-muted-foreground max-w-[200px] truncate">
+                            {t.description || '-'}
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-muted border border-border">
+                              {count}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <Link
+                                href={`/tag/${t.slug}`}
+                                target="_blank"
+                                className="p-1.5 hover:bg-muted text-muted-foreground hover:text-foreground rounded transition-colors"
+                                title="View tag page on site"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                              </Link>
+                              <button
+                                type="button"
+                                onClick={() => openEditTagModal(t)}
+                                className="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-blue-600 rounded transition-colors"
+                                title="Edit Tag"
+                              >
+                                <Edit2 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setDeleteTargetTag(t)}
+                                className="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 rounded transition-colors"
+                                title="Delete Tag"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="py-8 text-center text-muted-foreground">
+                        No product tags found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Edit Category Modal */}
       {editingCategory && (
@@ -1109,6 +1419,93 @@ export default function AdminCategoriesPage() {
         itemName={deleteTarget?.name}
         onConfirm={handleConfirmDelete}
         onClose={() => setDeleteTarget(null)}
+      />
+
+      {/* Edit Product Tag Modal */}
+      {editingTag && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+          <div className="bg-card border border-border w-full max-w-md p-6 space-y-4 shadow-xl">
+            <div className="flex items-center justify-between pb-3 border-b border-border">
+              <h3 className="text-base font-black text-foreground flex items-center gap-2">
+                <Edit2 className="w-4 h-4 text-blue-600" />
+                <span>Edit Product Tag</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setEditingTag(null)}
+                className="p-1 text-muted-foreground hover:text-foreground"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditProductTag} className="space-y-4">
+              <div>
+                <label className="text-[11px] font-bold text-muted-foreground uppercase block mb-1">
+                  Tag Name *
+                </label>
+                <Input
+                  type="text"
+                  required
+                  value={editTagName}
+                  onChange={(e) => setEditTagName(e.target.value)}
+                  className="rounded-none h-9 text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-muted-foreground uppercase block mb-1">
+                  URL Slug *
+                </label>
+                <Input
+                  type="text"
+                  required
+                  value={editTagSlug}
+                  onChange={(e) => setEditTagSlug(slugifyTag(e.target.value))}
+                  className="rounded-none h-9 text-xs font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-muted-foreground uppercase block mb-1">
+                  Description
+                </label>
+                <textarea
+                  value={editTagDesc}
+                  onChange={(e) => setEditTagDesc(e.target.value)}
+                  className="w-full text-xs bg-muted/40 border border-border p-2.5 rounded-none focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[80px]"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-border">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setEditingTag(null)}
+                  className="rounded-none text-xs font-bold h-9"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-none text-xs font-bold h-9"
+                >
+                  Save Changes
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Product Tag Confirm Modal */}
+      <DeleteConfirmModal
+        isOpen={!!deleteTargetTag}
+        title="Delete Product Tag"
+        itemType="product tag"
+        itemName={deleteTargetTag ? `#${deleteTargetTag.name}` : ''}
+        onConfirm={handleConfirmDeleteProductTag}
+        onClose={() => setDeleteTargetTag(null)}
       />
     </div>
   );

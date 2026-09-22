@@ -1,0 +1,58 @@
+[
+  {
+    "id": "tag-apple",
+    "name": "Apple",
+    "slug": "apple",
+    "description": "Deals, discounts, and lowest price drops on Apple devices including MacBooks, iPads, iPhones, and AirPods.",
+    "featured": true
+  },
+  {
+    "id": "tag-m3-macbooks",
+    "name": "M3 MacBooks",
+    "slug": "m3-macbooks",
+    "description": "Compare live retailer prices on Apple MacBook Air and MacBook Pro laptops powered by the M3 chip family.",
+    "featured": true
+  },
+  {
+    "id": "tag-noise-canceling",
+    "name": "Noise Canceling",
+    "slug": "noise-canceling",
+    "description": "Verified discounts on industry-leading Active Noise-Canceling (ANC) wireless headphones and earbuds.",
+    "featured": true
+  },
+  {
+    "id": "tag-gaming-laptops",
+    "name": "Gaming Laptops",
+    "slug": "gaming-laptops",
+    "description": "High-performance gaming laptops with dedicated NVIDIA RTX GPUs, high-refresh displays, and massive savings.",
+    "featured": true
+  },
+  {
+    "id": "tag-4k-monitors",
+    "name": "4K Monitors",
+    "slug": "4k-monitors",
+    "description": "Ultra HD 4K displays and gaming monitors with IPS panels, high refresh rates, and USB-C connectivity.",
+    "featured": false
+  },
+  {
+    "id": "tag-flagship-phones",
+    "name": "Flagship Phones",
+    "slug": "flagship-phones",
+    "description": "Top-tier premium smartphones from Apple, Samsung, and Google with carrier-unlocked discount pricing.",
+    "featured": true
+  },
+  {
+    "id": "tag-smart-home",
+    "name": "Smart Home",
+    "slug": "smart-home",
+    "description": "Smart speakers, security cameras, smart displays, and connected home automation hardware on sale.",
+    "featured": false
+  },
+  {
+    "id": "tag-price-drops",
+    "name": "Flash Deals",
+    "slug": "flash-deals",
+    "description": "Time-sensitive flash discounts, limited-stock clearance bargains, and lowest-ever tech prices.",
+    "featured": true
+  }
+]

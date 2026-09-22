@@ -19,6 +19,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { optimizeCloudinaryUrl } from '@/lib/imageOptimization';
+import { slugifyTag } from '@/lib/productTagStore';
 
 interface BlogDetailClientProps {
   slug: string;
@@ -295,14 +296,19 @@ export function BlogDetailClient({
               <span className="text-xs font-bold text-muted-foreground flex items-center gap-1 mr-2">
                 <Tag className="w-3.5 h-3.5" /> Tags:
               </span>
-              {post.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="px-2.5 py-1 bg-muted border border-border text-xs font-semibold text-foreground"
-                >
-                  #{tag}
-                </span>
-              ))}
+              {post.tags.map((tag) => {
+                const tagSlug = slugifyTag(tag);
+                return (
+                  <Link
+                    key={tag}
+                    href={`/blog/tag/${tagSlug}`}
+                    className="px-2.5 py-1 bg-muted hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-border hover:border-blue-300 dark:hover:border-blue-800 text-xs font-semibold text-foreground hover:text-blue-600 transition-colors inline-flex items-center gap-1 group"
+                  >
+                    <span className="text-blue-500 font-bold group-hover:scale-110 transition-transform">#</span>
+                    <span>{tag}</span>
+                  </Link>
+                );
+              })}
             </div>
           )}
 

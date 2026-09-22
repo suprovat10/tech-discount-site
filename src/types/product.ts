@@ -75,6 +75,7 @@ export interface UnifiedProduct {
   rating?: number;
   ratingCount?: number;
   views?: number;
+  tags?: string[];
   createdAt?: string;
   updatedAt: string;
   lastUpdated?: string;

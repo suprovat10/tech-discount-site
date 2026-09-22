@@ -30,11 +30,13 @@ import {
   RotateCcw,
   Package,
   Search,
+  Tag as TagIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 import { transformCatalogItemToUnified } from '@/lib/productTransform';
 import { AdSlot } from '@/components/ads/AdSlot';
+import { slugifyTag } from '@/lib/productTagStore';
 
 interface ProductDetailClientProps {
   product?: UnifiedProduct | null;
@@ -274,6 +276,10 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
 
   const ALLOWED_BADGES = ['Best Seller', 'Editors Choice', 'Hot Deal'];
   const hasValidBadge = Boolean(activeProduct.badge && ALLOWED_BADGES.includes(activeProduct.badge));
+
+  const productTags: string[] = (activeProduct.tags && activeProduct.tags.length > 0)
+    ? activeProduct.tags
+    : [activeProduct.brand, activeProduct.category, activeProduct.subcategory].filter(Boolean) as string[];
 
   // Multi-image gallery list
   const defaultGallery = [
@@ -997,6 +1003,36 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
               })}
             </div>
           </section>
+
+          {/* RELATED PRODUCT TAGS (Below FAQ Section) */}
+          {productTags.length > 0 && (
+            <section className="bg-card rounded-2xl border border-border/70 p-5 sm:p-6 shadow-xs space-y-3">
+              <div className="flex items-center gap-2">
+                <TagIcon className="w-4 h-4 text-blue-600" />
+                <h2 className="text-sm sm:text-base font-black text-foreground tracking-tight">
+                  Related Product Tags
+                </h2>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Explore price drops, deals, and multi-store comparisons across matching topics:
+              </p>
+              <div className="flex flex-wrap gap-2 pt-1">
+                {productTags.map((t, idx) => {
+                  const tagSlug = slugifyTag(t);
+                  return (
+                    <Link
+                      key={idx}
+                      href={`/tag/${tagSlug}`}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-muted/60 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-foreground hover:text-blue-600 border border-border/60 hover:border-blue-300 dark:hover:border-blue-800 transition-all duration-150 group"
+                    >
+                      <span className="text-blue-500 group-hover:scale-110 transition-transform">#</span>
+                      <span>{t}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </section>
+          )}
         </div>
       </div>
     </div>
