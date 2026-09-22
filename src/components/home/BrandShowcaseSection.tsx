@@ -37,7 +37,8 @@ export function BrandShowcaseSection() {
         </div>
         <Link
           href="/retailers"
-          className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors touch-manipulation cursor-pointer"
+          prefetch={true}
+          className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors cursor-pointer"
         >
           <span>View all brands</span>
           <ArrowRight className="w-3 h-3" />
@@ -50,7 +51,8 @@ export function BrandShowcaseSection() {
           <Link
             key={brand.id}
             href={`/brand/${brand.slug}`}
-            className="group relative flex flex-col items-center justify-center p-3 sm:p-4 bg-card hover:bg-muted/30 border border-border/80 hover:border-blue-600 transition-all duration-200 touch-manipulation cursor-pointer"
+            prefetch={true}
+            className="group relative flex flex-col items-center justify-center p-3 sm:p-4 bg-card hover:bg-muted/30 border border-border/80 hover:border-blue-600 transition-all duration-200 cursor-pointer"
             title={`View all deals from ${brand.name}`}
           >
             {/* Logo Container with fixed height and auto width */}

@@ -89,7 +89,7 @@ export function Footer() {
           
           {/* Column 1: Brand & Mission */}
           <div className="space-y-4">
-            <Link href="/" className="inline-block group touch-manipulation cursor-pointer">
+            <Link href="/" prefetch={true} className="inline-block group cursor-pointer">
               <img
                 src={optimizeImageUrl(branding.logoUrl, 300) || '/logo.png'}
                 alt={branding.brandName || 'suprodesign'}
@@ -182,12 +182,12 @@ export function Footer() {
             </h3>
             <ul className="space-y-2.5 text-xs font-medium">
               <li>
-                <Link href="/products" className="hover:text-foreground transition-colors touch-manipulation cursor-pointer inline-block">
+                <Link href="/products" prefetch={true} className="hover:text-foreground transition-colors cursor-pointer inline-block">
                   All Products & Deals
                 </Link>
               </li>
               <li>
-                <Link href="/coupons" className="hover:text-foreground transition-colors touch-manipulation cursor-pointer inline-flex items-center gap-1.5 group">
+                <Link href="/coupons" prefetch={true} className="hover:text-foreground transition-colors cursor-pointer inline-flex items-center gap-1.5 group">
                   <span>Coupons & Promo Codes</span>
                   <span className="px-1.5 py-0.2 text-[9px] font-extrabold bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-xs">
                     Hot
@@ -195,19 +195,19 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/watchlist" className="hover:text-foreground transition-colors touch-manipulation cursor-pointer inline-block">
+                <Link href="/watchlist" prefetch={true} className="hover:text-foreground transition-colors cursor-pointer inline-block">
                   Saved Deals / Watchlist
                 </Link>
               </li>
               <li>
-                <Link href="/blog" className="hover:text-foreground transition-colors touch-manipulation cursor-pointer inline-block">
+                <Link href="/blog" prefetch={true} className="hover:text-foreground transition-colors cursor-pointer inline-block">
                   Tech Buying Guides & Blog
                 </Link>
               </li>
               {/* Dynamic categories enabled for Explore Deals */}
               {exploreCategories.slice(0, 6).map((cat) => (
                 <li key={cat.id}>
-                  <Link href={`/products/${cat.slug}`} className="hover:text-foreground transition-colors touch-manipulation cursor-pointer inline-block">
+                  <Link href={`/products/${cat.slug}`} prefetch={true} className="hover:text-foreground transition-colors cursor-pointer inline-block">
                     {cat.name}
                   </Link>
                 </li>
@@ -222,28 +222,28 @@ export function Footer() {
             </h3>
             <ul className="space-y-2.5 text-xs font-medium">
               <li>
-                <Link href="/affiliate-disclosure" className="hover:text-foreground transition-colors font-bold text-foreground/90 inline-flex items-center gap-1 touch-manipulation cursor-pointer">
+                <Link href="/affiliate-disclosure" prefetch={true} className="hover:text-foreground transition-colors font-bold text-foreground/90 inline-flex items-center gap-1 cursor-pointer">
                   <span>FTC Affiliate Disclosure</span>
                   <ArrowUpRight className="w-3 h-3 opacity-60" />
                 </Link>
               </li>
               <li>
-                <Link href="/how-it-works" className="hover:text-foreground transition-colors touch-manipulation cursor-pointer inline-block">
+                <Link href="/how-it-works" prefetch={true} className="hover:text-foreground transition-colors cursor-pointer inline-block">
                   How Price Tracking Works
                 </Link>
               </li>
               <li>
-                <Link href="/price-methodology" className="hover:text-foreground transition-colors touch-manipulation cursor-pointer inline-block">
+                <Link href="/price-methodology" prefetch={true} className="hover:text-foreground transition-colors cursor-pointer inline-block">
                   Price Accuracy Methodology
                 </Link>
               </li>
               <li>
-                <Link href="/retailers" className="hover:text-foreground transition-colors touch-manipulation cursor-pointer inline-block">
+                <Link href="/retailers" prefetch={true} className="hover:text-foreground transition-colors cursor-pointer inline-block">
                   Supported Retailer Partners
                 </Link>
               </li>
               <li>
-                <Link href="/affiliate-disclosure#integrity" className="hover:text-foreground transition-colors touch-manipulation cursor-pointer inline-block">
+                <Link href="/affiliate-disclosure#integrity" prefetch={true} className="hover:text-foreground transition-colors cursor-pointer inline-block">
                   Editorial Independence Guarantee
                 </Link>
               </li>
@@ -257,28 +257,28 @@ export function Footer() {
             </h3>
             <ul className="space-y-2.5 text-xs font-medium">
               <li>
-                <Link href="/contact" className="hover:text-foreground transition-colors font-bold text-foreground/90 inline-flex items-center gap-1 touch-manipulation cursor-pointer">
+                <Link href="/contact" prefetch={true} className="hover:text-foreground transition-colors font-bold text-foreground/90 inline-flex items-center gap-1 cursor-pointer">
                   <span>Contact Us</span>
                   <ArrowUpRight className="w-3 h-3 opacity-60" />
                 </Link>
               </li>
               <li>
-                <Link href="/about" className="hover:text-foreground transition-colors touch-manipulation cursor-pointer inline-block">
+                <Link href="/about" prefetch={true} className="hover:text-foreground transition-colors cursor-pointer inline-block">
                   About Us & Mission
                 </Link>
               </li>
               <li>
-                <Link href="/privacy-policy" className="hover:text-foreground transition-colors touch-manipulation cursor-pointer inline-block">
+                <Link href="/privacy-policy" prefetch={true} className="hover:text-foreground transition-colors cursor-pointer inline-block">
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link href="/terms" className="hover:text-foreground transition-colors touch-manipulation cursor-pointer inline-block">
+                <Link href="/terms" prefetch={true} className="hover:text-foreground transition-colors cursor-pointer inline-block">
                   Terms of Service
                 </Link>
               </li>
               <li>
-                <Link href="/cookie-policy" className="hover:text-foreground transition-colors touch-manipulation cursor-pointer inline-block">
+                <Link href="/cookie-policy" prefetch={true} className="hover:text-foreground transition-colors cursor-pointer inline-block">
                   Cookie Policy
                 </Link>
               </li>

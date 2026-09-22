@@ -112,13 +112,14 @@ export function Header() {
         {/* Brand Logo - suprodesign */}
         <Link
           href="/"
+          prefetch={true}
           onClick={(e) => {
             if (pathname === '/') {
               e.preventDefault();
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }
           }}
-          className="flex items-center gap-2.5 shrink-0 group cursor-pointer touch-manipulation select-none"
+          className="flex items-center gap-2.5 shrink-0 group cursor-pointer"
         >
           <img
             src={optimizeImageUrl(branding.logoUrl, 300) || '/logo.png'}
@@ -175,13 +176,14 @@ export function Header() {
         <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-muted-foreground">
           <Link
             href="/"
+            prefetch={true}
             onClick={(e) => {
               if (pathname === '/') {
                 e.preventDefault();
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }
             }}
-            className={`hover:text-foreground transition-colors touch-manipulation cursor-pointer ${
+            className={`hover:text-foreground transition-colors cursor-pointer ${
               pathname === '/' ? 'text-foreground font-bold' : ''
             }`}
           >
@@ -189,7 +191,8 @@ export function Header() {
           </Link>
           <Link
             href="/products"
-            className={`hover:text-foreground transition-colors touch-manipulation cursor-pointer ${
+            prefetch={true}
+            className={`hover:text-foreground transition-colors cursor-pointer ${
               pathname.startsWith('/products') ? 'text-foreground font-bold' : ''
             }`}
           >
@@ -197,7 +200,8 @@ export function Header() {
           </Link>
           <Link
             href="/coupons"
-            className={`hover:text-foreground transition-colors touch-manipulation cursor-pointer ${
+            prefetch={true}
+            className={`hover:text-foreground transition-colors cursor-pointer ${
               pathname.startsWith('/coupons') ? 'text-foreground font-bold' : ''
             }`}
           >
@@ -205,7 +209,8 @@ export function Header() {
           </Link>
           <Link
             href="/blog"
-            className={`hover:text-foreground transition-colors touch-manipulation cursor-pointer ${
+            prefetch={true}
+            className={`hover:text-foreground transition-colors cursor-pointer ${
               pathname.startsWith('/blog') ? 'text-foreground font-bold' : ''
             }`}
           >
@@ -217,7 +222,8 @@ export function Header() {
         <div className="flex items-center gap-2.5">
           <Link
             href="/watchlist"
-            className="flex items-center gap-1.5 px-3 py-1.5 border border-border text-xs font-semibold text-foreground hover:bg-muted/50 hover:text-rose-600 transition-colors rounded-none group touch-manipulation cursor-pointer"
+            prefetch={true}
+            className="flex items-center gap-1.5 px-3 py-1.5 border border-border text-xs font-semibold text-foreground hover:bg-muted/50 hover:text-rose-600 transition-colors rounded-none group cursor-pointer"
             title="View saved items"
           >
             <Heart
@@ -303,6 +309,7 @@ export function Header() {
             <div className="flex flex-col text-xs font-bold divide-y divide-border/40">
               <Link
                 href="/"
+                prefetch={true}
                 onClick={(e) => {
                   setIsMobileMenuOpen(false);
                   if (pathname === '/') {
@@ -310,7 +317,7 @@ export function Header() {
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }
                 }}
-                className={`py-2.5 hover:text-blue-600 transition-colors touch-manipulation cursor-pointer ${
+                className={`py-2.5 hover:text-blue-600 transition-colors cursor-pointer ${
                   pathname === '/' ? 'text-blue-600' : 'text-foreground'
                 }`}
               >
@@ -318,8 +325,9 @@ export function Header() {
               </Link>
               <Link
                 href="/products"
+                prefetch={true}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className={`py-2.5 hover:text-blue-600 transition-colors touch-manipulation cursor-pointer ${
+                className={`py-2.5 hover:text-blue-600 transition-colors cursor-pointer ${
                   pathname.startsWith('/products') ? 'text-blue-600' : 'text-foreground'
                 }`}
               >
@@ -327,15 +335,17 @@ export function Header() {
               </Link>
               <Link
                 href="/coupons"
+                prefetch={true}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="py-2.5 text-foreground hover:text-blue-600 transition-colors touch-manipulation cursor-pointer"
+                className="py-2.5 text-foreground hover:text-blue-600 transition-colors cursor-pointer"
               >
                 Coupons & Deals
               </Link>
               <Link
                 href="/blog"
+                prefetch={true}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="py-2.5 text-foreground hover:text-blue-600 transition-colors touch-manipulation cursor-pointer"
+                className="py-2.5 text-foreground hover:text-blue-600 transition-colors cursor-pointer"
               >
                 Blog
               </Link>

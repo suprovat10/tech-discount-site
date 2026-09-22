@@ -154,7 +154,8 @@ function CategoryShowcaseBlock({
 
           <Link
             href={`/products/${category.slug || getCategorySlug([category], category.name)}`}
-            className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1 shrink-0 touch-manipulation cursor-pointer"
+            prefetch={true}
+            className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1 shrink-0 cursor-pointer"
           >
             <span>View all</span>
             <ArrowRight className="w-3 h-3" />
