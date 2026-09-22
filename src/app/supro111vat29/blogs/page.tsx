@@ -123,22 +123,20 @@ export default function AdminBlogsPage() {
         </div>
 
         <div className="flex items-center gap-2.5">
-          <Link href="/supro111vat29/blogs/categories">
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-xs font-bold h-9 px-3 flex items-center gap-1.5"
-            >
-              <FolderPlus className="w-3.5 h-3.5 text-blue-600" />
-              <span>Blog Categories</span>
-            </Button>
+          <Link
+            href="/supro111vat29/blogs/categories"
+            className="text-xs font-bold h-9 px-3 flex items-center gap-1.5 border border-border bg-background hover:bg-muted text-foreground transition-colors inline-flex items-center justify-center whitespace-nowrap"
+          >
+            <FolderPlus className="w-3.5 h-3.5 text-blue-600" />
+            <span>Blog Categories</span>
           </Link>
 
-          <Link href="/supro111vat29/blogs/new">
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-9 px-4 flex items-center gap-2 shadow-xs">
-              <Plus className="w-4 h-4" />
-              <span>+ Write Article</span>
-            </Button>
+          <Link
+            href="/supro111vat29/blogs/new"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-9 px-4 flex items-center gap-2 shadow-xs inline-flex items-center justify-center whitespace-nowrap transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            <span>+ Write Article</span>
           </Link>
         </div>
       </div>
@@ -256,21 +254,19 @@ export default function AdminBlogsPage() {
                   <td className="py-3.5 px-4 text-right">
                     <div className="flex items-center justify-end gap-1.5">
                       {/* 1. Edit Action */}
-                      <Link href={`/supro111vat29/blogs/edit/${encodeURIComponent(b.id)}`}>
-                        <button
-                          type="button"
-                          className="p-1.5 border border-border hover:border-blue-600 hover:text-blue-600 bg-background text-muted-foreground transition-colors"
-                          title="Edit Article in Divi Style WYSIWYG Editor"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
+                      <Link
+                        href={`/supro111vat29/blogs/edit/${encodeURIComponent(b.id)}`}
+                        className="p-1.5 border border-border hover:border-blue-600 hover:text-blue-600 bg-background text-muted-foreground transition-colors inline-flex items-center justify-center cursor-pointer"
+                        title="Edit Article in Divi Style WYSIWYG Editor"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
                       </Link>
 
                       {/* 2. Copy (Duplicate) Action */}
                       <button
                         type="button"
                         onClick={() => handleCopy(b.id, b.title)}
-                        className="p-1.5 border border-border hover:border-emerald-600 hover:text-emerald-600 bg-background text-muted-foreground transition-colors"
+                        className="p-1.5 border border-border hover:border-emerald-600 hover:text-emerald-600 bg-background text-muted-foreground transition-colors cursor-pointer"
                         title="Copy / Duplicate Article"
                       >
                         <Copy className="w-3.5 h-3.5" />
@@ -280,21 +276,20 @@ export default function AdminBlogsPage() {
                       <button
                         type="button"
                         onClick={() => setDeleteTarget({ id: b.id, title: b.title })}
-                        className="p-1.5 border border-border hover:border-red-600 hover:text-red-600 bg-background text-muted-foreground transition-colors"
+                        className="p-1.5 border border-border hover:border-red-600 hover:text-red-600 bg-background text-muted-foreground transition-colors cursor-pointer"
                         title="Delete Article"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
 
                       {/* 4. View Public Live Page Action */}
-                      <Link href={`/blog/${b.slug}`} target="_blank">
-                        <button
-                          type="button"
-                          className="p-1.5 border border-border hover:border-foreground hover:text-foreground bg-background text-muted-foreground transition-colors"
-                          title="View Live Article on Website"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        </button>
+                      <Link
+                        href={`/blog/${b.slug}`}
+                        target="_blank"
+                        className="p-1.5 border border-border hover:border-foreground hover:text-foreground bg-background text-muted-foreground transition-colors inline-flex items-center justify-center cursor-pointer"
+                        title="View Live Article on Website"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
                       </Link>
                     </div>
                   </td>

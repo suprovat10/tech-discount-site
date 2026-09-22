@@ -18,15 +18,10 @@ async function loadCategoriesFromCloud(): Promise<CategoryDefinition[]> {
   return [...CATEGORIES];
 }
 
-function purgeCategoryCaches() {
-  try {
-    revalidatePath('/', 'layout');
-    revalidatePath('/', 'page');
-    revalidatePath('/products', 'layout');
-    revalidatePath('/products', 'page');
-  } catch (e) {
-    console.warn('revalidatePath category warning:', e);
-  }
+import { purgeAllCaches } from '@/lib/cachePurge';
+
+function purgeCategoryCaches(categorySlug?: string) {
+  purgeAllCaches({ categorySlug });
 }
 
 export async function GET() {

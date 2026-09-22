@@ -28,17 +28,10 @@ async function loadPagesFromCloud(): Promise<SitePage[]> {
   return [...DEFAULT_PAGES];
 }
 
+import { purgeAllCaches } from '@/lib/cachePurge';
+
 function purgePageCaches(slug?: string) {
-  try {
-    revalidatePath('/', 'layout');
-    revalidatePath('/page/[slug]', 'page');
-    if (slug) {
-      revalidatePath(`/page/${slug}`, 'page');
-      revalidatePath(`/${slug}`, 'page');
-    }
-  } catch (e) {
-    console.warn('revalidatePath pages warning:', e);
-  }
+  purgeAllCaches({ pageSlug: slug });
 }
 
 export async function GET() {

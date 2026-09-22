@@ -123,11 +123,12 @@ export default function AdminPagesListPage() {
             <span>Reset to Defaults</span>
           </Button>
 
-          <Link href="/supro111vat29/pages/new">
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5">
-              <Plus className="w-3.5 h-3.5" />
-              <span>Create New Page</span>
-            </Button>
+          <Link
+            href="/supro111vat29/pages/new"
+            className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold h-9 px-4 flex items-center gap-1.5 inline-flex items-center justify-center whitespace-nowrap transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Create New Page</span>
           </Link>
         </div>
       </div>
@@ -250,11 +251,12 @@ export default function AdminPagesListPage() {
                   </button>
                 )}
 
-                <Link href={`/supro111vat29/pages/edit/${page.id}`}>
-                  <Button size="sm" variant="default" className="h-7 text-xs font-bold px-2.5 flex items-center gap-1 bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:text-slate-900">
-                    <Edit className="w-3 h-3" />
-                    <span>Edit</span>
-                  </Button>
+                <Link
+                  href={`/supro111vat29/pages/edit/${page.id}`}
+                  className="h-7 text-xs font-bold px-2.5 flex items-center gap-1 bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:text-slate-900 inline-flex items-center justify-center whitespace-nowrap transition-colors"
+                >
+                  <Edit className="w-3 h-3" />
+                  <span>Edit</span>
                 </Link>
               </div>
             </div>

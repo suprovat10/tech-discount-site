@@ -208,16 +208,19 @@ export default function AdminBlogTagsPage() {
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <Link href="/supro111vat29/blogs/categories">
-            <Button variant="outline" className="text-xs font-bold rounded-none h-9">
-              Blog Categories →
-            </Button>
+          <Link
+            href="/supro111vat29/blogs/categories"
+            className="border border-border bg-background hover:bg-muted text-foreground text-xs font-bold rounded-none h-9 px-3 inline-flex items-center justify-center whitespace-nowrap transition-colors"
+          >
+            Blog Categories →
           </Link>
-          <Link href="/blog" target="_blank">
-            <Button variant="secondary" className="text-xs font-bold rounded-none h-9 flex items-center gap-1.5">
-              <span>View Blog</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </Button>
+          <Link
+            href="/blog"
+            target="_blank"
+            className="bg-secondary text-secondary-foreground hover:bg-secondary/80 text-xs font-bold rounded-none h-9 px-3 flex items-center gap-1.5 inline-flex items-center justify-center whitespace-nowrap transition-colors"
+          >
+            <span>View Blog</span>
+            <ExternalLink className="w-3.5 h-3.5" />
           </Link>
         </div>
       </div>

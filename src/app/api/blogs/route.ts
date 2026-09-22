@@ -11,21 +11,13 @@ import {
 import { BlogPost, BLOG_POSTS as DEFAULT_BLOGS } from '@/data/blogs';
 import { setSiteKV } from '@/lib/db/kv';
 
+import { purgeAllCaches } from '@/lib/cachePurge';
+
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 function purgeBlogCaches(slug?: string) {
-  try {
-    revalidatePath('/', 'layout');
-    revalidatePath('/', 'page');
-    revalidatePath('/blog', 'layout');
-    revalidatePath('/blog', 'page');
-    if (slug) {
-      revalidatePath(`/blog/${slug}`, 'page');
-    }
-  } catch (e) {
-    console.warn('Blog cache purge warning:', e);
-  }
+  purgeAllCaches({ blogSlug: slug });
 }
 
 export async function GET(req: NextRequest) {

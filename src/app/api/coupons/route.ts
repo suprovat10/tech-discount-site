@@ -23,15 +23,14 @@ async function loadCouponsFromCloud(): Promise<CouponItem[]> {
   }
 }
 
+import { purgeAllCaches } from '@/lib/cachePurge';
+
 function purgeCouponCaches() {
+  purgeAllCaches();
   try {
-    revalidatePath('/', 'layout');
-    revalidatePath('/', 'page');
-    revalidatePath('/coupons', 'layout');
-    revalidatePath('/coupons', 'page');
     revalidatePath('/supro111vat29/coupons', 'page');
   } catch (e) {
-    console.warn('revalidatePath coupon warning:', e);
+    // ignore
   }
 }
 

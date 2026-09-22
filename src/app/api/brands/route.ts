@@ -20,16 +20,10 @@ async function loadBrandsFromCloud(): Promise<BrandItem[]> {
   return [...DEFAULT_BRANDS];
 }
 
+import { purgeAllCaches } from '@/lib/cachePurge';
+
 function purgeBrandCaches() {
-  try {
-    revalidatePath('/', 'layout');
-    revalidatePath('/', 'page');
-    revalidatePath('/brand/[slug]', 'page');
-    revalidatePath('/products', 'layout');
-    revalidatePath('/products', 'page');
-  } catch (e) {
-    console.warn('revalidatePath brand warning:', e);
-  }
+  purgeAllCaches();
 }
 
 export async function GET() {

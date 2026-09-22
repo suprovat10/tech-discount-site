@@ -5,6 +5,7 @@ import {
   deleteServerProductTag,
 } from '@/lib/productTagServer';
 import { ProductTag } from '@/types/tag';
+import { purgeAllCaches } from '@/lib/cachePurge';
 
 export const dynamic = 'force-dynamic';
 
@@ -68,6 +69,7 @@ export async function POST(req: NextRequest) {
     };
 
     const updatedTags = await saveServerProductTag(tag);
+    purgeAllCaches({ tagSlug: tag.slug });
     return NextResponse.json({ success: true, tag, allTags: updatedTags });
   } catch (error: any) {
     console.error('Error saving product tag:', error);
@@ -88,6 +90,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     const updatedTags = await deleteServerProductTag(id);
+    purgeAllCaches();
     return NextResponse.json({ success: true, allTags: updatedTags });
   } catch (error: any) {
     console.error('Error deleting product tag:', error);

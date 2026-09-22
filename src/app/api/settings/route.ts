@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { revalidatePath } from 'next/cache';
 import fs from 'fs';
 import path from 'path';
 import { getSiteKV, setSiteKV } from '@/lib/db/kv';
+import { purgeAllCaches } from '@/lib/cachePurge';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -46,15 +46,7 @@ export async function POST(req: NextRequest) {
       // Ignored if disk permissions issue
     }
 
-    try {
-      revalidatePath('/', 'layout');
-      revalidatePath('/', 'page');
-      revalidatePath('/products', 'page');
-      revalidatePath('/blog', 'page');
-      revalidatePath('/coupons', 'page');
-    } catch (revalErr) {
-      console.warn('Settings revalidate warning:', revalErr);
-    }
+    purgeAllCaches();
 
     return NextResponse.json({ success: true, settings: body });
   } catch (e: any) {

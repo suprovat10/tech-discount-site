@@ -41,11 +41,11 @@ export function DeleteConfirmModal({
       aria-modal="true"
       aria-labelledby="delete-dialog-title"
     >
-      <div className="bg-card text-card-foreground border border-border max-w-md w-full p-6 shadow-2xl space-y-5 rounded-2xl animate-in fade-in zoom-in-95 duration-150">
+      <div className="bg-card text-card-foreground border border-border max-w-md w-full p-6 shadow-2xl space-y-5 rounded-none animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-none bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0 border border-red-200 dark:border-red-900">
               <Trash2 className="w-5 h-5" />
             </div>
             <div>
@@ -61,7 +61,7 @@ export function DeleteConfirmModal({
             type="button"
             disabled={isDeleting}
             onClick={onClose}
-            className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors disabled:opacity-40"
+            className="p-1 rounded-none text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors disabled:opacity-40 border border-transparent hover:border-border"
             aria-label="Close modal"
           >
             <X className="w-4 h-4" />
@@ -71,8 +71,8 @@ export function DeleteConfirmModal({
         {/* Content */}
         <div className="space-y-3 text-xs">
           {itemName && (
-            <div className="bg-muted/40 border border-border/70 p-3 rounded-lg flex items-center gap-2.5">
-              <div className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
+            <div className="bg-muted/40 border border-border/70 p-3 rounded-none flex items-center gap-2.5">
+              <div className="w-2 h-2 rounded-none bg-red-500 shrink-0" />
               <span className="font-bold text-foreground text-xs truncate flex-1">
                 {itemName}
               </span>
@@ -87,7 +87,7 @@ export function DeleteConfirmModal({
             )}
           </p>
 
-          <div className="flex items-center gap-2 p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-700 dark:text-amber-400 text-[11px] font-medium">
+          <div className="flex items-center gap-2 p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-none text-amber-700 dark:text-amber-400 text-[11px] font-medium">
             <AlertTriangle className="w-4 h-4 shrink-0" />
             <span>This change will take effect immediately.</span>
           </div>
@@ -101,7 +101,7 @@ export function DeleteConfirmModal({
             size="sm"
             disabled={isDeleting}
             onClick={onClose}
-            className="text-xs h-9 px-4 font-semibold"
+            className="text-xs h-9 px-4 font-semibold rounded-none"
           >
             {cancelText}
           </Button>
@@ -110,7 +110,7 @@ export function DeleteConfirmModal({
             size="sm"
             disabled={isDeleting}
             onClick={onConfirm}
-            className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold text-xs h-9 px-4 flex items-center gap-1.5 shadow-xs"
+            className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold text-xs h-9 px-4 flex items-center gap-1.5 shadow-xs rounded-none"
           >
             {isDeleting ? (
               <>

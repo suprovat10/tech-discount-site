@@ -149,17 +149,20 @@ export default function AdminDashboardPage() {
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-blue-600' : ''}`} />
             <span>{isRefreshing ? 'Syncing...' : 'Refresh Stats'}</span>
           </Button>
-          <Link href="/supro111vat29/products/new">
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-9 flex items-center gap-2">
-              <PlusCircle className="w-4 h-4" />
-              <span>+ Add New Product</span>
-            </Button>
+          <Link
+            href="/supro111vat29/products/new"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-9 px-4 flex items-center gap-2 inline-flex items-center justify-center whitespace-nowrap transition-colors"
+          >
+            <PlusCircle className="w-4 h-4" />
+            <span>+ Add New Product</span>
           </Link>
-          <Link href="/" target="_blank">
-            <Button variant="outline" size="sm" className="text-xs font-bold h-9 flex items-center gap-1.5">
-              <span>View Storefront</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </Button>
+          <Link
+            href="/"
+            target="_blank"
+            className="border border-border bg-background hover:bg-muted text-foreground text-xs font-bold h-9 px-3 flex items-center gap-1.5 inline-flex items-center justify-center whitespace-nowrap transition-colors"
+          >
+            <span>View Storefront</span>
+            <ExternalLink className="w-3.5 h-3.5" />
           </Link>
         </div>
       </div>

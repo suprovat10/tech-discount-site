@@ -3,6 +3,7 @@ import { getServerBlogs } from '@/lib/blogServer';
 import { setSiteKV, getSiteKV } from '@/lib/db/kv';
 import { DB_BLOGS_KEY } from '@/lib/blogServer';
 import { BlogPost } from '@/data/blogs';
+import { purgeAllCaches } from '@/lib/cachePurge';
 
 export const dynamic = 'force-dynamic';
 const DB_BLOG_TAGS_KEY = 'site_blog_tags';
@@ -111,6 +112,7 @@ export async function POST(req: NextRequest) {
     if (updatedBlogs) {
       await setSiteKV(DB_BLOGS_KEY, blogs);
     }
+    purgeAllCaches();
 
     return NextResponse.json({
       success: true,
@@ -158,6 +160,7 @@ export async function DELETE(req: NextRequest) {
     if (updatedBlogs) {
       await setSiteKV(DB_BLOGS_KEY, blogs);
     }
+    purgeAllCaches();
 
     return NextResponse.json({
       success: true,

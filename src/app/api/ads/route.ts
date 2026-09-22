@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerAds, saveServerAd, deleteServerAd, isAdActive } from '@/lib/adServer';
 import { AdItem, AdPlacementId } from '@/types/ad';
+import { purgeAllCaches } from '@/lib/cachePurge';
 
 export const dynamic = 'force-dynamic';
 
@@ -70,6 +71,7 @@ export async function POST(req: NextRequest) {
     };
 
     const updatedAds = await saveServerAd(adItem);
+    purgeAllCaches();
     return NextResponse.json({ success: true, ad: adItem, allAds: updatedAds });
   } catch (error: any) {
     console.error('Error saving ad:', error);
@@ -90,6 +92,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     const updatedAds = await deleteServerAd(id);
+    purgeAllCaches();
     return NextResponse.json({ success: true, allAds: updatedAds });
   } catch (error: any) {
     console.error('Error deleting ad:', error);

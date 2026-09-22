@@ -205,11 +205,12 @@ export default function AdminProductsManager() {
             <span>{isSyncing ? 'Syncing Feeds...' : 'Sync Live Prices'}</span>
           </Button>
 
-          <Link href="/supro111vat29/products/new">
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-9 px-4 flex items-center gap-2">
-              <PlusCircle className="w-4 h-4" />
-              <span>Create New Product</span>
-            </Button>
+          <Link
+            href="/supro111vat29/products/new"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-9 px-4 flex items-center gap-2 inline-flex items-center justify-center whitespace-nowrap transition-colors"
+          >
+            <PlusCircle className="w-4 h-4" />
+            <span>Create New Product</span>
           </Link>
         </div>
       </div>
@@ -368,21 +369,19 @@ export default function AdminProductsManager() {
                     <td className="py-3.5 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         {/* Edit Button */}
-                        <Link href={`/supro111vat29/products/edit/${encodeURIComponent(p.id)}`}>
-                          <button
-                            type="button"
-                            className="p-1.5 border border-border hover:border-blue-600 hover:text-blue-600 bg-background text-muted-foreground transition-colors"
-                            title="Edit Product"
-                          >
-                            <Pencil className="w-3.5 h-3.5" />
-                          </button>
+                        <Link
+                          href={`/supro111vat29/products/edit/${encodeURIComponent(p.id)}`}
+                          className="p-1.5 border border-border hover:border-blue-600 hover:text-blue-600 bg-background text-muted-foreground transition-colors inline-flex items-center justify-center cursor-pointer"
+                          title="Edit Product"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
                         </Link>
 
                         {/* Copy (Duplicate) Icon */}
                         <button
                           type="button"
                           onClick={() => handleCopyProduct(p.id)}
-                          className="p-1.5 border border-border hover:border-emerald-600 hover:text-emerald-600 bg-background text-muted-foreground transition-colors"
+                          className="p-1.5 border border-border hover:border-emerald-600 hover:text-emerald-600 bg-background text-muted-foreground transition-colors cursor-pointer"
                           title="Copy / Duplicate Product"
                         >
                           <Copy className="w-3.5 h-3.5" />
@@ -392,21 +391,20 @@ export default function AdminProductsManager() {
                         <button
                           type="button"
                           onClick={() => handleDeleteProduct(p.id, p.title)}
-                          className="p-1.5 border border-border hover:border-red-600 hover:text-red-600 bg-background text-muted-foreground transition-colors"
+                          className="p-1.5 border border-border hover:border-red-600 hover:text-red-600 bg-background text-muted-foreground transition-colors cursor-pointer"
                           title="Delete Product"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
 
                         {/* View Live Storefront Icon */}
-                        <Link href={`/product/${p.slug}`} target="_blank">
-                          <button
-                            type="button"
-                            className="p-1.5 border border-border hover:border-foreground hover:text-foreground bg-background text-muted-foreground transition-colors"
-                            title="View Storefront Product Page"
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </button>
+                        <Link
+                          href={`/product/${p.slug}`}
+                          target="_blank"
+                          className="p-1.5 border border-border hover:border-foreground hover:text-foreground bg-background text-muted-foreground transition-colors inline-flex items-center justify-center cursor-pointer"
+                          title="View Storefront Product Page"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
                         </Link>
                       </div>
                     </td>

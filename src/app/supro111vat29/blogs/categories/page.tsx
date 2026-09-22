@@ -161,17 +161,19 @@ export default function AdminBlogCategoriesPage() {
         </div>
 
         <div className="flex items-center gap-2.5">
-          <Link href="/supro111vat29/blogs">
-            <Button variant="outline" size="sm" className="text-xs font-bold h-9 px-3 flex items-center gap-1.5">
-              <FileText className="w-3.5 h-3.5" />
-              <span>All Articles</span>
-            </Button>
+          <Link
+            href="/supro111vat29/blogs"
+            className="border border-border bg-background hover:bg-muted text-foreground text-xs font-bold h-9 px-3 flex items-center gap-1.5 inline-flex items-center justify-center whitespace-nowrap transition-colors"
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span>All Articles</span>
           </Link>
-          <Link href="/supro111vat29/blogs/new">
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-9 px-4 flex items-center gap-2">
-              <Plus className="w-4 h-4" />
-              <span>+ Write Article</span>
-            </Button>
+          <Link
+            href="/supro111vat29/blogs/new"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-9 px-4 flex items-center gap-2 inline-flex items-center justify-center whitespace-nowrap transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            <span>+ Write Article</span>
           </Link>
         </div>
       </div>
@@ -316,14 +318,13 @@ export default function AdminBlogCategoriesPage() {
                             </button>
 
                             {/* View in Public Blog */}
-                            <Link href={`/blog?category=${encodeURIComponent(cat.name)}`} target="_blank">
-                              <button
-                                type="button"
-                                className="p-1.5 border border-border hover:border-foreground hover:text-foreground bg-background text-muted-foreground transition-colors"
-                                title="View in Public Blog"
-                              >
-                                <ExternalLink className="w-3.5 h-3.5" />
-                              </button>
+                            <Link
+                              href={`/blog?category=${encodeURIComponent(cat.name)}`}
+                              target="_blank"
+                              className="p-1.5 border border-border hover:border-foreground hover:text-foreground bg-background text-muted-foreground transition-colors inline-flex items-center justify-center cursor-pointer"
+                              title="View in Public Blog"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
                             </Link>
                           </div>
                         </td>

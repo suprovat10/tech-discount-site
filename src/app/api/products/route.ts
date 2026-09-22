@@ -8,27 +8,13 @@ import {
   deleteDatabaseProduct,
 } from '@/lib/catalogDb';
 
+import { purgeAllCaches } from '@/lib/cachePurge';
+
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 function purgeServerCaches(slug?: string) {
-  try {
-    revalidatePath('/', 'layout');
-    revalidatePath('/', 'page');
-    revalidatePath('/products', 'layout');
-    revalidatePath('/products', 'page');
-    revalidatePath('/products/[[...slug]]', 'page');
-    revalidatePath('/products/[[...slug]]', 'layout');
-    revalidatePath('/search', 'page');
-    revalidatePath('/brand/[slug]', 'page');
-    revalidatePath('/product/[slug]', 'page');
-    revalidatePath('/tag/[slug]', 'page');
-    if (slug) {
-      revalidatePath(`/product/${slug}`, 'page');
-    }
-  } catch (e) {
-    console.warn('Cache purge warning:', e);
-  }
+  purgeAllCaches({ productSlug: slug });
 }
 
 export async function GET(request: Request) {
