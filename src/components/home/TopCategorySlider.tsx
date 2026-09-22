@@ -137,32 +137,34 @@ export function TopCategorySlider() {
             key={item.id}
             href={item.href}
             prefetch={true}
-            className="group relative flex flex-col items-center justify-between p-3 sm:p-3.5 bg-card hover:bg-muted/30 border border-border/80 hover:border-foreground/30 transition-all rounded-sm shrink-0 w-28 sm:w-32 min-w-[115px] sm:min-w-[130px] min-h-[108px] sm:min-h-[116px] shadow-sm hover:shadow-md cursor-pointer"
+            className="group relative flex flex-col items-center justify-between p-2.5 sm:p-3 bg-card hover:bg-muted/30 border border-border/80 hover:border-foreground/30 transition-all rounded-sm shrink-0 w-28 sm:w-32 min-w-[115px] sm:min-w-[130px] h-[134px] sm:h-[142px] shadow-sm hover:shadow-md cursor-pointer select-none"
             title={item.name}
           >
-            {/* Image Container on TOP (Transparent, no background box behind image for transparent PNGs) */}
-            <div className="h-12 sm:h-14 w-full flex items-center justify-center bg-transparent">
+            {/* Square Image Container on TOP (Larger 1:1 ratio, transparent) */}
+            <div className="w-14 h-14 sm:w-16 sm:h-16 aspect-square shrink-0 flex items-center justify-center bg-transparent mt-1">
               {item.imageUrl ? (
                 <img
-                  src={optimizeImageUrl(item.imageUrl, 160)}
+                  src={optimizeImageUrl(item.imageUrl, 200)}
                   alt={item.name}
-                  width={60}
-                  height={48}
-                  className="h-10 sm:h-12 w-auto max-w-[85%] max-h-full object-contain transition-transform duration-300 group-hover:scale-110"
+                  width={64}
+                  height={64}
+                  className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
                   loading="lazy"
                   decoding="async"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-transparent">
-                  <Layers className="w-6 h-6 stroke-1" />
+                  <Layers className="w-8 h-8 sm:w-9 sm:h-9 stroke-1" />
                 </div>
               )}
             </div>
 
-            {/* Category Name underneath (Full text visible) */}
-            <span className="mt-2 text-xs sm:text-[12.5px] font-bold text-foreground group-hover:text-primary transition-colors text-center line-clamp-2 leading-snug w-full px-1 break-words">
-              {item.name}
-            </span>
+            {/* Category Name underneath (Fixed 2-line height so all boxes maintain identical height) */}
+            <div className="h-9 sm:h-10 w-full flex items-center justify-center px-0.5">
+              <span className="text-[11.5px] sm:text-xs font-bold text-foreground group-hover:text-blue-600 transition-colors text-center line-clamp-2 leading-tight break-words">
+                {item.name}
+              </span>
+            </div>
           </Link>
         ))}
       </div>
