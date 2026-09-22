@@ -1533,7 +1533,7 @@ export function SearchResultsClient({
 
               {/* Pagination Bar (15 products per page) */}
               {totalPages > 1 && (
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-6 border-t border-border/60">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-6 mt-[30px] border-t border-border/60">
                   <div className="text-xs text-muted-foreground font-medium whitespace-nowrap text-center sm:text-left">
                     Page <span className="font-bold text-foreground">{currentPage}</span> of{' '}
                     <span className="font-bold text-foreground">{totalPages}</span>{' '}
@@ -1603,9 +1603,12 @@ export function SearchResultsClient({
             </>
           )}
 
-          {/* Active Category or Subcategory Rich Description Content (SEO Area below Pagination) */}
+          {/* Active Category or Subcategory Rich Description Content (SEO Area 30px below Pagination/Products) */}
           {activeRichDescription && (
-            <div className="mt-12 p-6 sm:p-8 bg-card border border-border/80 shadow-2xs">
+            <div
+              style={{ marginTop: '30px' }}
+              className="!mt-[30px] p-6 sm:p-8 bg-card border border-border/80 shadow-2xs"
+            >
               <div
                 className="text-xs sm:text-sm text-foreground/90 font-normal leading-relaxed prose dark:prose-invert max-w-none [&_h1]:text-xl [&_h1]:font-black [&_h1]:mb-3 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:mb-2 [&_h3]:text-base [&_h3]:font-bold [&_h3]:mb-2 [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-3 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-3 [&_a]:text-blue-600 [&_a]:underline [&_blockquote]:border-l-4 [&_blockquote]:border-blue-500 [&_blockquote]:pl-3 [&_blockquote]:italic [&_img]:rounded-md [&_img]:max-w-full [&_img]:my-3"
                 dangerouslySetInnerHTML={{ __html: activeRichDescription }}
