@@ -12,7 +12,7 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
       {
         userAgent: '*',
         allow: isIndexingAllowed ? '/' : undefined,
-        disallow: isIndexingAllowed ? ['/supro111vat29/', '/admin/', '/api/', '/go/'] : '/',
+        disallow: isIndexingAllowed ? ['/admin/', '/api/', '/go/'] : '/',
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
