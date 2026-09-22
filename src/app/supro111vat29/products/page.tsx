@@ -29,6 +29,7 @@ import {
   ChevronRight,
   ArrowUp,
   ArrowDown,
+  Save,
   Download,
   Upload,
   AlertCircle,
@@ -48,6 +49,9 @@ export default function AdminProductsManager() {
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [hasUnsavedOrder, setHasUnsavedOrder] = useState<boolean>(false);
+  const [isSavingOrder, setIsSavingOrder] = useState<boolean>(false);
+  const hasUnsavedOrderRef = React.useRef<boolean>(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Pagination (50 per page so all catalog items show on page 1)
@@ -60,7 +64,7 @@ export default function AdminProductsManager() {
     setIsLoading(true);
     try {
       const fresh = await fetchAndSyncCatalogFromServer();
-      if (Array.isArray(fresh)) {
+      if (Array.isArray(fresh) && !hasUnsavedOrderRef.current) {
         setProducts(fresh);
       }
     } catch (e) {
@@ -79,7 +83,9 @@ export default function AdminProductsManager() {
     loadFreshProducts();
 
     const handleUpdated = () => {
-      setProducts(getCatalogProducts());
+      if (!hasUnsavedOrderRef.current) {
+        setProducts(getCatalogProducts());
+      }
     };
     window.addEventListener('smarttech_catalog_updated', handleUpdated);
     window.addEventListener('storage', handleUpdated);
@@ -88,6 +94,17 @@ export default function AdminProductsManager() {
       window.removeEventListener('storage', handleUpdated);
     };
   }, []);
+
+  // Prevent accidental tab close when order changes are unsaved
+  useEffect(() => {
+    if (!hasUnsavedOrder) return;
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedOrder]);
 
   // Filtered list
   const filteredProducts = products.filter((p) => {
@@ -294,8 +311,8 @@ export default function AdminProductsManager() {
     }
   };
 
-  // Move Product Up / Down (Reorder)
-  const handleMoveProduct = async (id: string, direction: 'up' | 'down') => {
+  // Move Product Up / Down (Reorder locally)
+  const handleMoveProduct = (id: string, direction: 'up' | 'down') => {
     const current = [...products];
     const index = current.findIndex((p) => p.id === id);
     if (index < 0) return;
@@ -318,19 +335,45 @@ export default function AdminProductsManager() {
     current.splice(targetIndex, 0, moved);
 
     setProducts(current);
-    saveCatalogProducts(current);
+    setHasUnsavedOrder(true);
+    hasUnsavedOrderRef.current = true;
+  };
 
+  // Save all reordered products live to database
+  const handleSaveOrder = async () => {
+    if (!hasUnsavedOrder || isSavingOrder) return;
+    setIsSavingOrder(true);
     try {
-      await fetch('/api/products', {
+      saveCatalogProducts(products);
+      const res = await fetch('/api/products', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productIds: current.map((p) => p.id) }),
+        body: JSON.stringify({ productIds: products.map((p) => p.id) }),
       });
-      setSuccessMessage(`Product "${moved.title}" moved ${direction === 'up' ? 'up' : 'down'}!`);
-      setTimeout(() => setSuccessMessage(null), 2500);
-    } catch (e) {
-      console.warn('Failed to sync product order to server:', e);
+      if (res.ok) {
+        setHasUnsavedOrder(false);
+        hasUnsavedOrderRef.current = false;
+        setSuccessMessage('All product order changes successfully saved & live across website!');
+        setTimeout(() => setSuccessMessage(null), 3500);
+      } else {
+        throw new Error('Failed to update product order on server');
+      }
+    } catch (e: any) {
+      setErrorMessage(e.message || 'Error saving product order. Please try again.');
+      setTimeout(() => setErrorMessage(null), 4000);
+    } finally {
+      setIsSavingOrder(false);
     }
+  };
+
+  // Discard local reordering changes
+  const handleDiscardOrder = () => {
+    const local = getCatalogProducts();
+    setProducts(local);
+    setHasUnsavedOrder(false);
+    hasUnsavedOrderRef.current = false;
+    setSuccessMessage('Unsaved order changes discarded.');
+    setTimeout(() => setSuccessMessage(null), 2500);
   };
 
   return (
@@ -414,6 +457,23 @@ export default function AdminProductsManager() {
             <Download className="w-3.5 h-3.5 text-emerald-600" />
             <span>{selectedIds.size > 0 ? `Export Selected (${selectedIds.size})` : 'Export All'}</span>
           </Button>
+
+          {/* Save Order Now Button */}
+          {hasUnsavedOrder && (
+            <Button
+              onClick={handleSaveOrder}
+              disabled={isSavingOrder}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-9 px-4 flex items-center gap-1.5 shadow-sm cursor-pointer animate-pulse"
+              title="Save all reordered products live to website"
+            >
+              {isSavingOrder ? (
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Save className="w-3.5 h-3.5" />
+              )}
+              <span>{isSavingOrder ? 'Saving Order...' : 'Save Order Now'}</span>
+            </Button>
+          )}
 
           <Link
             href="/supro111vat29/products/new"
@@ -504,6 +564,47 @@ export default function AdminProductsManager() {
         </div>
       )}
 
+      {/* Unsaved Order Changes Sticky Alert Banner */}
+      {hasUnsavedOrder && (
+        <div className="bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-600 p-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-amber-950 dark:text-amber-100 shadow-md animate-in fade-in duration-200">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
+            <div>
+              <p className="font-bold text-amber-900 dark:text-amber-100 text-sm">
+                Unsaved Product Order Changes!
+              </p>
+              <p className="text-xs text-amber-800 dark:text-amber-300 mt-0.5">
+                Rearrange products as needed with Move Up / Down, then click &ldquo;Save Order Now&rdquo; to publish all changes live to the website at once.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2.5 shrink-0 w-full sm:w-auto justify-end">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleDiscardOrder}
+              disabled={isSavingOrder}
+              className="h-8 text-xs font-semibold hover:bg-amber-100 dark:hover:bg-amber-900/40 border-amber-300 dark:border-amber-700 cursor-pointer"
+            >
+              Discard Changes
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleSaveOrder}
+              disabled={isSavingOrder}
+              className="h-8 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 shadow-sm cursor-pointer"
+            >
+              {isSavingOrder ? (
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Save className="w-3.5 h-3.5" />
+              )}
+              <span>{isSavingOrder ? 'Saving...' : 'Save Order Now'}</span>
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Products Inventory Table */}
       <div className="border border-border bg-card p-6 shadow-sm space-y-4">
         <div className="overflow-x-auto">
@@ -522,7 +623,14 @@ export default function AdminProductsManager() {
                     title={isAllFilteredSelected ? 'Deselect all visible' : 'Select all visible'}
                   />
                 </th>
-                <th className="pb-3 w-16 text-center pr-2">Order</th>
+                <th className="pb-3 w-16 text-center pr-2">
+                  <div className="flex items-center justify-center gap-1">
+                    <span>Order</span>
+                    {hasUnsavedOrder && (
+                      <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping inline-block" title="Unsaved order changes" />
+                    )}
+                  </div>
+                </th>
                 <th className="pb-3">Product</th>
                 <th className="pb-3">Category</th>
                 <th className="pb-3">Amazon</th>
