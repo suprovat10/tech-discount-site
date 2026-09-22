@@ -1,3 +1,5 @@
+import { TagSEO } from '@/types/tag';
+
 export interface BrandItem {
   id: string;
   name: string;
@@ -10,6 +12,7 @@ export interface BrandItem {
   order: number;
   description?: string;
   richDescription?: string;
+  seo?: TagSEO;
 }
 
 export const DEFAULT_BRANDS: BrandItem[] = [

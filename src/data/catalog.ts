@@ -1,4 +1,5 @@
 import { RetailerId } from '@/types/product';
+import { TagSEO } from '@/types/tag';
 
 export interface SubcategoryDefinition {
   id: string;
@@ -9,6 +10,7 @@ export interface SubcategoryDefinition {
   richDescription?: string;
   showInTopSlider?: boolean;
   showInExploreDeals?: boolean;
+  seo?: TagSEO;
 }
 
 export interface CategoryDefinition {
@@ -22,6 +24,7 @@ export interface CategoryDefinition {
   isFeaturedOnHome?: boolean;
   showInTopSlider?: boolean;
   showInExploreDeals?: boolean;
+  seo?: TagSEO;
   subcategories: SubcategoryDefinition[];
 }
 

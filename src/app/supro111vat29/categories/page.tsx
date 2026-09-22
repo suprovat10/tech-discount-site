@@ -76,6 +76,16 @@ export default function AdminCategoriesPage() {
   const [newCatShowSlider, setNewCatShowSlider] = useState(true);
   const [newCatShowExploreDeals, setNewCatShowExploreDeals] = useState(true);
 
+  // New Category SEO State
+  const [newCatMetaTitle, setNewCatMetaTitle] = useState('');
+  const [newCatMetaDesc, setNewCatMetaDesc] = useState('');
+  const [newCatKeywords, setNewCatKeywords] = useState('');
+  const [newCatCanonicalUrl, setNewCatCanonicalUrl] = useState('');
+  const [newCatOgImage, setNewCatOgImage] = useState('');
+  const [newCatNoIndex, setNewCatNoIndex] = useState(false);
+  const [showNewCatSeo, setShowNewCatSeo] = useState(false);
+  const newCatOgFileInputRef = React.useRef<HTMLInputElement>(null);
+
   // New Subcategory Form State
   const [newSubName, setNewSubName] = useState('');
   const [newSubSlug, setNewSubSlug] = useState('');
@@ -84,9 +94,23 @@ export default function AdminCategoriesPage() {
   const [newSubShowSlider, setNewSubShowSlider] = useState(true);
   const [newSubShowExploreDeals, setNewSubShowExploreDeals] = useState(false);
 
+  // New Subcategory SEO State
+  const [newSubMetaTitle, setNewSubMetaTitle] = useState('');
+  const [newSubMetaDesc, setNewSubMetaDesc] = useState('');
+  const [newSubKeywords, setNewSubKeywords] = useState('');
+  const [newSubCanonicalUrl, setNewSubCanonicalUrl] = useState('');
+  const [newSubOgImage, setNewSubOgImage] = useState('');
+  const [newSubNoIndex, setNewSubNoIndex] = useState(false);
+  const [showNewSubSeo, setShowNewSubSeo] = useState(false);
+  const newSubOgFileInputRef = React.useRef<HTMLInputElement>(null);
+
   // Edit Modals
   const [editingCategory, setEditingCategory] = useState<CategoryDefinition | null>(null);
   const [editingSub, setEditingSub] = useState<{ categoryId: string; sub: SubcategoryDefinition } | null>(null);
+  const [showEditCatSeo, setShowEditCatSeo] = useState(false);
+  const [showEditSubSeo, setShowEditSubSeo] = useState(false);
+  const editCatOgFileInputRef = React.useRef<HTMLInputElement>(null);
+  const editSubOgFileInputRef = React.useRef<HTMLInputElement>(null);
 
   const [activeTab, setActiveTab] = useState<'categories' | 'tags'>('categories');
   const [productTags, setProductTags] = useState<ProductTag[]>([]);
@@ -214,6 +238,14 @@ export default function AdminCategoriesPage() {
       isFeaturedOnHome: newCatIsFeatured,
       showInTopSlider: newCatShowSlider,
       showInExploreDeals: newCatShowExploreDeals,
+      seo: {
+        metaTitle: newCatMetaTitle.trim() || undefined,
+        metaDescription: newCatMetaDesc.trim() || undefined,
+        keywords: newCatKeywords.trim() || undefined,
+        canonicalUrl: newCatCanonicalUrl.trim() || undefined,
+        ogImageUrl: newCatOgImage.trim() || undefined,
+        noIndex: newCatNoIndex,
+      },
       subcategories: [],
     };
 
@@ -228,6 +260,13 @@ export default function AdminCategoriesPage() {
     setNewCatIsFeatured(false);
     setNewCatShowSlider(true);
     setNewCatShowExploreDeals(true);
+    setNewCatMetaTitle('');
+    setNewCatMetaDesc('');
+    setNewCatKeywords('');
+    setNewCatCanonicalUrl('');
+    setNewCatOgImage('');
+    setNewCatNoIndex(false);
+    setShowNewCatSeo(false);
     showNotification(`Category "${newCategory.name}" added successfully!`);
   };
 
@@ -257,6 +296,14 @@ export default function AdminCategoriesPage() {
       showInExploreDeals: newSubShowExploreDeals,
       richDescription: newSubRichDesc.trim() || undefined,
       description: newSubRichDesc.trim() ? newSubRichDesc.replace(/<[^>]*>/g, '').slice(0, 160) : undefined,
+      seo: {
+        metaTitle: newSubMetaTitle.trim() || undefined,
+        metaDescription: newSubMetaDesc.trim() || undefined,
+        keywords: newSubKeywords.trim() || undefined,
+        canonicalUrl: newSubCanonicalUrl.trim() || undefined,
+        ogImageUrl: newSubOgImage.trim() || undefined,
+        noIndex: newSubNoIndex,
+      },
     };
 
     const updated = addSubcategory(activeCategory.id, newSub);
@@ -267,6 +314,13 @@ export default function AdminCategoriesPage() {
     setNewSubImage('');
     setNewSubShowSlider(true);
     setNewSubShowExploreDeals(false);
+    setNewSubMetaTitle('');
+    setNewSubMetaDesc('');
+    setNewSubKeywords('');
+    setNewSubCanonicalUrl('');
+    setNewSubOgImage('');
+    setNewSubNoIndex(false);
+    setShowNewSubSeo(false);
     showNotification(`Subcategory "${newSub.name}" added to ${activeCategory.name}!`);
   };
 
@@ -780,6 +834,141 @@ export default function AdminCategoriesPage() {
                 </label>
               </div>
 
+              {/* SEO Collapsible Section */}
+              <div className="pt-2 border-t border-border">
+                <button
+                  type="button"
+                  onClick={() => setShowNewCatSeo(!showNewCatSeo)}
+                  className="w-full flex items-center justify-between text-xs font-bold text-foreground py-1"
+                >
+                  <span className="flex items-center gap-1.5 text-blue-600">
+                    <Globe className="w-3.5 h-3.5" />
+                    SEO Settings (Search Engine Optimization)
+                    {(newCatMetaTitle || newCatMetaDesc || newCatKeywords) && (
+                      <span className="text-[10px] bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 px-1.5 py-0.5">
+                        Configured
+                      </span>
+                    )}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {showNewCatSeo ? '▲ Hide' : '▼ Expand'}
+                  </span>
+                </button>
+
+                {showNewCatSeo && (
+                  <div className="space-y-3 pt-2 mt-1 border-t border-border/60 animate-in fade-in duration-150">
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[11px] font-bold text-foreground">Meta Title</label>
+                        <span className="text-[10px] text-muted-foreground">{newCatMetaTitle.length}/60</span>
+                      </div>
+                      <Input
+                        type="text"
+                        placeholder={`${newCatName || 'Category'} Deals, Coupons & Discounts`}
+                        value={newCatMetaTitle}
+                        onChange={(e) => setNewCatMetaTitle(e.target.value)}
+                        className="text-xs rounded-none h-8"
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[11px] font-bold text-foreground">Meta Description</label>
+                        <span className="text-[10px] text-muted-foreground">{newCatMetaDesc.length}/160</span>
+                      </div>
+                      <textarea
+                        placeholder="Search engine summary snippet for this category..."
+                        value={newCatMetaDesc}
+                        onChange={(e) => setNewCatMetaDesc(e.target.value)}
+                        className="w-full text-xs bg-muted/40 border border-border p-2 rounded-none focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[60px]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-foreground block mb-1">
+                        SEO Keywords (Comma separated)
+                      </label>
+                      <Input
+                        type="text"
+                        placeholder="e.g. tech deals, gadgets, discounts, coupon code"
+                        value={newCatKeywords}
+                        onChange={(e) => setNewCatKeywords(e.target.value)}
+                        className="text-xs rounded-none h-8"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-foreground block mb-1">
+                        Canonical URL (Override)
+                      </label>
+                      <Input
+                        type="text"
+                        placeholder="https://suprodesign.com/products/slug"
+                        value={newCatCanonicalUrl}
+                        onChange={(e) => setNewCatCanonicalUrl(e.target.value)}
+                        className="text-xs font-mono rounded-none h-8"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-foreground block mb-1">
+                        OG Image URL (Social Share)
+                      </label>
+                      <div className="flex gap-2 items-center">
+                        <Input
+                          type="text"
+                          placeholder="https://... or upload image"
+                          value={newCatOgImage}
+                          onChange={(e) => setNewCatOgImage(e.target.value)}
+                          className="text-xs rounded-none h-8 flex-1"
+                        />
+                        <input
+                          type="file"
+                          ref={newCatOgFileInputRef}
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleImageUpload(e, (url) => setNewCatOgImage(url), 'categories')}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => newCatOgFileInputRef.current?.click()}
+                          className="rounded-none h-8 text-xs flex items-center gap-1 shrink-0"
+                        >
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>Upload</span>
+                        </Button>
+                      </div>
+                      {newCatOgImage && (
+                        <div className="mt-2 relative w-20 h-14 border border-border bg-muted overflow-hidden">
+                          <img src={newCatOgImage} alt="OG Preview" className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => setNewCatOgImage('')}
+                            className="absolute -top-1 -right-1 bg-rose-600 text-white p-0.5 shadow-sm"
+                            title="Remove image"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="pt-1">
+                      <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={newCatNoIndex}
+                          onChange={(e) => setNewCatNoIndex(e.target.checked)}
+                          className="rounded-none"
+                        />
+                        <span className="text-rose-600 dark:text-rose-400">Noindex (Hide from search engines)</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <Button
                 type="submit"
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-none h-9 mt-2"
@@ -1034,6 +1223,141 @@ export default function AdminCategoriesPage() {
                     placeholder="Write formatted content, buying guides, FAQ, or SEO text for this subcategory..."
                     minHeight="160px"
                   />
+                </div>
+
+                {/* SEO Collapsible Section */}
+                <div className="pt-2 border-t border-border">
+                  <button
+                    type="button"
+                    onClick={() => setShowNewSubSeo(!showNewSubSeo)}
+                    className="w-full flex items-center justify-between text-xs font-bold text-foreground py-1"
+                  >
+                    <span className="flex items-center gap-1.5 text-blue-600">
+                      <Globe className="w-3.5 h-3.5" />
+                      SEO Settings (Search Engine Optimization)
+                      {(newSubMetaTitle || newSubMetaDesc || newSubKeywords) && (
+                        <span className="text-[10px] bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 px-1.5 py-0.5">
+                          Configured
+                        </span>
+                      )}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      {showNewSubSeo ? '▲ Hide' : '▼ Expand'}
+                    </span>
+                  </button>
+
+                  {showNewSubSeo && (
+                    <div className="space-y-3 pt-2 mt-1 border-t border-border/60 animate-in fade-in duration-150">
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-[11px] font-bold text-foreground">Meta Title</label>
+                          <span className="text-[10px] text-muted-foreground">{newSubMetaTitle.length}/60</span>
+                        </div>
+                        <Input
+                          type="text"
+                          placeholder={`${newSubName || 'Subcategory'} Deals, Offers & Best Prices`}
+                          value={newSubMetaTitle}
+                          onChange={(e) => setNewSubMetaTitle(e.target.value)}
+                          className="text-xs rounded-none h-8"
+                        />
+                      </div>
+
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-[11px] font-bold text-foreground">Meta Description</label>
+                          <span className="text-[10px] text-muted-foreground">{newSubMetaDesc.length}/160</span>
+                        </div>
+                        <textarea
+                          placeholder="Search engine summary snippet for this subcategory..."
+                          value={newSubMetaDesc}
+                          onChange={(e) => setNewSubMetaDesc(e.target.value)}
+                          className="w-full text-xs bg-muted/40 border border-border p-2 rounded-none focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[60px]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[11px] font-bold text-foreground block mb-1">
+                          SEO Keywords (Comma separated)
+                        </label>
+                        <Input
+                          type="text"
+                          placeholder="e.g. deals, discounts, price drop, best price"
+                          value={newSubKeywords}
+                          onChange={(e) => setNewSubKeywords(e.target.value)}
+                          className="text-xs rounded-none h-8"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[11px] font-bold text-foreground block mb-1">
+                          Canonical URL (Override)
+                        </label>
+                        <Input
+                          type="text"
+                          placeholder="https://suprodesign.com/products/category/slug"
+                          value={newSubCanonicalUrl}
+                          onChange={(e) => setNewSubCanonicalUrl(e.target.value)}
+                          className="text-xs font-mono rounded-none h-8"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[11px] font-bold text-foreground block mb-1">
+                          OG Image URL (Social Share)
+                        </label>
+                        <div className="flex gap-2 items-center">
+                          <Input
+                            type="text"
+                            placeholder="https://... or upload image"
+                            value={newSubOgImage}
+                            onChange={(e) => setNewSubOgImage(e.target.value)}
+                            className="text-xs rounded-none h-8 flex-1"
+                          />
+                          <input
+                            type="file"
+                            ref={newSubOgFileInputRef}
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => handleImageUpload(e, (url) => setNewSubOgImage(url), 'categories')}
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => newSubOgFileInputRef.current?.click()}
+                            className="rounded-none h-8 text-xs flex items-center gap-1 shrink-0"
+                          >
+                            <Upload className="w-3.5 h-3.5" />
+                            <span>Upload</span>
+                          </Button>
+                        </div>
+                        {newSubOgImage && (
+                          <div className="mt-2 relative w-20 h-14 border border-border bg-muted overflow-hidden">
+                            <img src={newSubOgImage} alt="OG Preview" className="w-full h-full object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => setNewSubOgImage('')}
+                              className="absolute -top-1 -right-1 bg-rose-600 text-white p-0.5 shadow-sm"
+                              title="Remove image"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="pt-1">
+                        <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={newSubNoIndex}
+                            onChange={(e) => setNewSubNoIndex(e.target.checked)}
+                            className="rounded-none"
+                          />
+                          <span className="text-rose-600 dark:text-rose-400">Noindex (Hide from search engines)</span>
+                        </label>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
@@ -1552,6 +1876,194 @@ export default function AdminCategoriesPage() {
                 </label>
               </div>
 
+              {/* SEO Collapsible Section */}
+              <div className="pt-2 border-t border-border">
+                <button
+                  type="button"
+                  onClick={() => setShowEditCatSeo(!showEditCatSeo)}
+                  className="w-full flex items-center justify-between text-xs font-bold text-foreground py-1"
+                >
+                  <span className="flex items-center gap-1.5 text-blue-600">
+                    <Globe className="w-3.5 h-3.5" />
+                    SEO Settings (Search Engine Optimization)
+                    {(editingCategory.seo?.metaTitle || editingCategory.seo?.metaDescription || editingCategory.seo?.keywords) && (
+                      <span className="text-[10px] bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 px-1.5 py-0.5">
+                        Configured
+                      </span>
+                    )}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {showEditCatSeo ? '▲ Hide' : '▼ Expand'}
+                  </span>
+                </button>
+
+                {showEditCatSeo && (
+                  <div className="space-y-3 pt-2 mt-1 border-t border-border/60 animate-in fade-in duration-150">
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[11px] font-bold text-foreground">Meta Title</label>
+                        <span className="text-[10px] text-muted-foreground">
+                          {(editingCategory.seo?.metaTitle || '').length}/60
+                        </span>
+                      </div>
+                      <Input
+                        type="text"
+                        placeholder={`${editingCategory.name || 'Category'} Deals, Coupons & Discounts`}
+                        value={editingCategory.seo?.metaTitle || ''}
+                        onChange={(e) =>
+                          setEditingCategory({
+                            ...editingCategory,
+                            seo: { ...editingCategory.seo, metaTitle: e.target.value },
+                          })
+                        }
+                        className="text-xs rounded-none h-8"
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[11px] font-bold text-foreground">Meta Description</label>
+                        <span className="text-[10px] text-muted-foreground">
+                          {(editingCategory.seo?.metaDescription || '').length}/160
+                        </span>
+                      </div>
+                      <textarea
+                        placeholder="Search engine summary snippet for this category..."
+                        value={editingCategory.seo?.metaDescription || ''}
+                        onChange={(e) =>
+                          setEditingCategory({
+                            ...editingCategory,
+                            seo: { ...editingCategory.seo, metaDescription: e.target.value },
+                          })
+                        }
+                        className="w-full text-xs bg-muted/40 border border-border p-2 rounded-none focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[60px]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-foreground block mb-1">
+                        SEO Keywords (Comma separated)
+                      </label>
+                      <Input
+                        type="text"
+                        placeholder="e.g. tech deals, gadgets, discounts, coupon code"
+                        value={editingCategory.seo?.keywords || ''}
+                        onChange={(e) =>
+                          setEditingCategory({
+                            ...editingCategory,
+                            seo: { ...editingCategory.seo, keywords: e.target.value },
+                          })
+                        }
+                        className="text-xs rounded-none h-8"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-foreground block mb-1">
+                        Canonical URL (Override)
+                      </label>
+                      <Input
+                        type="text"
+                        placeholder="https://suprodesign.com/products/slug"
+                        value={editingCategory.seo?.canonicalUrl || ''}
+                        onChange={(e) =>
+                          setEditingCategory({
+                            ...editingCategory,
+                            seo: { ...editingCategory.seo, canonicalUrl: e.target.value },
+                          })
+                        }
+                        className="text-xs font-mono rounded-none h-8"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-foreground block mb-1">
+                        OG Image URL (Social Share)
+                      </label>
+                      <div className="flex gap-2 items-center">
+                        <Input
+                          type="text"
+                          placeholder="https://... or upload image"
+                          value={editingCategory.seo?.ogImageUrl || ''}
+                          onChange={(e) =>
+                            setEditingCategory({
+                              ...editingCategory,
+                              seo: { ...editingCategory.seo, ogImageUrl: e.target.value },
+                            })
+                          }
+                          className="text-xs rounded-none h-8 flex-1"
+                        />
+                        <input
+                          type="file"
+                          ref={editCatOgFileInputRef}
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) =>
+                            handleImageUpload(
+                              e,
+                              (url) =>
+                                setEditingCategory({
+                                  ...editingCategory,
+                                  seo: { ...editingCategory.seo, ogImageUrl: url },
+                                }),
+                              'categories'
+                            )
+                          }
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => editCatOgFileInputRef.current?.click()}
+                          className="rounded-none h-8 text-xs flex items-center gap-1 shrink-0"
+                        >
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>Upload</span>
+                        </Button>
+                      </div>
+                      {editingCategory.seo?.ogImageUrl && (
+                        <div className="mt-2 relative w-20 h-14 border border-border bg-muted overflow-hidden">
+                          <img
+                            src={editingCategory.seo.ogImageUrl}
+                            alt="OG Preview"
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setEditingCategory({
+                                ...editingCategory,
+                                seo: { ...editingCategory.seo, ogImageUrl: undefined },
+                              })
+                            }
+                            className="absolute -top-1 -right-1 bg-rose-600 text-white p-0.5 shadow-sm"
+                            title="Remove image"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="pt-1">
+                      <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={editingCategory.seo?.noIndex === true}
+                          onChange={(e) =>
+                            setEditingCategory({
+                              ...editingCategory,
+                              seo: { ...editingCategory.seo, noIndex: e.target.checked },
+                            })
+                          }
+                          className="rounded-none"
+                        />
+                        <span className="text-rose-600 dark:text-rose-400">Noindex (Hide from search engines)</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div className="flex justify-end gap-2 pt-3 border-t border-border">
                 <Button
                   type="button"
@@ -1745,6 +2257,218 @@ export default function AdminCategoriesPage() {
                   />
                   <span>Show in Explore Deals Column (Footer)</span>
                 </label>
+              </div>
+
+              {/* SEO Collapsible Section */}
+              <div className="pt-2 border-t border-border">
+                <button
+                  type="button"
+                  onClick={() => setShowEditSubSeo(!showEditSubSeo)}
+                  className="w-full flex items-center justify-between text-xs font-bold text-foreground py-1"
+                >
+                  <span className="flex items-center gap-1.5 text-blue-600">
+                    <Globe className="w-3.5 h-3.5" />
+                    SEO Settings (Search Engine Optimization)
+                    {(editingSub.sub.seo?.metaTitle || editingSub.sub.seo?.metaDescription || editingSub.sub.seo?.keywords) && (
+                      <span className="text-[10px] bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 px-1.5 py-0.5">
+                        Configured
+                      </span>
+                    )}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {showEditSubSeo ? '▲ Hide' : '▼ Expand'}
+                  </span>
+                </button>
+
+                {showEditSubSeo && (
+                  <div className="space-y-3 pt-2 mt-1 border-t border-border/60 animate-in fade-in duration-150">
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[11px] font-bold text-foreground">Meta Title</label>
+                        <span className="text-[10px] text-muted-foreground">
+                          {(editingSub.sub.seo?.metaTitle || '').length}/60
+                        </span>
+                      </div>
+                      <Input
+                        type="text"
+                        placeholder={`${editingSub.sub.name || 'Subcategory'} Deals, Offers & Best Prices`}
+                        value={editingSub.sub.seo?.metaTitle || ''}
+                        onChange={(e) =>
+                          setEditingSub({
+                            ...editingSub,
+                            sub: {
+                              ...editingSub.sub,
+                              seo: { ...editingSub.sub.seo, metaTitle: e.target.value },
+                            },
+                          })
+                        }
+                        className="text-xs rounded-none h-8"
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[11px] font-bold text-foreground">Meta Description</label>
+                        <span className="text-[10px] text-muted-foreground">
+                          {(editingSub.sub.seo?.metaDescription || '').length}/160
+                        </span>
+                      </div>
+                      <textarea
+                        placeholder="Search engine summary snippet for this subcategory..."
+                        value={editingSub.sub.seo?.metaDescription || ''}
+                        onChange={(e) =>
+                          setEditingSub({
+                            ...editingSub,
+                            sub: {
+                              ...editingSub.sub,
+                              seo: { ...editingSub.sub.seo, metaDescription: e.target.value },
+                            },
+                          })
+                        }
+                        className="w-full text-xs bg-muted/40 border border-border p-2 rounded-none focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[60px]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-foreground block mb-1">
+                        SEO Keywords (Comma separated)
+                      </label>
+                      <Input
+                        type="text"
+                        placeholder="e.g. deals, discounts, price drop, best price"
+                        value={editingSub.sub.seo?.keywords || ''}
+                        onChange={(e) =>
+                          setEditingSub({
+                            ...editingSub,
+                            sub: {
+                              ...editingSub.sub,
+                              seo: { ...editingSub.sub.seo, keywords: e.target.value },
+                            },
+                          })
+                        }
+                        className="text-xs rounded-none h-8"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-foreground block mb-1">
+                        Canonical URL (Override)
+                      </label>
+                      <Input
+                        type="text"
+                        placeholder="https://suprodesign.com/products/category/slug"
+                        value={editingSub.sub.seo?.canonicalUrl || ''}
+                        onChange={(e) =>
+                          setEditingSub({
+                            ...editingSub,
+                            sub: {
+                              ...editingSub.sub,
+                              seo: { ...editingSub.sub.seo, canonicalUrl: e.target.value },
+                            },
+                          })
+                        }
+                        className="text-xs font-mono rounded-none h-8"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-foreground block mb-1">
+                        OG Image URL (Social Share)
+                      </label>
+                      <div className="flex gap-2 items-center">
+                        <Input
+                          type="text"
+                          placeholder="https://... or upload image"
+                          value={editingSub.sub.seo?.ogImageUrl || ''}
+                          onChange={(e) =>
+                            setEditingSub({
+                              ...editingSub,
+                              sub: {
+                                ...editingSub.sub,
+                                seo: { ...editingSub.sub.seo, ogImageUrl: e.target.value },
+                              },
+                            })
+                          }
+                          className="text-xs rounded-none h-8 flex-1"
+                        />
+                        <input
+                          type="file"
+                          ref={editSubOgFileInputRef}
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) =>
+                            handleImageUpload(
+                              e,
+                              (url) =>
+                                setEditingSub({
+                                  ...editingSub,
+                                  sub: {
+                                    ...editingSub.sub,
+                                    seo: { ...editingSub.sub.seo, ogImageUrl: url },
+                                  },
+                                }),
+                              'categories'
+                            )
+                          }
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => editSubOgFileInputRef.current?.click()}
+                          className="rounded-none h-8 text-xs flex items-center gap-1 shrink-0"
+                        >
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>Upload</span>
+                        </Button>
+                      </div>
+                      {editingSub.sub.seo?.ogImageUrl && (
+                        <div className="mt-2 relative w-20 h-14 border border-border bg-muted overflow-hidden">
+                          <img
+                            src={editingSub.sub.seo.ogImageUrl}
+                            alt="OG Preview"
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setEditingSub({
+                                ...editingSub,
+                                sub: {
+                                  ...editingSub.sub,
+                                  seo: { ...editingSub.sub.seo, ogImageUrl: undefined },
+                                },
+                              })
+                            }
+                            className="absolute -top-1 -right-1 bg-rose-600 text-white p-0.5 shadow-sm"
+                            title="Remove image"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="pt-1">
+                      <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={editingSub.sub.seo?.noIndex === true}
+                          onChange={(e) =>
+                            setEditingSub({
+                              ...editingSub,
+                              sub: {
+                                ...editingSub.sub,
+                                seo: { ...editingSub.sub.seo, noIndex: e.target.checked },
+                              },
+                            })
+                          }
+                          className="rounded-none"
+                        />
+                        <span className="text-rose-600 dark:text-rose-400">Noindex (Hide from search engines)</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-end gap-2 pt-3 border-t border-border">

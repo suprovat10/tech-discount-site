@@ -18,6 +18,7 @@ interface BrandPageProps {
 }
 
 import { getServerSettings } from '@/lib/settingsServer';
+import { getDatabaseBrands } from '@/lib/brandServer';
 
 export async function generateMetadata({ params }: BrandPageProps): Promise<Metadata> {
   const { slug } = await params;
@@ -25,23 +26,40 @@ export async function generateMetadata({ params }: BrandPageProps): Promise<Meta
   const siteBrand = settings.siteBrandName || 'suprodesign';
   const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
 
-  const brand = DEFAULT_BRANDS.find(
+  const allBrands = await getDatabaseBrands();
+  const brand = allBrands.find(
     (b) => b.slug.toLowerCase() === slug.toLowerCase() || b.name.toLowerCase() === slug.toLowerCase()
   );
   const brandName = brand?.name || slug.toUpperCase();
-  const brandUrl = `${siteUrl}/brand/${slug}`;
+  const canonicalPath = brand?.seo?.canonicalUrl || `/brand/${slug}`;
+  const fullCanonicalUrl = canonicalPath.startsWith('http') ? canonicalPath : `${siteUrl}${canonicalPath}`;
+
+  const title = brand?.seo?.metaTitle || `${brandName} Deals & Lowest Prices | ${siteBrand}`;
+  const description =
+    brand?.seo?.metaDescription ||
+    brand?.description ||
+    `Compare live prices on all ${brandName} electronics and gadgets across Amazon, Walmart, Best Buy, and Target.`;
+  const keywords = brand?.seo?.keywords ? brand.seo.keywords.split(',').map((k) => k.trim()) : undefined;
+  const isNoIndex = Boolean(brand?.seo?.noIndex);
+  const ogImageUrl = brand?.seo?.ogImageUrl || brand?.logoUrl;
 
   return {
-    title: `${brandName} Deals & Lowest Prices | ${siteBrand}`,
-    description: `Compare live prices on all ${brandName} electronics and gadgets across Amazon, Walmart, Best Buy, and Target.`,
+    title,
+    description,
+    keywords,
     alternates: {
-      canonical: brandUrl,
+      canonical: fullCanonicalUrl,
+    },
+    robots: {
+      index: !isNoIndex,
+      follow: !isNoIndex,
     },
     openGraph: {
-      title: `${brandName} Deals & Price Comparison | ${siteBrand}`,
-      description: `Compare verified prices for ${brandName} products across major retailers.`,
-      url: brandUrl,
+      title,
+      description,
+      url: fullCanonicalUrl,
       siteName: siteBrand,
+      images: ogImageUrl ? [{ url: ogImageUrl }] : undefined,
     },
   };
 }
@@ -50,7 +68,8 @@ export default async function BrandPage({ params }: BrandPageProps) {
   const { slug } = await params;
   const cleanSlug = decodeURIComponent(slug).toLowerCase().trim();
 
-  const brand = DEFAULT_BRANDS.find(
+  const allBrands = await getDatabaseBrands();
+  const brand = allBrands.find(
     (b) => b.slug.toLowerCase() === cleanSlug || b.name.toLowerCase() === cleanSlug
   );
 

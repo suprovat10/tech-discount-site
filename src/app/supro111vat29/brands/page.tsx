@@ -50,6 +50,16 @@ export default function AdminBrandsPage() {
   const [showOnHomepage, setShowOnHomepage] = useState(true);
   const [isActive, setIsActive] = useState(true);
 
+  // SEO states
+  const [metaTitle, setMetaTitle] = useState('');
+  const [metaDescription, setMetaDescription] = useState('');
+  const [keywords, setKeywords] = useState('');
+  const [canonicalUrl, setCanonicalUrl] = useState('');
+  const [ogImageUrl, setOgImageUrl] = useState('');
+  const [noIndex, setNoIndex] = useState(false);
+  const [showSeo, setShowSeo] = useState(false);
+  const ogFileInputRef = React.useRef<HTMLInputElement>(null);
+
   const [notification, setNotification] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
@@ -77,6 +87,13 @@ export default function AdminBrandsPage() {
     setIsFeatured(true);
     setShowOnHomepage(true);
     setIsActive(true);
+    setMetaTitle('');
+    setMetaDescription('');
+    setKeywords('');
+    setCanonicalUrl('');
+    setOgImageUrl('');
+    setNoIndex(false);
+    setShowSeo(false);
     setIsFormOpen(true);
   };
 
@@ -90,6 +107,13 @@ export default function AdminBrandsPage() {
     setIsFeatured(brand.isFeatured);
     setShowOnHomepage(brand.showOnHomepage ?? true);
     setIsActive(brand.isActive);
+    setMetaTitle(brand.seo?.metaTitle || '');
+    setMetaDescription(brand.seo?.metaDescription || '');
+    setKeywords(brand.seo?.keywords || '');
+    setCanonicalUrl(brand.seo?.canonicalUrl || '');
+    setOgImageUrl(brand.seo?.ogImageUrl || '');
+    setNoIndex(Boolean(brand.seo?.noIndex));
+    setShowSeo(Boolean(brand.seo?.metaTitle || brand.seo?.metaDescription || brand.seo?.keywords));
     setIsFormOpen(true);
   };
 
@@ -147,6 +171,14 @@ export default function AdminBrandsPage() {
       order: editingId ? brands.find((b) => b.id === editingId)?.order || 1 : brands.length + 1,
       richDescription: richDescription.trim() || undefined,
       description: richDescription.trim() ? richDescription.replace(/<[^>]*>/g, '').slice(0, 160) : undefined,
+      seo: {
+        metaTitle: metaTitle.trim() || undefined,
+        metaDescription: metaDescription.trim() || undefined,
+        keywords: keywords.trim() || undefined,
+        canonicalUrl: canonicalUrl.trim() || undefined,
+        ogImageUrl: ogImageUrl.trim() || undefined,
+        noIndex,
+      },
     };
 
     upsertBrand(brandPayload);
@@ -354,6 +386,165 @@ export default function AdminBrandsPage() {
                     minHeight="160px"
                   />
                 </div>
+
+              {/* Brand SEO Settings Collapsible Section */}
+              <div className="p-3.5 border border-border bg-card space-y-3">
+                <button
+                  type="button"
+                  onClick={() => setShowSeo(!showSeo)}
+                  className="w-full flex items-center justify-between text-xs font-bold text-foreground cursor-pointer"
+                >
+                  <div className="flex items-center gap-2">
+                    <Globe className="w-3.5 h-3.5 text-blue-600" />
+                    <span>SEO Settings (Search Engine Optimization)</span>
+                    {(metaTitle || metaDescription || keywords) && (
+                      <span className="px-1.5 py-0.2 bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400 text-[10px] font-bold">
+                        Configured
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[11px] text-muted-foreground">
+                    {showSeo ? '▲ Hide' : '▼ Expand'}
+                  </span>
+                </button>
+
+                {showSeo && (
+                  <div className="space-y-3 pt-2 border-t border-border/60 animate-in fade-in duration-150">
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[11px] font-bold text-foreground">Meta Title</label>
+                        <span className="text-[10px] text-muted-foreground">{metaTitle.length}/60</span>
+                      </div>
+                      <Input
+                        type="text"
+                        placeholder={`${name || 'Brand'} Deals, Discounts & Price Drops`}
+                        value={metaTitle}
+                        onChange={(e) => setMetaTitle(e.target.value)}
+                        className="text-xs rounded-none h-8"
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[11px] font-bold text-foreground">Meta Description</label>
+                        <span className="text-[10px] text-muted-foreground">{metaDescription.length}/160</span>
+                      </div>
+                      <textarea
+                        placeholder="Search engine snippet summary..."
+                        value={metaDescription}
+                        onChange={(e) => setMetaDescription(e.target.value)}
+                        className="w-full text-xs bg-muted/40 border border-border p-2 rounded-none focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[60px]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-foreground block mb-1">
+                        SEO Keywords (Comma separated)
+                      </label>
+                      <Input
+                        type="text"
+                        placeholder="e.g. deals, discounts, price drop, best price"
+                        value={keywords}
+                        onChange={(e) => setKeywords(e.target.value)}
+                        className="text-xs rounded-none h-8"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-foreground block mb-1">
+                        Canonical URL (Override)
+                      </label>
+                      <Input
+                        type="text"
+                        placeholder="https://suprodesign.com/brand/slug"
+                        value={canonicalUrl}
+                        onChange={(e) => setCanonicalUrl(e.target.value)}
+                        className="text-xs font-mono rounded-none h-8"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-foreground block mb-1">
+                        OG Image URL (Social Share)
+                      </label>
+                      <div className="flex gap-2 items-center">
+                        <Input
+                          type="text"
+                          placeholder="https://... or upload image"
+                          value={ogImageUrl}
+                          onChange={(e) => setOgImageUrl(e.target.value)}
+                          className="text-xs rounded-none h-8 flex-1"
+                        />
+                        <input
+                          type="file"
+                          ref={ogFileInputRef}
+                          accept="image/*"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              try {
+                                const formData = new FormData();
+                                formData.append('file', file);
+                                formData.append('folder', 'brands');
+                                const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                                const data = await res.json();
+                                if (data.success && data.url) {
+                                  setOgImageUrl(data.url);
+                                  return;
+                                }
+                              } catch (err) {
+                                console.warn('OG image upload failed:', err);
+                              }
+                              const reader = new FileReader();
+                              reader.onloadend = () => {
+                                if (typeof reader.result === 'string') {
+                                  setOgImageUrl(reader.result);
+                                }
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => ogFileInputRef.current?.click()}
+                          className="rounded-none h-8 text-xs flex items-center gap-1 shrink-0 cursor-pointer"
+                        >
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>Upload</span>
+                        </Button>
+                      </div>
+                      {ogImageUrl && (
+                        <div className="mt-2 relative w-20 h-14 border border-border bg-muted overflow-hidden">
+                          <img src={ogImageUrl} alt="OG Preview" className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => setOgImageUrl('')}
+                            className="absolute -top-1 -right-1 bg-rose-600 text-white p-0.5 shadow-sm"
+                            title="Remove image"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="pt-1">
+                      <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={noIndex}
+                          onChange={(e) => setNoIndex(e.target.checked)}
+                          className="rounded-none"
+                        />
+                        <span className="text-rose-600 dark:text-rose-400">Noindex (Hide from search engines)</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Checkboxes: Show on Homepage & Featured */}
               <div className="space-y-2 pt-1">

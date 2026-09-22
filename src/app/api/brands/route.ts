@@ -21,8 +21,10 @@ async function loadBrandsFromCloud(): Promise<BrandItem[]> {
 }
 
 import { purgeAllCaches } from '@/lib/cachePurge';
+import { invalidateBrandServerCache } from '@/lib/brandServer';
 
 function purgeBrandCaches() {
+  invalidateBrandServerCache();
   purgeAllCaches();
 }
 
@@ -63,6 +65,9 @@ export async function POST(request: Request) {
       showOnHomepage: body.showOnHomepage ?? true,
       isActive: body.isActive ?? true,
       order: body.order ?? brands.length + 1,
+      description: body.description || undefined,
+      richDescription: body.richDescription || undefined,
+      seo: body.seo || undefined,
     };
 
     const existingIndex = brands.findIndex(

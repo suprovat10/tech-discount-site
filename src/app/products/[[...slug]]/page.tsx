@@ -44,6 +44,9 @@ export async function generateMetadata({ params }: ProductsPageProps): Promise<M
   let title = `All Products - Compare Live Prices & Deals | ${brand}`;
   let description = `Browse verified consumer electronics and tech deals. Compare live inventory and discounts across Amazon, Walmart, Best Buy, and Target.`;
   let canonicalPath = '/products';
+  let keywords: string[] | undefined = undefined;
+  let ogImageUrl: string | undefined = undefined;
+  let isNoIndex = false;
 
   if (catSlug) {
     const cat = categories.find(
@@ -60,31 +63,50 @@ export async function generateMetadata({ params }: ProductsPageProps): Promise<M
             s.id.toLowerCase() === subSlug.toLowerCase()
         );
         if (sub) {
-          title = `${sub.name} Deals - Compare Best Prices | ${brand}`;
-          description = `Find lowest verified prices on ${sub.name} in ${cat.name}. Real-time discounts across major retailers.`;
-          canonicalPath = `/products/${cat.slug}/${sub.slug}`;
+          title = sub.seo?.metaTitle || `${sub.name} Deals - Compare Best Prices | ${brand}`;
+          description = sub.seo?.metaDescription || sub.description || `Find lowest verified prices on ${sub.name} in ${cat.name}. Real-time discounts across major retailers.`;
+          keywords = sub.seo?.keywords ? sub.seo.keywords.split(',').map((k) => k.trim()) : undefined;
+          canonicalPath = sub.seo?.canonicalUrl || `/products/${cat.slug}/${sub.slug}`;
+          ogImageUrl = sub.seo?.ogImageUrl || sub.imageUrl;
+          isNoIndex = Boolean(sub.seo?.noIndex);
         } else {
-          title = `${cat.name} Deals - Compare Best Prices | ${brand}`;
-          description = `Compare verified live prices on ${cat.name} across Amazon, Walmart, Best Buy, and Target.`;
+          title = cat.seo?.metaTitle || `${cat.name} Deals - Compare Best Prices | ${brand}`;
+          description = cat.seo?.metaDescription || cat.description || `Compare verified live prices on ${cat.name} across Amazon, Walmart, Best Buy, and Target.`;
+          keywords = cat.seo?.keywords ? cat.seo.keywords.split(',').map((k) => k.trim()) : undefined;
+          canonicalPath = cat.seo?.canonicalUrl || `/products/${cat.slug}`;
+          ogImageUrl = cat.seo?.ogImageUrl || cat.imageUrl;
+          isNoIndex = Boolean(cat.seo?.noIndex);
         }
       } else {
-        title = `${cat.name} Deals - Compare Best Prices | ${brand}`;
-        description = `Compare verified live prices on ${cat.name} across Amazon, Walmart, Best Buy, and Target.`;
+        title = cat.seo?.metaTitle || `${cat.name} Deals - Compare Best Prices | ${brand}`;
+        description = cat.seo?.metaDescription || cat.description || `Compare verified live prices on ${cat.name} across Amazon, Walmart, Best Buy, and Target.`;
+        keywords = cat.seo?.keywords ? cat.seo.keywords.split(',').map((k) => k.trim()) : undefined;
+        canonicalPath = cat.seo?.canonicalUrl || `/products/${cat.slug}`;
+        ogImageUrl = cat.seo?.ogImageUrl || cat.imageUrl;
+        isNoIndex = Boolean(cat.seo?.noIndex);
       }
     }
   }
 
+  const fullCanonicalUrl = canonicalPath.startsWith('http') ? canonicalPath : `${siteUrl}${canonicalPath}`;
+
   return {
     title,
     description,
+    keywords,
     alternates: {
-      canonical: `${siteUrl}${canonicalPath}`,
+      canonical: fullCanonicalUrl,
+    },
+    robots: {
+      index: !isNoIndex,
+      follow: !isNoIndex,
     },
     openGraph: {
       title,
       description,
-      url: `${siteUrl}${canonicalPath}`,
+      url: fullCanonicalUrl,
       siteName: brand,
+      images: ogImageUrl ? [{ url: ogImageUrl }] : undefined,
     },
   };
 }

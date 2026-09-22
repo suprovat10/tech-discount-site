@@ -63,7 +63,12 @@ export async function POST(request: Request) {
       icon: body.icon || 'Laptop',
       subcategories: body.subcategories || [],
       showInTopSlider: body.showInTopSlider ?? true,
+      showInExploreDeals: body.showInExploreDeals ?? true,
+      isFeaturedOnHome: body.isFeaturedOnHome ?? false,
       imageUrl: body.imageUrl || '',
+      description: body.description || undefined,
+      richDescription: body.richDescription || undefined,
+      seo: body.seo || undefined,
     };
 
     categories.push(newCategory);
