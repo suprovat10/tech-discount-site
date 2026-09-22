@@ -19,6 +19,8 @@ import {
   Eye,
   ImageIcon,
   RefreshCw,
+  Save,
+  AlertCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -63,6 +65,11 @@ export default function AdminBrandsPage() {
   const [notification, setNotification] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
+  // Batch Reorder State
+  const [hasUnsavedOrder, setHasUnsavedOrder] = useState(false);
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
+  const hasUnsavedOrderRef = React.useRef(false);
+
   const refreshBrands = () => {
     setBrands(getBrands());
   };
@@ -75,6 +82,18 @@ export default function AdminBrandsPage() {
     const handleUpdate = () => refreshBrands();
     window.addEventListener('smarttech_brands_updated', handleUpdate);
     return () => window.removeEventListener('smarttech_brands_updated', handleUpdate);
+  }, []);
+
+  // Prevent accidental navigation when brand order changes are unsaved
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedOrderRef.current) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
 
   const openAddForm = () => {
@@ -181,28 +200,85 @@ export default function AdminBrandsPage() {
       },
     };
 
-    upsertBrand(brandPayload);
+    const index = brands.findIndex((b) => b.id === brandPayload.id || b.slug === brandPayload.slug);
+    let updatedBrands: BrandItem[];
+    if (index >= 0) {
+      updatedBrands = [...brands];
+      updatedBrands[index] = { ...updatedBrands[index], ...brandPayload };
+    } else {
+      updatedBrands = [...brands, brandPayload];
+    }
+    saveBrands(updatedBrands);
+    setBrands(updatedBrands);
+    setHasUnsavedOrder(false);
+    hasUnsavedOrderRef.current = false;
     setIsFormOpen(false);
     setNotification(editingId ? `Brand "${brandPayload.name}" updated successfully!` : `Brand "${brandPayload.name}" created!`);
     setTimeout(() => setNotification(null), 3000);
   };
 
   const handleToggleHomepage = (brand: BrandItem) => {
-    const updated = { ...brand, showOnHomepage: !brand.showOnHomepage };
-    upsertBrand(updated);
+    const updated = brands.map((b) => (b.id === brand.id ? { ...b, showOnHomepage: !b.showOnHomepage } : b));
+    saveBrands(updated);
+    setBrands(updated);
+    setHasUnsavedOrder(false);
+    hasUnsavedOrderRef.current = false;
     setNotification(`Homepage visibility updated for "${brand.name}".`);
     setTimeout(() => setNotification(null), 2500);
   };
 
   const handleToggleActive = (brand: BrandItem) => {
-    const updated = { ...brand, isActive: !brand.isActive };
-    upsertBrand(updated);
+    const updated = brands.map((b) => (b.id === brand.id ? { ...b, isActive: !b.isActive } : b));
+    saveBrands(updated);
+    setBrands(updated);
+    setHasUnsavedOrder(false);
+    hasUnsavedOrderRef.current = false;
     setNotification(`Status updated for "${brand.name}".`);
     setTimeout(() => setNotification(null), 2500);
   };
 
   const handleMove = (id: string, dir: 'up' | 'down') => {
-    moveBrand(id, dir);
+    const index = brands.findIndex((b) => b.id === id);
+    if (index < 0) return;
+
+    const targetIndex = dir === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= brands.length) return;
+
+    const reordered = [...brands];
+    const temp = reordered[index];
+    reordered[index] = reordered[targetIndex];
+    reordered[targetIndex] = temp;
+
+    const updated = reordered.map((b, idx) => ({ ...b, order: idx + 1 }));
+    setBrands(updated);
+    setHasUnsavedOrder(true);
+    hasUnsavedOrderRef.current = true;
+  };
+
+  const handleSaveOrder = async () => {
+    if (!hasUnsavedOrder || isSavingOrder) return;
+    setIsSavingOrder(true);
+    try {
+      await saveBrands(brands);
+      setHasUnsavedOrder(false);
+      hasUnsavedOrderRef.current = false;
+      setNotification('All brand order changes successfully saved & live across website!');
+      setTimeout(() => setNotification(null), 3500);
+    } catch (e: any) {
+      setNotification(e.message || 'Error saving brand order. Please try again.');
+      setTimeout(() => setNotification(null), 4000);
+    } finally {
+      setIsSavingOrder(false);
+    }
+  };
+
+  const handleDiscardOrder = () => {
+    const local = getBrands();
+    setBrands(local);
+    setHasUnsavedOrder(false);
+    hasUnsavedOrderRef.current = false;
+    setNotification('Unsaved brand order changes discarded.');
+    setTimeout(() => setNotification(null), 2500);
   };
 
   const handleDelete = (id: string, brandName: string) => {
@@ -211,7 +287,12 @@ export default function AdminBrandsPage() {
 
   const handleConfirmDelete = () => {
     if (!deleteTarget) return;
+    const updated = brands.filter((b) => b.id !== deleteTarget.id);
+    saveBrands(updated);
+    setBrands(updated);
     deleteBrand(deleteTarget.id);
+    setHasUnsavedOrder(false);
+    hasUnsavedOrderRef.current = false;
     setNotification(`Brand "${deleteTarget.name}" removed.`);
     setTimeout(() => setNotification(null), 3000);
     setDeleteTarget(null);
@@ -228,13 +309,31 @@ export default function AdminBrandsPage() {
           </p>
         </div>
 
-        <Button
-          onClick={openAddForm}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-9 px-4 flex items-center gap-1.5"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Brand</span>
-        </Button>
+        <div className="flex items-center gap-2.5">
+          {hasUnsavedOrder && (
+            <Button
+              onClick={handleSaveOrder}
+              disabled={isSavingOrder}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-9 px-4 flex items-center gap-1.5 shadow-sm cursor-pointer animate-pulse"
+              title="Save all reordered brands live to website"
+            >
+              {isSavingOrder ? (
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Save className="w-3.5 h-3.5" />
+              )}
+              <span>{isSavingOrder ? 'Saving Order...' : 'Save Order Now'}</span>
+            </Button>
+          )}
+
+          <Button
+            onClick={openAddForm}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-9 px-4 flex items-center gap-1.5"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Brand</span>
+          </Button>
+        </div>
       </div>
 
       {/* Notification */}
@@ -596,6 +695,47 @@ export default function AdminBrandsPage() {
                 </Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Unsaved Order Changes Sticky Alert Banner */}
+      {hasUnsavedOrder && (
+        <div className="bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-600 p-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-amber-950 dark:text-amber-100 shadow-md animate-in fade-in duration-200">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
+            <div>
+              <p className="font-bold text-amber-900 dark:text-amber-100 text-sm">
+                Unsaved Brand Order Changes!
+              </p>
+              <p className="text-xs text-amber-800 dark:text-amber-300 mt-0.5">
+                Rearrange brands as needed with Move Up / Down, then click &ldquo;Save Order Now&rdquo; to publish all changes live to the website at once.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2.5 shrink-0 w-full sm:w-auto justify-end">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleDiscardOrder}
+              disabled={isSavingOrder}
+              className="h-8 text-xs font-semibold hover:bg-amber-100 dark:hover:bg-amber-900/40 border-amber-300 dark:border-amber-700 cursor-pointer"
+            >
+              Discard Changes
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleSaveOrder}
+              disabled={isSavingOrder}
+              className="h-8 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 shadow-sm cursor-pointer"
+            >
+              {isSavingOrder ? (
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Save className="w-3.5 h-3.5" />
+              )}
+              <span>{isSavingOrder ? 'Saving...' : 'Save Order Now'}</span>
+            </Button>
           </div>
         </div>
       )}

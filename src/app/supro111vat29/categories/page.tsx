@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { CategoryDefinition, SubcategoryDefinition } from '@/data/catalog';
 import {
   getCategories,
+  saveCategories,
   addCategory,
   updateCategory,
   deleteCategory,
@@ -37,6 +38,8 @@ import {
   Search,
   Hash,
   Globe,
+  Save,
+  RefreshCw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -65,6 +68,11 @@ export default function AdminCategoriesPage() {
     catId?: string;
     name: string;
   } | null>(null);
+
+  // Batch Reorder State
+  const [hasUnsavedOrder, setHasUnsavedOrder] = useState(false);
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
+  const hasUnsavedOrderRef = useRef(false);
 
   // New Category Form State
   const [newCatName, setNewCatName] = useState('');
@@ -180,6 +188,18 @@ export default function AdminCategoriesPage() {
     };
   }, []);
 
+  // Prevent accidental navigation when category or subcategory order changes are unsaved
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedOrderRef.current) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
+
   const activeCategory = categories.find((c) => c.id === selectedCatId) || categories[0];
   const featuredCount = categories.filter((c) => c.isFeaturedOnHome).length;
 
@@ -249,8 +269,11 @@ export default function AdminCategoriesPage() {
       subcategories: [],
     };
 
-    const updated = addCategory(newCategory);
+    const updated = [...categories, newCategory];
+    saveCategories(updated);
     setCategories(updated);
+    setHasUnsavedOrder(false);
+    hasUnsavedOrderRef.current = false;
     setSelectedCatId(newCategory.id);
     setNewCatName('');
     setNewCatSlug('');
@@ -275,8 +298,11 @@ export default function AdminCategoriesPage() {
     e.preventDefault();
     if (!editingCategory) return;
 
-    const updated = updateCategory(editingCategory);
+    const updated = categories.map((c) => (c.id === editingCategory.id ? editingCategory : c));
+    saveCategories(updated);
     setCategories(updated);
+    setHasUnsavedOrder(false);
+    hasUnsavedOrderRef.current = false;
     setEditingCategory(null);
     showNotification(`Category "${editingCategory.name}" updated successfully!`);
   };
@@ -306,8 +332,17 @@ export default function AdminCategoriesPage() {
       },
     };
 
-    const updated = addSubcategory(activeCategory.id, newSub);
+    const updated = categories.map((c) => {
+      if (c.id !== activeCategory.id) return c;
+      return {
+        ...c,
+        subcategories: [...(c.subcategories || []), newSub],
+      };
+    });
+    saveCategories(updated);
     setCategories(updated);
+    setHasUnsavedOrder(false);
+    hasUnsavedOrderRef.current = false;
     setNewSubName('');
     setNewSubSlug('');
     setNewSubRichDesc('');
@@ -329,8 +364,19 @@ export default function AdminCategoriesPage() {
     e.preventDefault();
     if (!editingSub) return;
 
-    const updated = updateSubcategory(editingSub.categoryId, editingSub.sub);
+    const updated = categories.map((c) => {
+      if (c.id !== editingSub.categoryId) return c;
+      return {
+        ...c,
+        subcategories: (c.subcategories || []).map((s) =>
+          s.id === editingSub.sub.id ? editingSub.sub : s
+        ),
+      };
+    });
+    saveCategories(updated);
     setCategories(updated);
+    setHasUnsavedOrder(false);
+    hasUnsavedOrderRef.current = false;
     setEditingSub(null);
     showNotification(`Subcategory "${editingSub.sub.name}" updated successfully!`);
   };
@@ -355,32 +401,110 @@ export default function AdminCategoriesPage() {
         setDeleteTarget(null);
         return;
       }
-      const updated = deleteCategory(deleteTarget.id);
+      const updated = categories.filter((c) => c.id !== deleteTarget.id);
+      saveCategories(updated);
       setCategories(updated);
+      setHasUnsavedOrder(false);
+      hasUnsavedOrderRef.current = false;
       if (selectedCatId === deleteTarget.id) {
         setSelectedCatId(updated[0]?.id || '');
       }
       showNotification(`Category "${deleteTarget.name}" removed successfully.`);
     } else if (deleteTarget.type === 'subcategory' && deleteTarget.catId) {
-      const updated = deleteSubcategory(deleteTarget.catId, deleteTarget.id);
+      const updated = categories.map((c) => {
+        if (c.id !== deleteTarget.catId) return c;
+        return {
+          ...c,
+          subcategories: (c.subcategories || []).filter((s) => s.id !== deleteTarget.id),
+        };
+      });
+      saveCategories(updated);
       setCategories(updated);
+      setHasUnsavedOrder(false);
+      hasUnsavedOrderRef.current = false;
       showNotification(`Subcategory "${deleteTarget.name}" removed.`);
     }
     setDeleteTarget(null);
   };
 
-  // Reorder Categories
+  // Reorder Categories (local state only, batch save with "Save Order Now")
   const handleMoveCategory = (id: string, direction: 'up' | 'down') => {
-    const updated = moveCategory(id, direction);
-    setCategories(updated);
-    showNotification('Category reordered successfully!');
+    const index = categories.findIndex((c) => c.id === id);
+    if (index < 0) return;
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= categories.length) return;
+
+    const reordered = [...categories];
+    const temp = reordered[index];
+    reordered[index] = reordered[targetIndex];
+    reordered[targetIndex] = temp;
+
+    setCategories(reordered);
+    setHasUnsavedOrder(true);
+    hasUnsavedOrderRef.current = true;
   };
 
-  // Reorder Subcategories
+  // Reorder Subcategories (local state only, batch save with "Save Order Now")
   const handleMoveSubcategory = (catId: string, subId: string, direction: 'up' | 'down') => {
-    const updated = moveSubcategory(catId, subId, direction);
+    const catIndex = categories.findIndex((c) => c.id === catId);
+    if (catIndex < 0) return;
+
+    const cat = categories[catIndex];
+    const subs = cat.subcategories || [];
+    const subIndex = subs.findIndex((s) => s.id === subId);
+    if (subIndex < 0) return;
+
+    const targetIndex = direction === 'up' ? subIndex - 1 : subIndex + 1;
+    if (targetIndex < 0 || targetIndex >= subs.length) return;
+
+    const reorderedSubs = [...subs];
+    const temp = reorderedSubs[subIndex];
+    reorderedSubs[subIndex] = reorderedSubs[targetIndex];
+    reorderedSubs[targetIndex] = temp;
+
+    const updated = [...categories];
+    updated[catIndex] = {
+      ...cat,
+      subcategories: reorderedSubs,
+    };
+
     setCategories(updated);
-    showNotification('Subcategory reordered successfully!');
+    setHasUnsavedOrder(true);
+    hasUnsavedOrderRef.current = true;
+  };
+
+  // Save all reordered categories & subcategories live to database
+  const handleSaveOrder = async () => {
+    if (!hasUnsavedOrder || isSavingOrder) return;
+    setIsSavingOrder(true);
+    try {
+      saveCategories(categories);
+      const res = await fetch('/api/categories', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ categories }),
+      });
+      if (res.ok) {
+        setHasUnsavedOrder(false);
+        hasUnsavedOrderRef.current = false;
+        showNotification('All category and subcategory order changes successfully saved & live across website!');
+      } else {
+        throw new Error('Failed to update category order on server');
+      }
+    } catch (e: any) {
+      showNotification(e.message || 'Error saving category order. Please try again.', true);
+    } finally {
+      setIsSavingOrder(false);
+    }
+  };
+
+  // Discard local category & subcategory reordering changes
+  const handleDiscardOrder = () => {
+    const local = getCategories();
+    setCategories(local);
+    setHasUnsavedOrder(false);
+    hasUnsavedOrderRef.current = false;
+    showNotification('Unsaved order changes discarded.');
   };
 
   // Toggle Featured On Home
@@ -514,6 +638,23 @@ export default function AdminCategoriesPage() {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Save Order Now Button */}
+          {hasUnsavedOrder && (
+            <Button
+              onClick={handleSaveOrder}
+              disabled={isSavingOrder}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-9 px-4 flex items-center gap-1.5 shadow-sm cursor-pointer animate-pulse"
+              title="Save all reordered categories & subcategories live to website"
+            >
+              {isSavingOrder ? (
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Save className="w-3.5 h-3.5" />
+              )}
+              <span>{isSavingOrder ? 'Saving Order...' : 'Save Order Now'}</span>
+            </Button>
+          )}
+
           <Link
             href="/supro111vat29/products"
             className="text-xs font-bold rounded-none h-9 px-3 border border-border bg-background hover:bg-muted text-foreground transition-colors inline-flex items-center justify-center whitespace-nowrap"
@@ -542,6 +683,47 @@ export default function AdminCategoriesPage() {
         <div className="p-3 bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-400 text-xs font-bold flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{errorMessage}</span>
+        </div>
+      )}
+
+      {/* Unsaved Order Changes Sticky Alert Banner */}
+      {hasUnsavedOrder && activeTab === 'categories' && (
+        <div className="bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-600 p-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-amber-950 dark:text-amber-100 shadow-md animate-in fade-in duration-200">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
+            <div>
+              <p className="font-bold text-amber-900 dark:text-amber-100 text-sm">
+                Unsaved Category / Subcategory Order Changes!
+              </p>
+              <p className="text-xs text-amber-800 dark:text-amber-300 mt-0.5">
+                Rearrange categories or subcategories with Move Up / Down, then click &ldquo;Save Order Now&rdquo; to publish all changes live to the website at once.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2.5 shrink-0 w-full sm:w-auto justify-end">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleDiscardOrder}
+              disabled={isSavingOrder}
+              className="h-8 text-xs font-semibold hover:bg-amber-100 dark:hover:bg-amber-900/40 border-amber-300 dark:border-amber-700 cursor-pointer"
+            >
+              Discard Changes
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleSaveOrder}
+              disabled={isSavingOrder}
+              className="h-8 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 shadow-sm cursor-pointer"
+            >
+              {isSavingOrder ? (
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Save className="w-3.5 h-3.5" />
+              )}
+              <span>{isSavingOrder ? 'Saving...' : 'Save Order Now'}</span>
+            </Button>
+          </div>
         </div>
       )}
 
