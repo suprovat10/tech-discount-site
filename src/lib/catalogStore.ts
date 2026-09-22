@@ -271,3 +271,43 @@ export async function duplicateCatalogProduct(id: string): Promise<CatalogItem |
   await upsertCatalogProduct(cloned);
   return cloned;
 }
+
+/**
+ * Reorder products catalog in localStorage and sync with server
+ */
+export async function saveReorderedCatalogProducts(products: CatalogItem[]): Promise<boolean> {
+  saveCatalogProducts(products);
+  if (typeof window === 'undefined') return true;
+  try {
+    const res = await fetch('/api/products', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productIds: products.map((p) => p.id) }),
+    });
+    return res.ok;
+  } catch (err) {
+    console.warn('Background products reorder server sync failed:', err);
+    return false;
+  }
+}
+
+/**
+ * Move product up or down in catalog
+ */
+export async function moveCatalogProduct(id: string, direction: 'up' | 'down'): Promise<CatalogItem[]> {
+  const current = getCatalogProducts();
+  const index = current.findIndex((p) => p.id === id);
+  if (index < 0) return current;
+
+  const targetIndex = direction === 'up' ? index - 1 : index + 1;
+  if (targetIndex < 0 || targetIndex >= current.length) return current;
+
+  const reordered = [...current];
+  const temp = reordered[index];
+  reordered[index] = reordered[targetIndex];
+  reordered[targetIndex] = temp;
+
+  saveCatalogProducts(reordered);
+  await saveReorderedCatalogProducts(reordered);
+  return reordered;
+}

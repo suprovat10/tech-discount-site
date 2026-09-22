@@ -126,10 +126,8 @@ export function TagDetailClient({
   const sortedProducts = useMemo(() => {
     return [...products].sort((a, b) => {
       if (sortBy === 'latest') {
-        const dateA = new Date(a.updatedAt || a.lastUpdated || 0).getTime();
-        const dateB = new Date(b.updatedAt || b.lastUpdated || 0).getTime();
-        if (dateB !== dateA) return dateB - dateA;
-        return b.id.localeCompare(a.id);
+        // Preserve exact manual product arrangement from Admin Dashboard
+        return 0;
       }
       if (sortBy === 'lowest_price') return a.lowestPrice - b.lowestPrice;
       if (sortBy === 'highest_savings') return (b.maxSavingsPercentage || 0) - (a.maxSavingsPercentage || 0);

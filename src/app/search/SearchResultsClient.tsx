@@ -14,6 +14,7 @@ import {
   getSubcategorySlug,
 } from '@/lib/categoryStore';
 import { getBrands, BrandItem } from '@/lib/brandStore';
+import { getCatalogProducts } from '@/lib/catalogStore';
 import { transformCatalogItemToUnified } from '@/lib/productTransform';
 import { DealCard } from '@/components/deals/DealCard';
 import {
@@ -480,6 +481,12 @@ export function SearchResultsClient({
 
     async function fetchResults() {
       if (!searchQuery.trim()) {
+        const local = getCatalogProducts();
+        if (local && local.length > 0) {
+          setProducts(local.map(transformCatalogItemToUnified));
+          setIsLoading(false);
+          return;
+        }
         if (initialProducts.length > 0 && catalogVersion === 0) {
           setProducts(initialProducts);
           setIsLoading(false);
@@ -676,24 +683,7 @@ export function SearchResultsClient({
       .sort((a, b) => {
         const s = sortBy.replace(/_/g, '-');
         if (s === 'latest') {
-          const getProductTimestamp = (p: UnifiedProduct) => {
-            if (p.updatedAt) {
-              const t = new Date(p.updatedAt).getTime();
-              if (!isNaN(t) && t > 0) return t;
-            }
-            if (p.createdAt) {
-              const t = new Date(p.createdAt).getTime();
-              if (!isNaN(t) && t > 0) return t;
-            }
-            if (p.id && p.id.startsWith('prod-dyn-')) {
-              const ts = parseInt(p.id.replace('prod-dyn-', ''), 10);
-              if (!isNaN(ts) && ts > 0) return ts;
-            }
-            return 0;
-          };
-          const timeA = getProductTimestamp(a);
-          const timeB = getProductTimestamp(b);
-          if (timeB !== timeA) return timeB - timeA;
+          // Preserve exact manual product arrangement from Admin Dashboard
           return 0;
         }
         if (s === 'lowest-price') {

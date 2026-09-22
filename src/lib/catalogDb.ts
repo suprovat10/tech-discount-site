@@ -146,6 +146,15 @@ export async function saveDatabaseProductsBatch(incoming: CatalogItem[]): Promis
 }
 
 /**
+ * Save the entire reordered products catalog to cloud database.
+ */
+export async function saveReorderedProductsCatalog(products: CatalogItem[]): Promise<CatalogItem[]> {
+  await setSiteKV(DB_CATALOG_KEY, products);
+  invalidateCatalogDbCache();
+  return products;
+}
+
+/**
  * Permanently delete a product from the cloud database.
  * Once deleted here, it is gone from the database forever and will never re-appear.
  */

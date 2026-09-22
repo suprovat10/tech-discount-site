@@ -6,6 +6,7 @@ import {
   getDatabaseProducts,
   saveDatabaseProduct,
   saveDatabaseProductsBatch,
+  saveReorderedProductsCatalog,
   deleteDatabaseProduct,
 } from '@/lib/catalogDb';
 
@@ -208,6 +209,61 @@ export async function DELETE(request: Request) {
   } catch (error: any) {
     return NextResponse.json(
       { success: false, error: error.message || 'Failed to delete product' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request: Request) {
+  if (!isRequestAdminAuthenticated(request)) {
+    return NextResponse.json({ success: false, error: 'Unauthorized: Admin authentication required' }, { status: 401 });
+  }
+
+  try {
+    const body = await request.json();
+
+    // Case 1: Reorder via productIds array
+    if (body && Array.isArray(body.productIds)) {
+      const current = await getDatabaseProducts(true);
+      const map = new Map(current.map((p) => [p.id, p]));
+      const reordered: CatalogItem[] = [];
+
+      for (const id of body.productIds) {
+        const item = map.get(id);
+        if (item) {
+          reordered.push(item);
+          map.delete(id);
+        }
+      }
+      for (const item of map.values()) {
+        reordered.push(item);
+      }
+
+      await saveReorderedProductsCatalog(reordered);
+      purgeServerCaches();
+
+      return NextResponse.json({ success: true, count: reordered.length });
+    }
+
+    // Case 2: Full products array
+    if (body && Array.isArray(body.products)) {
+      const validItems = body.products.filter(
+        (item: any) => item && typeof item === 'object' && (item.title || item.name)
+      );
+      const sanitizedList = validItems.map(sanitizeProductItem);
+      await saveReorderedProductsCatalog(sanitizedList);
+      purgeServerCaches();
+
+      return NextResponse.json({ success: true, count: sanitizedList.length });
+    }
+
+    return NextResponse.json(
+      { success: false, error: 'Invalid products or productIds payload' },
+      { status: 400 }
+    );
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, error: error.message || 'Failed to update products order' },
       { status: 500 }
     );
   }

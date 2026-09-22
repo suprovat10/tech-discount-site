@@ -27,6 +27,8 @@ import {
   Database,
   ChevronLeft,
   ChevronRight,
+  ArrowUp,
+  ArrowDown,
   Download,
   Upload,
   AlertCircle,
@@ -292,6 +294,45 @@ export default function AdminProductsManager() {
     }
   };
 
+  // Move Product Up / Down (Reorder)
+  const handleMoveProduct = async (id: string, direction: 'up' | 'down') => {
+    const current = [...products];
+    const index = current.findIndex((p) => p.id === id);
+    if (index < 0) return;
+
+    let targetIndex = -1;
+    if (!searchQuery && filterCategory === 'all') {
+      targetIndex = direction === 'up' ? index - 1 : index + 1;
+    } else {
+      const filteredIdx = filteredProducts.findIndex((p) => p.id === id);
+      if (filteredIdx < 0) return;
+      const targetFilteredIdx = direction === 'up' ? filteredIdx - 1 : filteredIdx + 1;
+      if (targetFilteredIdx < 0 || targetFilteredIdx >= filteredProducts.length) return;
+      const targetId = filteredProducts[targetFilteredIdx].id;
+      targetIndex = current.findIndex((p) => p.id === targetId);
+    }
+
+    if (targetIndex < 0 || targetIndex >= current.length) return;
+
+    const [moved] = current.splice(index, 1);
+    current.splice(targetIndex, 0, moved);
+
+    setProducts(current);
+    saveCatalogProducts(current);
+
+    try {
+      await fetch('/api/products', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productIds: current.map((p) => p.id) }),
+      });
+      setSuccessMessage(`Product "${moved.title}" moved ${direction === 'up' ? 'up' : 'down'}!`);
+      setTimeout(() => setSuccessMessage(null), 2500);
+    } catch (e) {
+      console.warn('Failed to sync product order to server:', e);
+    }
+  };
+
   return (
     <div className="space-y-8 pb-16">
       {/* Top Header */}
@@ -481,6 +522,7 @@ export default function AdminProductsManager() {
                     title={isAllFilteredSelected ? 'Deselect all visible' : 'Select all visible'}
                   />
                 </th>
+                <th className="pb-3 w-16 text-center pr-2">Order</th>
                 <th className="pb-3">Product</th>
                 <th className="pb-3">Category</th>
                 <th className="pb-3">Amazon</th>
@@ -517,6 +559,30 @@ export default function AdminProductsManager() {
                         className="w-4 h-4 rounded-none border-border text-blue-600 focus:ring-0 cursor-pointer accent-blue-600"
                         title={isSelected ? 'Deselect product' : 'Select product'}
                       />
+                    </td>
+
+                    {/* Order Move Up / Down */}
+                    <td className="py-3.5 pr-2 w-16 text-center">
+                      <div className="flex items-center justify-center gap-1">
+                        <button
+                          type="button"
+                          disabled={filteredProducts[0]?.id === p.id}
+                          onClick={() => handleMoveProduct(p.id, 'up')}
+                          className="p-1.5 border border-border hover:border-blue-600 hover:text-blue-600 disabled:opacity-20 disabled:cursor-not-allowed bg-background text-muted-foreground transition-colors cursor-pointer"
+                          title="Move Product Up"
+                        >
+                          <ArrowUp className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          disabled={filteredProducts[filteredProducts.length - 1]?.id === p.id}
+                          onClick={() => handleMoveProduct(p.id, 'down')}
+                          className="p-1.5 border border-border hover:border-blue-600 hover:text-blue-600 disabled:opacity-20 disabled:cursor-not-allowed bg-background text-muted-foreground transition-colors cursor-pointer"
+                          title="Move Product Down"
+                        >
+                          <ArrowDown className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
 
                     {/* Product Info */}

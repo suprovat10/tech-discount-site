@@ -37,30 +37,8 @@ export default async function HomePage() {
     })
     .slice(0, 8);
 
-  // 2. Latest Products: Freshly uploaded / newest added products
-  const latestProducts = [...allProducts]
-    .sort((a, b) => {
-      const getProductTimestamp = (p: UnifiedProduct) => {
-        if (p.createdAt) {
-          const t = new Date(p.createdAt).getTime();
-          if (!isNaN(t) && t > 0) return t;
-        }
-        if (p.updatedAt) {
-          const t = new Date(p.updatedAt).getTime();
-          if (!isNaN(t) && t > 0) return t;
-        }
-        if (p.id && p.id.startsWith('prod-dyn-')) {
-          const ts = parseInt(p.id.replace('prod-dyn-', ''), 10);
-          if (!isNaN(ts) && ts > 0) return ts;
-        }
-        return 0;
-      };
-      const timeA = getProductTimestamp(a);
-      const timeB = getProductTimestamp(b);
-      if (timeB !== timeA) return timeB - timeA;
-      return b.id.localeCompare(a.id);
-    })
-    .slice(0, 8);
+  // 2. Latest Products: Freshly added products in admin catalog arrangement
+  const latestProducts = allProducts.slice(0, 8);
 
   const isDefaultHero = !settings.heroImageUrl || settings.heroImageUrl.includes('v8wowdztetwveiot2ahw') || settings.heroImageUrl.includes('images.unsplash.com/photo-1517336714731-489689fd1ca8');
   const heroImageUrl = isDefaultHero ? '/hero.webp' : settings.heroImageUrl;
