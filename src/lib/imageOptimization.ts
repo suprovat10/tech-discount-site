@@ -41,6 +41,36 @@ export function optimizeCloudinaryUrl(url?: string, width?: number): string {
 }
 
 /**
+ * Universal image optimization helper supporting Cloudinary and Unsplash.
+ * If the URL is neither, returns original.
+ */
+export function optimizeImageUrl(url?: string, width?: number): string {
+  if (!url || typeof url !== 'string') return url || '';
+
+  // Cloudinary
+  if (url.includes('res.cloudinary.com') && url.includes('/image/upload/')) {
+    return optimizeCloudinaryUrl(url, width);
+  }
+
+  // Unsplash
+  if (url.includes('images.unsplash.com')) {
+    try {
+      const u = new URL(url);
+      if (width) {
+        u.searchParams.set('w', width.toString());
+      }
+      u.searchParams.set('auto', 'format');
+      u.searchParams.set('q', '75');
+      return u.toString();
+    } catch {
+      return url;
+    }
+  }
+
+  return url;
+}
+
+/**
  * Checks whether an image URL is hosted on Cloudinary
  */
 export function isCloudinaryUrl(url?: string): boolean {
@@ -76,4 +106,30 @@ export function getAdSizes(isBanner: boolean): string | undefined {
     return '(max-width: 480px) 380px, (max-width: 768px) 640px, (max-width: 1024px) 768px, 1024px';
   }
   return '(max-width: 480px) 280px, 320px';
+}
+
+/**
+ * Responsive srcset for the Hero section image (LCP)
+ */
+export function getHeroSrcSet(url?: string): string | undefined {
+  if (!url || typeof url !== 'string') return undefined;
+
+  if (
+    (url.includes('res.cloudinary.com') && url.includes('/image/upload/')) ||
+    url.includes('images.unsplash.com')
+  ) {
+    return [
+      `${optimizeImageUrl(url, 360)} 360w`,
+      `${optimizeImageUrl(url, 480)} 480w`,
+      `${optimizeImageUrl(url, 640)} 640w`,
+      `${optimizeImageUrl(url, 800)} 800w`,
+      `${optimizeImageUrl(url, 1024)} 1024w`,
+    ].join(', ');
+  }
+
+  return undefined;
+}
+
+export function getHeroSizes(): string {
+  return '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 600px';
 }

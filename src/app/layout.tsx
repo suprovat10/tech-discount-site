@@ -5,6 +5,8 @@ import { getServerSettings } from '@/lib/settingsServer';
 import { generateWebsiteJsonLd, generateOrganizationJsonLd } from '@/lib/seo/jsonld';
 import { StoreLayoutWrapper } from '@/components/common/StoreLayoutWrapper';
 
+import { optimizeImageUrl, getHeroSrcSet, getHeroSizes } from '@/lib/imageOptimization';
+
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getServerSettings();
   const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
@@ -111,11 +113,34 @@ export default async function RootLayout({
   const adsenseId = settings.googleAdSenseId?.trim();
   const globalAdHeaderCode = settings.globalAdHeaderCode?.trim();
 
+  const heroImageUrl =
+    settings.heroImageUrl ||
+    'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=900&q=80';
+  const heroPreloadSrc = optimizeImageUrl(heroImageUrl, 640);
+  const heroSrcSet = getHeroSrcSet(heroImageUrl);
+  const heroSizes = getHeroSizes();
+
   return (
     <html lang="en">
       <head>
         {/* Favicon fallback */}
         <link rel="icon" href={settings.faviconUrl || '/favicon.png'} />
+
+        {/* Preconnect to critical image CDNs for instant LCP */}
+        <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+        <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://images.unsplash.com" />
+
+        {/* High-priority Preload for Hero Image (LCP) */}
+        <link
+          rel="preload"
+          as="image"
+          href={heroPreloadSrc}
+          imageSrcSet={heroSrcSet}
+          imageSizes={heroSizes}
+          fetchPriority="high"
+        />
         
         {/* Schema.org WebSite JSON-LD */}
         <script

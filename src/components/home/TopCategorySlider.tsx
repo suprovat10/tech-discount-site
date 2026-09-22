@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { CATEGORIES, CategoryDefinition, SubcategoryDefinition } from '@/data/catalog';
 import { getCategories, getCategorySlug, getSubcategorySlug } from '@/lib/categoryStore';
 import { ChevronLeft, ChevronRight, Layers } from 'lucide-react';
-import { optimizeCloudinaryUrl } from '@/lib/imageOptimization';
+import { optimizeImageUrl } from '@/lib/imageOptimization';
 
 interface SliderItem {
   id: string;
@@ -85,14 +85,19 @@ export function TopCategorySlider() {
   };
 
   useEffect(() => {
-    checkScroll();
+    const id = requestAnimationFrame(() => {
+      checkScroll();
+    });
+    return () => cancelAnimationFrame(id);
   }, [sliderItems]);
 
   const handleScroll = (direction: 'left' | 'right') => {
     if (!sliderRef.current) return;
     const scrollAmount = direction === 'left' ? -280 : 280;
     sliderRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-    setTimeout(checkScroll, 300);
+    setTimeout(() => {
+      requestAnimationFrame(checkScroll);
+    }, 300);
   };
 
   if (sliderItems.length === 0) return null;
@@ -139,12 +144,12 @@ export function TopCategorySlider() {
             <div className="h-12 sm:h-14 w-full flex items-center justify-center bg-transparent">
               {item.imageUrl ? (
                 <img
-                  src={optimizeCloudinaryUrl(item.imageUrl, 200)}
+                  src={optimizeImageUrl(item.imageUrl, 160)}
                   alt={item.name}
                   width={60}
                   height={48}
                   className="h-10 sm:h-12 w-auto max-w-[85%] max-h-full object-contain transition-transform duration-300 group-hover:scale-110"
-                  loading="eager"
+                  loading="lazy"
                   decoding="async"
                 />
               ) : (

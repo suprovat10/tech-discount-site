@@ -101,14 +101,19 @@ function CategoryShowcaseBlock({
   };
 
   useEffect(() => {
-    checkScroll();
+    const id = requestAnimationFrame(() => {
+      checkScroll();
+    });
+    return () => cancelAnimationFrame(id);
   }, [products]);
 
   const handleScroll = (direction: 'left' | 'right') => {
     if (!scrollRef.current) return;
     const scrollAmount = direction === 'left' ? -300 : 300;
     scrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-    setTimeout(checkScroll, 300);
+    setTimeout(() => {
+      requestAnimationFrame(checkScroll);
+    }, 300);
   };
 
   return (

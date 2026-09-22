@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Flame, Sparkles } from 'lucide-react';
 import { SiteSettings, DEFAULT_SITE_SETTINGS } from '@/types/settings';
-import { optimizeCloudinaryUrl } from '@/lib/imageOptimization';
+import { optimizeImageUrl, getHeroSrcSet, getHeroSizes } from '@/lib/imageOptimization';
 
 interface HeroSectionProps {
   initialSettings?: Partial<SiteSettings>;
@@ -113,16 +113,19 @@ export function HeroSection({ initialSettings }: HeroSectionProps) {
           <div className="relative aspect-[4/3] w-full border border-border/80 bg-muted/20 p-2 sm:p-4 flex items-center justify-center overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={optimizeCloudinaryUrl(imageUrl, 900)}
+              src={optimizeImageUrl(imageUrl, 640)}
+              srcSet={getHeroSrcSet(imageUrl)}
+              sizes={getHeroSizes()}
               alt={imageAlt}
               width={600}
               height={450}
               fetchPriority="high"
+              loading="eager"
+              decoding="sync"
               className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-              decoding="async"
               onError={(e) => {
                 e.currentTarget.src =
-                  'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=900&q=80';
+                  'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=640&q=80';
               }}
             />
           </div>
