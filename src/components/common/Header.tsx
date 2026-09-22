@@ -113,12 +113,6 @@ export function Header() {
         <Link
           href="/"
           prefetch={true}
-          onClick={(e) => {
-            if (pathname === '/') {
-              e.preventDefault();
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-          }}
           className="flex items-center gap-2.5 shrink-0 group cursor-pointer"
         >
           <img
@@ -177,12 +171,6 @@ export function Header() {
           <Link
             href="/"
             prefetch={true}
-            onClick={(e) => {
-              if (pathname === '/') {
-                e.preventDefault();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }
-            }}
             className={`hover:text-foreground transition-colors cursor-pointer ${
               pathname === '/' ? 'text-foreground font-bold' : ''
             }`}
@@ -310,13 +298,7 @@ export function Header() {
               <Link
                 href="/"
                 prefetch={true}
-                onClick={(e) => {
-                  setIsMobileMenuOpen(false);
-                  if (pathname === '/') {
-                    e.preventDefault();
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }
-                }}
+                onClick={() => setIsMobileMenuOpen(false)}
                 className={`py-2.5 hover:text-blue-600 transition-colors cursor-pointer ${
                   pathname === '/' ? 'text-blue-600' : 'text-foreground'
                 }`}

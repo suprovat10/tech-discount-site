@@ -306,13 +306,13 @@ export function Footer() {
             </p>
 
             <div className="flex items-center gap-4 text-[11px] font-medium">
-              <Link href="/privacy-policy" className="hover:underline touch-manipulation cursor-pointer">Privacy Policy</Link>
+              <Link href="/privacy-policy" prefetch={true} className="hover:underline cursor-pointer">Privacy Policy</Link>
               <span>•</span>
-              <Link href="/terms" className="hover:underline touch-manipulation cursor-pointer">Terms of Service</Link>
+              <Link href="/terms" prefetch={true} className="hover:underline cursor-pointer">Terms of Service</Link>
               <span>•</span>
-              <Link href="/affiliate-disclosure" className="hover:underline touch-manipulation cursor-pointer">FTC Disclosure</Link>
+              <Link href="/affiliate-disclosure" prefetch={true} className="hover:underline cursor-pointer">FTC Disclosure</Link>
               <span>•</span>
-              <Link href="/contact" className="hover:underline touch-manipulation cursor-pointer">Contact Us</Link>
+              <Link href="/contact" prefetch={true} className="hover:underline cursor-pointer">Contact Us</Link>
             </div>
           </div>
         </div>

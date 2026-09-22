@@ -5,20 +5,39 @@ import { SiteSettings, DEFAULT_SITE_SETTINGS } from '@/types/settings';
 export type { SiteSettings };
 export { DEFAULT_SITE_SETTINGS };
 
+let cachedSettings: SiteSettings | null = null;
+let cachedSettingsTime = 0;
+const SETTINGS_CACHE_TTL = 300000; // 5 minutes
+
+export function invalidateSettingsCache(): void {
+  cachedSettings = null;
+  cachedSettingsTime = 0;
+}
+
 /**
  * Reads site settings directly from MongoDB Atlas (with local store fallback).
  * Ensures any settings changed from the admin dashboard update across all devices globally.
  */
-export async function getServerSettings(): Promise<SiteSettings> {
+export async function getServerSettings(forceFresh = false): Promise<SiteSettings> {
+  if (!forceFresh && cachedSettings && Date.now() - cachedSettingsTime < SETTINGS_CACHE_TTL) {
+    return cachedSettings;
+  }
+
   try {
-    const cloud = await getSiteKV<SiteSettings>('settings');
+    const cloud = await getSiteKV<SiteSettings>('settings', forceFresh);
     if (cloud && typeof cloud === 'object' && Object.keys(cloud).length > 0) {
-      return { ...DEFAULT_SITE_SETTINGS, ...cloud };
+      const merged = { ...DEFAULT_SITE_SETTINGS, ...cloud };
+      cachedSettings = merged;
+      cachedSettingsTime = Date.now();
+      return merged;
     }
   } catch (err) {
     console.warn('Error reading settings from MongoDB:', err);
   }
-  return getServerSettingsSync();
+  const syncSettings = getServerSettingsSync();
+  cachedSettings = syncSettings;
+  cachedSettingsTime = Date.now();
+  return syncSettings;
 }
 
 /**

@@ -14,7 +14,7 @@ import { getServerSettings } from '@/lib/settingsServer';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { optimizeImageUrl, getHeroSrcSet, getHeroSizes } from '@/lib/imageOptimization';
 
-export const revalidate = 60;
+export const revalidate = 300; // 5-minute CDN Edge Cache
 
 export default async function HomePage() {
   const [settings, categories, catalog] = await Promise.all([

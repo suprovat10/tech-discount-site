@@ -102,7 +102,7 @@ interface TtlEntry {
   cachedAt: number;
 }
 const ttlCache = new Map<string, TtlEntry>();
-const DEFAULT_TTL_MS = 30000; // 30 seconds
+const DEFAULT_TTL_MS = 300000; // 5 minutes (invalidated instantly on any mutation)
 
 export function invalidateSiteKVCache(key?: string): void {
   isInitialized = false;

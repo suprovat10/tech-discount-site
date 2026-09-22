@@ -3,18 +3,32 @@ import { PRODUCTS_CATALOG, CatalogItem } from '@/data/catalog';
 
 export const DB_CATALOG_KEY = 'products_catalog';
 
+// Ultra-fast in-memory cache to eliminate repeated MongoDB queries during SSR/ISR
+let cachedProducts: CatalogItem[] | null = null;
+let cachedProductsTime = 0;
+const PRODUCTS_CACHE_TTL = 300000; // 5 minutes
+
+export function invalidateCatalogDbCache(): void {
+  cachedProducts = null;
+  cachedProductsTime = 0;
+}
+
 /**
  * Get all products from the persistent database.
  * This is the SINGLE SOURCE OF TRUTH for all products on the website.
  * If the database hasn't been initialized yet, it seeds once with the initial products.
  * From then on, ONLY products in the database are returned.
  */
-export async function getDatabaseProducts(): Promise<CatalogItem[]> {
+export async function getDatabaseProducts(forceFresh = false): Promise<CatalogItem[]> {
+  if (!forceFresh && cachedProducts && Date.now() - cachedProductsTime < PRODUCTS_CACHE_TTL) {
+    return cachedProducts;
+  }
+
   try {
     const [oldDeletedRaw, cloud, viewsMap] = await Promise.all([
-      getSiteKV<string[]>('deleted_product_ids'),
-      getSiteKV<CatalogItem[]>(DB_CATALOG_KEY),
-      getSiteKV<Record<string, number>>('product_views'),
+      getSiteKV<string[]>('deleted_product_ids', forceFresh),
+      getSiteKV<CatalogItem[]>(DB_CATALOG_KEY, forceFresh),
+      getSiteKV<Record<string, number>>('product_views', forceFresh),
     ]);
     const oldDeleted = oldDeletedRaw || [];
     const delSet = new Set(oldDeleted);
@@ -30,34 +44,39 @@ export async function getDatabaseProducts(): Promise<CatalogItem[]> {
       });
     };
 
+    let result: CatalogItem[];
     if (cloud !== null && Array.isArray(cloud)) {
       const activeCloud = delSet.size > 0
         ? cloud.filter((p) => !delSet.has(p.id) && !delSet.has(p.slug))
         : cloud;
-      return applyViews(activeCloud);
+      result = applyViews(activeCloud);
+    } else {
+      // Migration helper: If products_catalog key not created yet, check custom_products & deleted_product_ids
+      const oldCustom = await getSiteKV<CatalogItem[]>('custom_products', forceFresh);
+
+      let initialCatalog = [...PRODUCTS_CATALOG];
+      if (oldCustom && Array.isArray(oldCustom) && oldCustom.length > 0) {
+        const map = new Map<string, CatalogItem>();
+        initialCatalog.forEach((p) => map.set(p.id, p));
+        oldCustom.forEach((p) => map.set(p.id, p));
+        initialCatalog = Array.from(map.values());
+      }
+
+      if (delSet.size > 0) {
+        initialCatalog = initialCatalog.filter((p) => !delSet.has(p.id) && !delSet.has(p.slug));
+      }
+
+      // Seed the database with this clean list once
+      await setSiteKV(DB_CATALOG_KEY, initialCatalog);
+      result = applyViews(initialCatalog);
     }
 
-    // Migration helper: If products_catalog key not created yet, check custom_products & deleted_product_ids
-    const oldCustom = await getSiteKV<CatalogItem[]>('custom_products');
-
-    let initialCatalog = [...PRODUCTS_CATALOG];
-    if (oldCustom && Array.isArray(oldCustom) && oldCustom.length > 0) {
-      const map = new Map<string, CatalogItem>();
-      initialCatalog.forEach((p) => map.set(p.id, p));
-      oldCustom.forEach((p) => map.set(p.id, p));
-      initialCatalog = Array.from(map.values());
-    }
-
-    if (delSet.size > 0) {
-      initialCatalog = initialCatalog.filter((p) => !delSet.has(p.id) && !delSet.has(p.slug));
-    }
-
-    // Seed the database with this clean list once
-    await setSiteKV(DB_CATALOG_KEY, initialCatalog);
-    return applyViews(initialCatalog);
+    cachedProducts = result;
+    cachedProductsTime = Date.now();
+    return result;
   } catch (err) {
     console.warn('Error reading products_catalog from database:', err);
-    return PRODUCTS_CATALOG;
+    return cachedProducts || PRODUCTS_CATALOG;
   }
 }
 
@@ -84,6 +103,7 @@ export async function saveDatabaseProduct(product: CatalogItem): Promise<Catalog
     updated = [product, ...current];
   }
   await setSiteKV(DB_CATALOG_KEY, updated);
+  invalidateCatalogDbCache();
   return updated;
 }
 
@@ -96,6 +116,7 @@ export async function deleteDatabaseProduct(idOrSlug: string): Promise<CatalogIt
   const target = current.find((p) => p.id === idOrSlug || p.slug === idOrSlug);
   const updated = current.filter((p) => p.id !== idOrSlug && p.slug !== idOrSlug);
   await setSiteKV(DB_CATALOG_KEY, updated);
+  invalidateCatalogDbCache();
 
   // Permanently record deletion in deleted_product_ids so it NEVER comes back
   try {
