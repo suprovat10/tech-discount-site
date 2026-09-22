@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { AdItem, AdPlacementId } from '@/types/ad';
 import {
@@ -32,7 +32,7 @@ export function AdSlot({ placement, initialAd, className = '' }: AdSlotProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Fetch active ad for this placement using shared client-side cache
-  const fetchAd = async () => {
+  const fetchAd = useCallback(async () => {
     try {
       const activeAd = await getActiveAdForPlacementClient(placement);
       setAd(activeAd);
@@ -41,7 +41,7 @@ export function AdSlot({ placement, initialAd, className = '' }: AdSlotProps) {
     } finally {
       setHasLoaded(true);
     }
-  };
+  }, [placement]);
 
   useEffect(() => {
     fetchAd();
@@ -67,7 +67,7 @@ export function AdSlot({ placement, initialAd, className = '' }: AdSlotProps) {
       clearInterval(interval);
       window.removeEventListener(ADS_UPDATED_EVENT, handleUpdate);
     };
-  }, [placement]);
+  }, [fetchAd]);
 
   // Execute AdSense push if HTML ad contains adsbygoogle
   useEffect(() => {

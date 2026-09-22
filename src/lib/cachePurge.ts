@@ -1,4 +1,5 @@
 import { revalidatePath } from 'next/cache';
+import { invalidateSiteKVCache } from './db/kv';
 
 export interface PurgeOptions {
   productSlug?: string;
@@ -14,6 +15,9 @@ export interface PurgeOptions {
  */
 export function purgeAllCaches(options?: PurgeOptions) {
   try {
+    // 0. Invalidate in-memory and KV database cache
+    invalidateSiteKVCache();
+
     // 1. Root and Layout caches
     revalidatePath('/', 'layout');
     revalidatePath('/', 'page');

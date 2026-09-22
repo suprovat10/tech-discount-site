@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { UnifiedProduct } from '@/types/product';
 import { ProductTag } from '@/types/tag';
@@ -61,7 +61,7 @@ export function TagDetailClient({
     }
   };
 
-  const filterCatalogByTag = (catalog: any[]) => {
+  const filterCatalogByTag = useCallback((catalog: any[]) => {
     return catalog.filter((p) => {
       if (Array.isArray(p.tags) && p.tags.some((t: string) => slugifyTag(t) === slug)) {
         return true;
@@ -71,9 +71,9 @@ export function TagDetailClient({
       if (p.subcategory && slugifyTag(p.subcategory) === slug) return true;
       return false;
     });
-  };
+  }, [slug]);
 
-  const syncTagProducts = (shouldFetchRemote = false) => {
+  const syncTagProducts = useCallback((shouldFetchRemote = false) => {
     try {
       const tags = getProductTags();
       const liveTag = tags.find((t) => t.slug === slug || slugifyTag(t.name) === slug);
@@ -106,7 +106,7 @@ export function TagDetailClient({
     } catch {
       // ignore
     }
-  };
+  }, [slug, initialProducts.length, filterCatalogByTag]);
 
   useEffect(() => {
     // Instant local sync on mount / slug change
@@ -121,7 +121,7 @@ export function TagDetailClient({
       window.removeEventListener('smarttech_product_tags_updated', handleEventSync);
       window.removeEventListener('storage', handleEventSync);
     };
-  }, [slug]);
+  }, [syncTagProducts]);
 
   const sortedProducts = useMemo(() => {
     return [...products].sort((a, b) => {

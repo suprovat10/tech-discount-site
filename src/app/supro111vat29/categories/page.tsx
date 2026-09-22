@@ -124,8 +124,8 @@ export default function AdminCategoriesPage() {
   useEffect(() => {
     const loaded = getCategories();
     setCategories(loaded);
-    if (loaded.length > 0 && !selectedCatId) {
-      setSelectedCatId(loaded[0].id);
+    if (loaded.length > 0) {
+      setSelectedCatId((prev) => prev || loaded[0].id);
     }
 
     const loadTags = () => {
