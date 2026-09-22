@@ -47,16 +47,14 @@ export function isCloudinaryUrl(url?: string): boolean {
   return Boolean(url && typeof url === 'string' && url.includes('res.cloudinary.com') && url.includes('/image/upload/'));
 }
 
-/**
- * Generate responsive srcSet for ad images
- */
 export function getAdSrcSet(url?: string, isBanner: boolean = true): string | undefined {
   if (!url || !isCloudinaryUrl(url)) return undefined;
 
   if (isBanner) {
     return [
       `${optimizeCloudinaryUrl(url, 480)} 480w`,
-      `${optimizeCloudinaryUrl(url, 800)} 800w`,
+      `${optimizeCloudinaryUrl(url, 728)} 728w`,
+      `${optimizeCloudinaryUrl(url, 970)} 970w`,
       `${optimizeCloudinaryUrl(url, 1200)} 1200w`,
     ].join(', ');
   }
@@ -73,7 +71,7 @@ export function getAdSrcSet(url?: string, isBanner: boolean = true): string | un
  */
 export function getAdSizes(isBanner: boolean): string | undefined {
   if (isBanner) {
-    return '(max-width: 640px) 480px, (max-width: 1024px) 800px, 1200px';
+    return '(max-width: 640px) 100vw, (max-width: 1024px) 728px, 970px';
   }
   return '(max-width: 640px) 320px, 320px';
 }

@@ -88,22 +88,22 @@ export function AdSlot({ placement, initialAd, className = '' }: AdSlotProps) {
   }
 
   const isBanner = ad.format === 'banner';
-  const optimizedSrc = optimizeCloudinaryUrl(ad.imageUrl, isBanner ? 800 : 400);
+  const optimizedSrc = optimizeCloudinaryUrl(ad.imageUrl, isBanner ? 728 : 320);
   const srcSet = getAdSrcSet(ad.imageUrl, isBanner);
   const sizes = getAdSizes(isBanner);
 
   return (
     <div
       ref={containerRef}
-      className={`relative w-full my-4 sm:my-6 transition-opacity duration-300 animate-in fade-in ${className}`}
+      className={`relative w-full my-4 sm:my-6 flex items-center justify-center transition-opacity duration-300 animate-in fade-in ${className}`}
     >
       {/* IMAGE AD */}
       {ad.adType === 'image' && ad.imageUrl && (
         <div
-          className={`relative overflow-hidden border border-border/80 bg-card group shadow-xs ${
+          className={`relative overflow-hidden border border-border/80 bg-card group shadow-xs flex items-center justify-center ${
             isBanner
-              ? 'w-full max-h-[140px] sm:max-h-[180px] lg:max-h-[220px] flex items-center justify-center'
-              : 'w-full max-w-[320px] aspect-square mx-auto flex items-center justify-center'
+              ? 'w-auto max-w-full mx-auto'
+              : 'w-auto max-w-[320px] aspect-square mx-auto'
           }`}
         >
           {/* Subtle Sponsored Badge */}
@@ -116,7 +116,7 @@ export function AdSlot({ placement, initialAd, className = '' }: AdSlotProps) {
               href={ad.targetUrl}
               target={ad.openInNewTab ? '_blank' : '_self'}
               rel="sponsored noopener noreferrer"
-              className="w-full h-full block cursor-pointer"
+              className="inline-flex items-center justify-center cursor-pointer"
               title={ad.title}
             >
               <img
@@ -124,8 +124,10 @@ export function AdSlot({ placement, initialAd, className = '' }: AdSlotProps) {
                 srcSet={srcSet}
                 sizes={sizes}
                 alt={ad.altText || ad.title}
-                className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.01] ${
-                  isBanner ? 'object-center' : 'object-cover'
+                className={`max-w-full h-auto object-contain transition-transform duration-300 group-hover:scale-[1.01] ${
+                  isBanner
+                    ? 'max-h-[120px] sm:max-h-[160px] lg:max-h-[220px]'
+                    : 'max-h-[320px] max-w-[320px]'
                 }`}
                 loading="lazy"
                 decoding="async"
@@ -137,7 +139,11 @@ export function AdSlot({ placement, initialAd, className = '' }: AdSlotProps) {
               srcSet={srcSet}
               sizes={sizes}
               alt={ad.altText || ad.title}
-              className="w-full h-full object-cover"
+              className={`max-w-full h-auto object-contain ${
+                isBanner
+                  ? 'max-h-[120px] sm:max-h-[160px] lg:max-h-[220px]'
+                  : 'max-h-[320px] max-w-[320px]'
+              }`}
               loading="lazy"
               decoding="async"
             />
@@ -149,14 +155,14 @@ export function AdSlot({ placement, initialAd, className = '' }: AdSlotProps) {
       {ad.adType === 'html' && ad.htmlCode && (
         <div
           className={`relative border border-border/60 bg-muted/10 p-1 flex items-center justify-center ${
-            isBanner ? 'w-full min-h-[90px]' : 'w-full max-w-[320px] min-h-[250px] mx-auto'
+            isBanner ? 'w-auto max-w-full min-h-[90px] mx-auto' : 'w-full max-w-[320px] min-h-[250px] mx-auto'
           }`}
         >
           <span className="absolute top-1 right-1 z-10 px-1 py-0.5 text-[8px] font-bold uppercase tracking-wider bg-black/40 text-white pointer-events-none">
             Ad
           </span>
           <div
-            className="w-full overflow-hidden flex items-center justify-center"
+            className="w-auto max-w-full overflow-hidden flex items-center justify-center"
             dangerouslySetInnerHTML={{ __html: ad.htmlCode }}
           />
         </div>
