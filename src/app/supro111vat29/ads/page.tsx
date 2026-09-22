@@ -26,6 +26,7 @@ import {
 import { AdItem, AdPlacementId, AD_PLACEMENTS, AdPlacementConfig } from '@/types/ad';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { notifyAdsUpdated } from '@/lib/adStore';
 
 export default function AdminAdsPage() {
   const [ads, setAds] = useState<AdItem[]>([]);
@@ -39,6 +40,8 @@ export default function AdminAdsPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load ads from API
@@ -145,7 +148,7 @@ export default function AdminAdsPage() {
     }
   };
 
-  // Save ad
+  // Save ad with immediate UI sync and cache notification
   const handleSaveAd = async () => {
     if (!editingAd.placement || !editingAd.title?.trim()) {
       setSaveError('Title and Placement are required');
@@ -171,12 +174,25 @@ export default function AdminAdsPage() {
 
       const data = await res.json();
       if (res.ok) {
+        if (data.allAds && Array.isArray(data.allAds)) {
+          setAds(data.allAds);
+        } else {
+          setAds((prev) => {
+            const idx = prev.findIndex((a) => a.id === editingAd.id || a.placement === editingAd.placement);
+            if (idx >= 0) {
+              const copy = [...prev];
+              copy[idx] = { ...copy[idx], ...editingAd } as AdItem;
+              return copy;
+            }
+            return [editingAd as AdItem, ...prev];
+          });
+        }
+        notifyAdsUpdated();
         setSaveSuccess(true);
         setTimeout(() => {
           setIsModalOpen(false);
           setSaveSuccess(false);
-          loadAds();
-        }, 600);
+        }, 300);
       } else {
         setSaveError(data.error || 'Failed to save ad');
       }
@@ -185,29 +201,54 @@ export default function AdminAdsPage() {
     }
   };
 
-  // Toggle active status directly
+  // Toggle active status directly with optimistic update
   const handleToggleActive = async (ad: AdItem) => {
+    const updated = { ...ad, enabled: !ad.enabled };
+    setAds((prev) => prev.map((a) => (a.id === ad.id ? updated : a)));
+    notifyAdsUpdated();
+
     try {
-      const updated = { ...ad, enabled: !ad.enabled };
-      await fetch('/api/ads', {
+      const res = await fetch('/api/ads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updated),
       });
-      loadAds();
+      const data = await res.json();
+      if (data.allAds && Array.isArray(data.allAds)) {
+        setAds(data.allAds);
+      }
     } catch (err) {
       console.error('Error toggling ad status:', err);
+      loadAds();
     }
   };
 
-  // Delete/Clear ad
-  const handleDeleteAd = async (id: string) => {
-    if (!confirm('Are you sure you want to remove this ad from this placement?')) return;
+  // Trigger custom delete modal
+  const handleDeleteClick = (id: string, name: string) => {
+    setDeleteTarget({ id, name });
+  };
+
+  // Execute deletion with instant UI update
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    const { id } = deleteTarget;
+    setIsDeleting(true);
+
+    // Optimistically remove from state immediately
+    setAds((prev) => prev.filter((a) => a.id !== id && a.placement !== id));
+    notifyAdsUpdated();
+    setDeleteTarget(null);
+    setIsDeleting(false);
+
     try {
-      await fetch(`/api/ads?id=${id}`, { method: 'DELETE' });
-      loadAds();
+      const res = await fetch(`/api/ads?id=${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.allAds && Array.isArray(data.allAds)) {
+        setAds(data.allAds);
+      }
     } catch (err) {
       console.error('Error deleting ad:', err);
+      loadAds();
     }
   };
 
@@ -397,7 +438,7 @@ export default function AdminAdsPage() {
                         <Power className="w-3.5 h-3.5" />
                       </button>
                       <button
-                        onClick={() => handleDeleteAd(currentAd.id)}
+                        onClick={() => handleDeleteClick(currentAd.id, placement.name)}
                         title="Remove Ad"
                         className="p-1.5 border border-border text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
                       >
@@ -842,6 +883,49 @@ export default function AdminAdsPage() {
                 className="text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-none px-6"
               >
                 Save Ad Configuration
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Sleek Delete Confirmation Modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-card border border-border max-w-md w-full p-6 shadow-2xl space-y-5 rounded-none animate-in zoom-in-95 duration-150">
+            <div className="flex items-start gap-4">
+              <div className="p-3 bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 rounded-full shrink-0">
+                <Trash2 className="w-6 h-6" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-base font-black text-foreground tracking-tight">
+                  Remove Ad from Placement?
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Are you sure you want to remove the ad from{' '}
+                  <span className="font-bold text-foreground">&quot;{deleteTarget.name}&quot;</span>?
+                  The ad will be permanently deleted and the slot will immediately collapse on your website.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-border">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDeleteTarget(null)}
+                className="text-xs font-bold rounded-none"
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={confirmDelete}
+                disabled={isDeleting}
+                className="text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white rounded-none px-5"
+              >
+                {isDeleting ? 'Removing...' : 'Yes, Delete Ad'}
               </Button>
             </div>
           </div>

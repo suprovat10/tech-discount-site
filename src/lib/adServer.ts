@@ -124,7 +124,8 @@ export async function getActiveAdForPlacement(placement: AdPlacementId): Promise
  */
 export async function saveServerAd(ad: AdItem): Promise<AdItem[]> {
   const current = await getServerAds();
-  const index = current.findIndex((a) => a.id === ad.id);
+  // Ensure each placement has at most one ad (match by ID or Placement)
+  const index = current.findIndex((a) => a.id === ad.id || a.placement === ad.placement);
   const nowIso = new Date().toISOString();
 
   const prepared: AdItem = {
@@ -162,11 +163,12 @@ export async function saveServerAd(ad: AdItem): Promise<AdItem[]> {
 }
 
 /**
- * Delete an ad by ID
+ * Delete an ad by ID or Placement
  */
 export async function deleteServerAd(id: string): Promise<AdItem[]> {
   const current = await getServerAds();
-  const updated = current.filter((a) => a.id !== id);
+  // Filter out matching ID or Placement to ensure no orphaned duplicates remain
+  const updated = current.filter((a) => a.id !== id && a.placement !== id);
   await setSiteKV(DB_ADS_KEY, updated);
   memoryAdsCache = { data: updated, timestamp: Date.now() };
 

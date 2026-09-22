@@ -12,9 +12,10 @@ export async function GET(req: NextRequest) {
 
     const ads = await getServerAds();
 
-    const headers = {
-      'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
-    };
+    // Cache active public ads briefly for performance, but NEVER cache admin dashboard queries
+    const headers = activeOnly
+      ? { 'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=30' }
+      : { 'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate' };
 
     if (placement) {
       const filtered = ads.filter((ad) => ad.placement === placement);
