@@ -6,6 +6,18 @@ export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Supro111*29*vat';
 
 export const ADMIN_AUTH_COOKIE = 'admin_auth_token';
 
+export const ALLOWED_ADMIN_EMAILS = [
+  'suprovat29roy@gmail.com',
+  'suprovat10@gmail.com',
+  ADMIN_USERNAME.toLowerCase(),
+];
+
+export function isAllowedAdminEmail(email?: string | null): boolean {
+  if (!email) return false;
+  const clean = email.toLowerCase().trim();
+  return ALLOWED_ADMIN_EMAILS.includes(clean);
+}
+
 /**
  * Creates a signed auth token
  */
