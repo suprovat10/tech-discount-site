@@ -926,6 +926,12 @@ export function SearchResultsClient({
 
   // Active Category or Subcategory Rich Description (for SEO content block below pagination)
   const activeRichDescription = useMemo(() => {
+    const isNotEmpty = (html?: string | null): html is string => {
+      if (!html) return false;
+      const clean = html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+      return clean.length > 0 || html.includes('<img');
+    };
+
     if (selectedSubcategory && selectedSubcategory !== 'all') {
       for (const cat of categories) {
         const sub = cat.subcategories?.find(
@@ -933,8 +939,8 @@ export function SearchResultsClient({
             s.name.toLowerCase() === selectedSubcategory.toLowerCase() ||
             s.slug.toLowerCase() === selectedSubcategory.toLowerCase()
         );
-        if (sub && (sub.richDescription || sub.description)) {
-          return sub.richDescription || sub.description;
+        if (sub && isNotEmpty(sub.richDescription)) {
+          return sub.richDescription;
         }
       }
     }
@@ -946,8 +952,8 @@ export function SearchResultsClient({
           c.slug.toLowerCase() === selectedCategory.toLowerCase() ||
           c.id.toLowerCase() === selectedCategory.toLowerCase()
       );
-      if (cat && (cat.richDescription || cat.description)) {
-        return cat.richDescription || cat.description;
+      if (cat && isNotEmpty(cat.richDescription)) {
+        return cat.richDescription;
       }
     }
 

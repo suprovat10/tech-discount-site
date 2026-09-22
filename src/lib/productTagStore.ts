@@ -61,7 +61,7 @@ export async function saveProductTag(tag: Partial<ProductTag>): Promise<ProductT
     name: tag.name || '',
     slug: tag.slug ? slugifyTag(tag.slug) : slugifyTag(tag.name || ''),
     description: tag.description || '',
-    richDescription: tag.richDescription || tag.description || '',
+    richDescription: tag.richDescription || undefined,
     featured: Boolean(tag.featured),
     seo: tag.seo || undefined,
   };

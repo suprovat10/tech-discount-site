@@ -52,7 +52,7 @@ export function getCategories(): CategoryDefinition[] {
             ...cat,
             imageUrl: cat.imageUrl || defaultCat.imageUrl,
             description: cat.description || defaultCat.description,
-            richDescription: cat.richDescription || defaultCat.richDescription || cat.description || defaultCat.description,
+            richDescription: cat.richDescription || defaultCat.richDescription,
             isFeaturedOnHome:
               cat.isFeaturedOnHome !== undefined ? cat.isFeaturedOnHome : defaultCat.isFeaturedOnHome,
             showInTopSlider:
@@ -67,7 +67,7 @@ export function getCategories(): CategoryDefinition[] {
                 ...sub,
                 imageUrl: sub.imageUrl || defaultSub.imageUrl,
                 description: sub.description || defaultSub.description,
-                richDescription: sub.richDescription || defaultSub.richDescription || sub.description || defaultSub.description,
+                richDescription: sub.richDescription || defaultSub.richDescription,
                 showInTopSlider:
                   sub.showInTopSlider !== undefined ? sub.showInTopSlider : defaultSub.showInTopSlider,
                 showInExploreDeals:

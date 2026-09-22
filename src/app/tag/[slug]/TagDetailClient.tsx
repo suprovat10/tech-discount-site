@@ -316,17 +316,24 @@ export function TagDetailClient({
       )}
 
       {/* Product Tag Rich Description Section below pagination */}
-      {(tag?.richDescription || tag?.description) && (
-        <div
-          style={{ marginTop: '70px' }}
-          className="!mt-[70px] sm:!mt-[80px] p-6 sm:p-8 bg-card border border-border/80 shadow-2xs"
-        >
+      {(() => {
+        const html = tag?.richDescription;
+        if (!html) return null;
+        const clean = html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+        if (clean.length === 0 && !html.includes('<img')) return null;
+
+        return (
           <div
-            className="text-xs sm:text-sm text-foreground/90 font-normal leading-relaxed prose dark:prose-invert max-w-none [&_h1]:text-xl [&_h1]:font-black [&_h1]:mb-3 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:mb-2 [&_h3]:text-base [&_h3]:font-bold [&_h3]:mb-2 [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-3 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-3 [&_a]:text-blue-600 [&_a]:underline [&_blockquote]:border-l-4 [&_blockquote]:border-blue-500 [&_blockquote]:pl-3 [&_blockquote]:italic [&_img]:rounded-md [&_img]:max-w-full [&_img]:my-3"
-            dangerouslySetInnerHTML={{ __html: tag.richDescription || tag.description || '' }}
-          />
-        </div>
-      )}
+            style={{ marginTop: '70px' }}
+            className="!mt-[70px] sm:!mt-[80px] p-6 sm:p-8 bg-card border border-border/80 shadow-2xs"
+          >
+            <div
+              className="text-xs sm:text-sm text-foreground/90 font-normal leading-relaxed prose dark:prose-invert max-w-none [&_h1]:text-xl [&_h1]:font-black [&_h1]:mb-3 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:mb-2 [&_h3]:text-base [&_h3]:font-bold [&_h3]:mb-2 [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-3 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-3 [&_a]:text-blue-600 [&_a]:underline [&_blockquote]:border-l-4 [&_blockquote]:border-blue-500 [&_blockquote]:pl-3 [&_blockquote]:italic [&_img]:rounded-md [&_img]:max-w-full [&_img]:my-3"
+              dangerouslySetInnerHTML={{ __html: html }}
+            />
+          </div>
+        );
+      })()}
     </div>
   );
 }
