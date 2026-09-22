@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import {
   Search,
   Heart,
@@ -18,7 +18,6 @@ import { optimizeImageUrl } from '@/lib/imageOptimization';
 export function Header() {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const branding = useBranding();
   const { count: watchlistCount, isLoaded } = useWatchlist();
   const [searchQuery, setSearchQuery] = useState('');
@@ -35,12 +34,14 @@ export function Header() {
 
   // Sync searchQuery with current URL search param (e.g. /products?search=mobile)
   useEffect(() => {
-    const q = searchParams.get('search') || searchParams.get('q');
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get('search') || params.get('q');
     setSearchQuery(q || '');
     if (desktopSearchInputRef.current && !q) {
       desktopSearchInputRef.current.value = '';
     }
-  }, [searchParams]);
+  }, [pathname]);
 
   // Listen for instant clear events across the app
   useEffect(() => {

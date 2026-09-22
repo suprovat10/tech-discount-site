@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { UnifiedProduct, RetailerId } from '@/types/product';
 import { CategoryDefinition } from '@/data/catalog';
@@ -36,6 +36,7 @@ interface SearchResultsClientProps {
   initialSubcategorySlug?: string;
   initialProducts?: UnifiedProduct[];
   initialCategories?: CategoryDefinition[];
+  initialSearchParams?: { [key: string]: string | string[] | undefined };
 }
 
 export function SearchResultsClient({
@@ -43,23 +44,46 @@ export function SearchResultsClient({
   initialSubcategorySlug = '',
   initialProducts = [],
   initialCategories,
+  initialSearchParams,
 }: SearchResultsClientProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   // Dynamic Categories list from categoryStore / MongoDB
   const [categories, setCategories] = useState<CategoryDefinition[]>(initialCategories || []);
   const [adminBrands, setAdminBrands] = useState<BrandItem[]>([]);
   const [catalogVersion, setCatalogVersion] = useState(0);
   const [products, setProducts] = useState<UnifiedProduct[]>(initialProducts);
-  const [isLoading, setIsLoading] = useState(initialProducts.length === 0);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Derive initial matched category for SSR
+  const matchedCatOnServer = useMemo(() => {
+    if (!initialCategorySlug || initialCategorySlug === 'all') return null;
+    const cats = initialCategories || [];
+    return findCategoryBySlugOrName(cats, initialCategorySlug);
+  }, [initialCategorySlug, initialCategories]);
+
   // Search & Filter States
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [selectedSubcategory, setSelectedSubcategory] = useState<string>('all');
-  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+  const [searchQuery, setSearchQuery] = useState<string>(() => {
+    const q = initialSearchParams?.search || initialSearchParams?.q;
+    return typeof q === 'string' ? q : '';
+  });
+  const [selectedCategory, setSelectedCategory] = useState<string>(() => {
+    return matchedCatOnServer ? matchedCatOnServer.name : 'all';
+  });
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string>(() => {
+    if (matchedCatOnServer && initialSubcategorySlug && initialSubcategorySlug !== 'all') {
+      const sub = findSubcategoryBySlugOrName(matchedCatOnServer, initialSubcategorySlug);
+      return sub ? sub.name : 'all';
+    }
+    return 'all';
+  });
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>(() => {
+    if (matchedCatOnServer) {
+      return { [matchedCatOnServer.name]: true };
+    }
+    return {};
+  });
 
   // Dynamic maximum price computed from current products and catalog (Highest Sale Price)
   const dynamicMaxPrice = useMemo(() => {
@@ -78,15 +102,46 @@ export function SearchResultsClient({
     return Math.ceil(highest / 10) * 10;
   }, [products]);
 
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
-  const [minPrice, setMinPrice] = useState<number>(0);
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(() => {
+    const raw = initialSearchParams?.stores || initialSearchParams?.store || initialSearchParams?.platform;
+    if (typeof raw === 'string') {
+      return raw.split(/[,\+]/).map((s) => s.trim().toLowerCase()).filter(Boolean);
+    }
+    return [];
+  });
+  const [minPrice, setMinPrice] = useState<number>(() => {
+    const minP = initialSearchParams?.minPrice;
+    return typeof minP === 'string' ? Number(minP) || 0 : 0;
+  });
   const [maxPrice, setMaxPrice] = useState<number>(() => dynamicMaxPrice);
-  const [hasCustomMaxPrice, setHasCustomMaxPrice] = useState<boolean>(false);
-  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
-  const [minRating, setMinRating] = useState<number>(0);
-  const [inStockOnly, setInStockOnly] = useState<boolean>(false);
-  const [sortBy, setSortBy] = useState<string>('latest');
+  const [hasCustomMaxPrice, setHasCustomMaxPrice] = useState<boolean>(() => {
+    const maxP = initialSearchParams?.maxPrice;
+    return typeof maxP === 'string' && Number(maxP) > 0;
+  });
+  const [selectedBrands, setSelectedBrands] = useState<string[]>(() => {
+    const raw = initialSearchParams?.brands || initialSearchParams?.brand;
+    if (typeof raw === 'string') {
+      return raw.split(/[,\+]/).map((b) => b.trim().toLowerCase()).filter(Boolean);
+    }
+    return [];
+  });
+  const [minRating, setMinRating] = useState<number>(() => {
+    const r = initialSearchParams?.rating || initialSearchParams?.minRating;
+    return typeof r === 'string' ? Number(r) || 0 : 0;
+  });
+  const [inStockOnly, setInStockOnly] = useState<boolean>(() => {
+    return initialSearchParams?.inStock === 'true';
+  });
+  const [sortBy, setSortBy] = useState<string>(() => {
+    const s = initialSearchParams?.sort || initialSearchParams?.sortBy;
+    if (typeof s === 'string') {
+      const norm = s.replace(/_/g, '-');
+      if (['lowest-price', 'highest-savings', 'top-rated', 'highest-price'].includes(norm)) return norm;
+    }
+    return 'latest';
+  });
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState<boolean>(false);
+  const [showAllBrands, setShowAllBrands] = useState<boolean>(false);
   const [isMounted, setIsMounted] = useState<boolean>(false);
 
   useEffect(() => {
@@ -364,12 +419,14 @@ export function SearchResultsClient({
     [initialCategorySlug, initialSubcategorySlug]
   );
 
-  // Initialize and synchronize when searchParams change or on load
+  // Initialize and synchronize on mount or route changes
   useEffect(() => {
     const loadedCats = getCategories();
-    setCategories(loadedCats);
-    parseUrlParams(loadedCats);
-  }, [searchParams, parseUrlParams]);
+    if (loadedCats && loadedCats.length > 0) {
+      setCategories(loadedCats);
+    }
+    parseUrlParams(loadedCats.length > 0 ? loadedCats : categories);
+  }, [parseUrlParams]);
 
   // Handle browser Back / Forward history buttons
   useEffect(() => {
@@ -1144,7 +1201,7 @@ export function SearchResultsClient({
           </h3>
 
           <div className="space-y-1.5 max-h-48 overflow-y-auto text-xs font-medium pr-1">
-            {availableBrands.map(({ brand, count }) => {
+            {(showAllBrands ? availableBrands : availableBrands.slice(0, 10)).map(({ brand, count }) => {
               const isChecked = selectedBrands.some(
                 (b) => b.toLowerCase().trim() === brand.toLowerCase().trim()
               );
@@ -1169,6 +1226,15 @@ export function SearchResultsClient({
               );
             })}
           </div>
+          {availableBrands.length > 10 && (
+            <button
+              type="button"
+              onClick={() => setShowAllBrands((prev) => !prev)}
+              className="text-[11px] font-bold text-blue-600 hover:underline pt-0.5 cursor-pointer"
+            >
+              {showAllBrands ? 'Show Less' : `+ Show ${availableBrands.length - 10} More Brands`}
+            </button>
+          )}
         </div>
       )}
 
@@ -1283,21 +1349,18 @@ export function SearchResultsClient({
       {/* Ad Placement: Below Breadcrumbs Banner */}
       <AdSlot placement="products_below_breadcrumb" />
 
-      {/* Mobile Slide-in Filter Drawer Backdrop & Drawer (Portaled to document.body with z-[100] to always start from screen top-0) */}
+      {/* Mobile Slide-in Filter Drawer Backdrop & Drawer (Portaled to document.body with z-[100] only when open) */}
       {isMounted &&
+        isMobileFilterOpen &&
         createPortal(
           <>
-            {isMobileFilterOpen && (
-              <div
-                className="fixed inset-0 bg-black/60 z-[99] lg:hidden backdrop-blur-xs transition-opacity duration-300 animate-in fade-in"
-                onClick={() => setIsMobileFilterOpen(false)}
-              />
-            )}
+            <div
+              className="fixed inset-0 bg-black/60 z-[99] lg:hidden backdrop-blur-xs transition-opacity duration-300 animate-in fade-in"
+              onClick={() => setIsMobileFilterOpen(false)}
+            />
 
             <div
-              className={`fixed top-0 bottom-0 left-0 inset-y-0 z-[100] w-[85%] max-w-[340px] bg-background border-r border-border shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out lg:hidden ${
-                isMobileFilterOpen ? 'translate-x-0' : '-translate-x-full pointer-events-none'
-              }`}
+              className="fixed top-0 bottom-0 left-0 inset-y-0 z-[100] w-[85%] max-w-[340px] bg-background border-r border-border shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out lg:hidden translate-x-0"
             >
               {/* Drawer Header */}
               <div className="p-4 border-b border-border flex items-center justify-between bg-muted/20 shrink-0">

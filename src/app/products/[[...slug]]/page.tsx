@@ -1,7 +1,6 @@
-import React, { Suspense } from 'react';
+import React from 'react';
 import { Metadata } from 'next';
 import { SearchResultsClient } from '@/app/search/SearchResultsClient';
-import { Loader2 } from 'lucide-react';
 import { getServerSettings } from '@/lib/settingsServer';
 import { getCategories } from '@/lib/categoryStore';
 import { getDatabaseCategories } from '@/lib/categoryServer';
@@ -90,8 +89,11 @@ export async function generateMetadata({ params }: ProductsPageProps): Promise<M
   };
 }
 
-export default async function ProductsPage({ params }: ProductsPageProps) {
-  const resolvedParams = await params;
+export default async function ProductsPage({ params, searchParams }: ProductsPageProps) {
+  const [resolvedParams, resolvedSearchParams] = await Promise.all([
+    params,
+    searchParams,
+  ]);
   const slugs = resolvedParams.slug || [];
   const catSlug = slugs[0] || '';
   const subSlug = slugs[1] || '';
@@ -109,9 +111,27 @@ export default async function ProductsPage({ params }: ProductsPageProps) {
     console.error('Failed to load initial products/categories for page:', e);
   }
 
+  // Find target category to accurately determine first product displayed for LCP preload
+  const matchedCategory = catSlug
+    ? categories.find(
+        (c) =>
+          c.slug?.toLowerCase() === catSlug.toLowerCase() ||
+          c.id?.toLowerCase() === catSlug.toLowerCase()
+      )
+    : null;
+
+  const relevantProducts = matchedCategory
+    ? initialProducts.filter((p) => {
+        const pCat = (p.category || '').toLowerCase();
+        const catName = matchedCategory.name.toLowerCase();
+        const catSlugStr = matchedCategory.slug.toLowerCase();
+        return pCat === catName || pCat.includes(catName) || pCat === catSlugStr;
+      })
+    : initialProducts;
+
   const firstProductImage =
-    initialProducts.length > 0 && initialProducts[0]?.imageUrl
-      ? optimizeImageUrl(initialProducts[0].imageUrl, 360)
+    relevantProducts.length > 0 && relevantProducts[0]?.imageUrl
+      ? optimizeImageUrl(relevantProducts[0].imageUrl, 360)
       : null;
 
   return (
@@ -124,22 +144,14 @@ export default async function ProductsPage({ params }: ProductsPageProps) {
           fetchPriority="high"
         />
       )}
-      <Suspense
-        fallback={
-          <div className="py-24 text-center space-y-4">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto" />
-            <p className="text-sm text-muted-foreground">Scanning retailer price feeds...</p>
-          </div>
-        }
-      >
-        <SearchResultsClient
-          key={`${catSlug}-${subSlug}`}
-          initialCategorySlug={catSlug}
-          initialSubcategorySlug={subSlug}
-          initialProducts={initialProducts}
-          initialCategories={categories}
-        />
-      </Suspense>
+      <SearchResultsClient
+        key={`${catSlug}-${subSlug}`}
+        initialCategorySlug={catSlug}
+        initialSubcategorySlug={subSlug}
+        initialProducts={initialProducts}
+        initialCategories={categories}
+        initialSearchParams={resolvedSearchParams}
+      />
     </div>
   );
 }
