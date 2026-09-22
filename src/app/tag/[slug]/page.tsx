@@ -24,23 +24,30 @@ export async function generateMetadata({ params }: TagPageProps): Promise<Metada
   const allTags = await getProductTagsServer();
   const matchedTag = allTags.find((t: ProductTag) => t.slug === cleanSlug || slugifyTag(t.name) === cleanSlug);
   const tagName = matchedTag?.name || cleanSlug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-  const tagUrl = `${siteUrl}/tag/${cleanSlug}`;
+  const tagUrl = matchedTag?.seo?.canonicalUrl || `${siteUrl}/tag/${cleanSlug}`;
+
+  const metaTitle = matchedTag?.seo?.metaTitle || `${tagName} Deals, Discounts & Price Drops | ${siteBrand}`;
+  const metaDesc = matchedTag?.seo?.metaDescription || matchedTag?.description || `Explore the best discounts, price drops, and verified multi-store deals for ${tagName}. Compare prices across top retailers.`;
+  const keywords = matchedTag?.seo?.keywords ? matchedTag.seo.keywords.split(',').map((k) => k.trim()) : undefined;
+  const isNoIndex = Boolean(matchedTag?.seo?.noIndex);
 
   return {
-    title: `${tagName} Deals, Discounts & Price Drops | ${siteBrand}`,
-    description: matchedTag?.description || `Explore the best discounts, price drops, and verified multi-store deals for ${tagName}. Compare prices across top retailers.`,
+    title: metaTitle,
+    description: metaDesc,
+    keywords,
     alternates: {
       canonical: tagUrl,
     },
     robots: {
-      index: true,
-      follow: true,
+      index: !isNoIndex,
+      follow: !isNoIndex,
     },
     openGraph: {
-      title: `${tagName} Deals & Price Drops | ${siteBrand}`,
-      description: matchedTag?.description || `Compare live prices and discounts on ${tagName} products across Amazon, Walmart, Best Buy, and Target.`,
+      title: metaTitle,
+      description: metaDesc,
       url: tagUrl,
       siteName: siteBrand,
+      images: matchedTag?.seo?.ogImageUrl ? [{ url: matchedTag.seo.ogImageUrl }] : undefined,
     },
   };
 }

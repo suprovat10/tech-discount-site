@@ -55,6 +55,14 @@ export async function POST(req: NextRequest) {
         .replace(/^-+|-+$/g, ''),
       description: body.description?.trim() || '',
       featured: Boolean(body.featured),
+      seo: body.seo ? {
+        metaTitle: body.seo.metaTitle?.trim() || undefined,
+        metaDescription: body.seo.metaDescription?.trim() || undefined,
+        keywords: body.seo.keywords?.trim() || undefined,
+        canonicalUrl: body.seo.canonicalUrl?.trim() || undefined,
+        ogImageUrl: body.seo.ogImageUrl?.trim() || undefined,
+        noIndex: Boolean(body.seo.noIndex),
+      } : undefined,
       createdAt: body.createdAt,
       updatedAt: new Date().toISOString(),
     };

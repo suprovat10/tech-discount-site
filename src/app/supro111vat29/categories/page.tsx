@@ -32,6 +32,7 @@ import {
   ImageIcon,
   Search,
   Hash,
+  Globe,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -89,12 +90,26 @@ export default function AdminCategoriesPage() {
   const [newTagName, setNewTagName] = useState('');
   const [newTagSlug, setNewTagSlug] = useState('');
   const [newTagDesc, setNewTagDesc] = useState('');
+  const [newTagMetaTitle, setNewTagMetaTitle] = useState('');
+  const [newTagMetaDesc, setNewTagMetaDesc] = useState('');
+  const [newTagKeywords, setNewTagKeywords] = useState('');
+  const [newTagCanonicalUrl, setNewTagCanonicalUrl] = useState('');
+  const [newTagOgImage, setNewTagOgImage] = useState('');
+  const [newTagNoIndex, setNewTagNoIndex] = useState(false);
+  const [showNewTagSeo, setShowNewTagSeo] = useState(false);
 
   // Edit Product Tag State
   const [editingTag, setEditingTag] = useState<ProductTag | null>(null);
   const [editTagName, setEditTagName] = useState('');
   const [editTagSlug, setEditTagSlug] = useState('');
   const [editTagDesc, setEditTagDesc] = useState('');
+  const [editTagMetaTitle, setEditTagMetaTitle] = useState('');
+  const [editTagMetaDesc, setEditTagMetaDesc] = useState('');
+  const [editTagKeywords, setEditTagKeywords] = useState('');
+  const [editTagCanonicalUrl, setEditTagCanonicalUrl] = useState('');
+  const [editTagOgImage, setEditTagOgImage] = useState('');
+  const [editTagNoIndex, setEditTagNoIndex] = useState(false);
+  const [showEditTagSeo, setShowEditTagSeo] = useState(false);
 
   // Delete Product Tag State
   const [deleteTargetTag, setDeleteTargetTag] = useState<ProductTag | null>(null);
@@ -304,6 +319,14 @@ export default function AdminCategoriesPage() {
       name: newTagName.trim(),
       slug: finalSlug,
       description: newTagDesc.trim() || undefined,
+      seo: {
+        metaTitle: newTagMetaTitle.trim() || undefined,
+        metaDescription: newTagMetaDesc.trim() || undefined,
+        keywords: newTagKeywords.trim() || undefined,
+        canonicalUrl: newTagCanonicalUrl.trim() || undefined,
+        ogImageUrl: newTagOgImage.trim() || undefined,
+        noIndex: Boolean(newTagNoIndex),
+      },
     };
 
     const updated = await saveProductTag(newTag);
@@ -311,6 +334,13 @@ export default function AdminCategoriesPage() {
     setNewTagName('');
     setNewTagSlug('');
     setNewTagDesc('');
+    setNewTagMetaTitle('');
+    setNewTagMetaDesc('');
+    setNewTagKeywords('');
+    setNewTagCanonicalUrl('');
+    setNewTagOgImage('');
+    setNewTagNoIndex(false);
+    setShowNewTagSeo(false);
     showNotification(`Product tag "${newTagName.trim()}" added successfully!`);
   };
 
@@ -319,6 +349,13 @@ export default function AdminCategoriesPage() {
     setEditTagName(item.name);
     setEditTagSlug(item.slug);
     setEditTagDesc(item.description || '');
+    setEditTagMetaTitle(item.seo?.metaTitle || '');
+    setEditTagMetaDesc(item.seo?.metaDescription || '');
+    setEditTagKeywords(item.seo?.keywords || '');
+    setEditTagCanonicalUrl(item.seo?.canonicalUrl || '');
+    setEditTagOgImage(item.seo?.ogImageUrl || '');
+    setEditTagNoIndex(Boolean(item.seo?.noIndex));
+    setShowEditTagSeo(Boolean(item.seo && Object.keys(item.seo).length > 0));
   };
 
   const handleSaveEditProductTag = async (e: React.FormEvent) => {
@@ -331,6 +368,14 @@ export default function AdminCategoriesPage() {
       name: editTagName.trim(),
       slug: finalSlug,
       description: editTagDesc.trim() || undefined,
+      seo: {
+        metaTitle: editTagMetaTitle.trim() || undefined,
+        metaDescription: editTagMetaDesc.trim() || undefined,
+        keywords: editTagKeywords.trim() || undefined,
+        canonicalUrl: editTagCanonicalUrl.trim() || undefined,
+        ogImageUrl: editTagOgImage.trim() || undefined,
+        noIndex: Boolean(editTagNoIndex),
+      },
     };
 
     const updated = await saveProductTag(updatedTag);
@@ -970,6 +1015,105 @@ export default function AdminCategoriesPage() {
                   />
                 </div>
 
+                {/* SEO & Meta Data Section */}
+                <div className="border border-border/80 bg-muted/20 p-3 space-y-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowNewTagSeo(!showNewTagSeo)}
+                    className="w-full flex items-center justify-between text-xs font-bold text-foreground"
+                  >
+                    <span className="flex items-center gap-1.5 text-blue-600">
+                      <Globe className="w-3.5 h-3.5" />
+                      SEO & Meta Data (Optional)
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      {showNewTagSeo ? '▲ Hide' : '▼ Expand'}
+                    </span>
+                  </button>
+
+                  {showNewTagSeo && (
+                    <div className="space-y-3 pt-2 border-t border-border/60 animate-in fade-in duration-150">
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-[11px] font-bold text-foreground">Meta Title</label>
+                          <span className="text-[10px] text-muted-foreground">{newTagMetaTitle.length}/60</span>
+                        </div>
+                        <Input
+                          type="text"
+                          placeholder={`${newTagName || 'Tag'} Deals, Discounts & Price Drops`}
+                          value={newTagMetaTitle}
+                          onChange={(e) => setNewTagMetaTitle(e.target.value)}
+                          className="text-xs rounded-none h-8"
+                        />
+                      </div>
+
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-[11px] font-bold text-foreground">Meta Description</label>
+                          <span className="text-[10px] text-muted-foreground">{newTagMetaDesc.length}/160</span>
+                        </div>
+                        <textarea
+                          placeholder="Search engine snippet summary..."
+                          value={newTagMetaDesc}
+                          onChange={(e) => setNewTagMetaDesc(e.target.value)}
+                          className="w-full text-xs bg-muted/40 border border-border p-2 rounded-none focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[60px]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[11px] font-bold text-foreground block mb-1">
+                          SEO Keywords (Comma separated)
+                        </label>
+                        <Input
+                          type="text"
+                          placeholder="e.g. deals, discounts, price drop, best price"
+                          value={newTagKeywords}
+                          onChange={(e) => setNewTagKeywords(e.target.value)}
+                          className="text-xs rounded-none h-8"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[11px] font-bold text-foreground block mb-1">
+                          Canonical URL (Override)
+                        </label>
+                        <Input
+                          type="text"
+                          placeholder="https://suprodesign.com/tag/slug"
+                          value={newTagCanonicalUrl}
+                          onChange={(e) => setNewTagCanonicalUrl(e.target.value)}
+                          className="text-xs font-mono rounded-none h-8"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[11px] font-bold text-foreground block mb-1">
+                          OG Image URL (Social Share)
+                        </label>
+                        <Input
+                          type="text"
+                          placeholder="https://.../banner.jpg"
+                          value={newTagOgImage}
+                          onChange={(e) => setNewTagOgImage(e.target.value)}
+                          className="text-xs rounded-none h-8"
+                        />
+                      </div>
+
+                      <div className="pt-1">
+                        <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={newTagNoIndex}
+                            onChange={(e) => setNewTagNoIndex(e.target.checked)}
+                            className="rounded-none"
+                          />
+                          <span className="text-rose-600 dark:text-rose-400">Noindex (Hide from search engines)</span>
+                        </label>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <Button
                   type="submit"
                   className="w-full text-xs font-bold gap-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-none"
@@ -1475,6 +1619,105 @@ export default function AdminCategoriesPage() {
                   onChange={(e) => setEditTagDesc(e.target.value)}
                   className="w-full text-xs bg-muted/40 border border-border p-2.5 rounded-none focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[80px]"
                 />
+              </div>
+
+              {/* SEO & Meta Data Section */}
+              <div className="border border-border/80 bg-muted/20 p-3 space-y-3">
+                <button
+                  type="button"
+                  onClick={() => setShowEditTagSeo(!showEditTagSeo)}
+                  className="w-full flex items-center justify-between text-xs font-bold text-foreground"
+                >
+                  <span className="flex items-center gap-1.5 text-blue-600">
+                    <Globe className="w-3.5 h-3.5" />
+                    SEO & Meta Data (Optional)
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {showEditTagSeo ? '▲ Hide' : '▼ Expand'}
+                  </span>
+                </button>
+
+                {showEditTagSeo && (
+                  <div className="space-y-3 pt-2 border-t border-border/60 animate-in fade-in duration-150">
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[11px] font-bold text-foreground">Meta Title</label>
+                        <span className="text-[10px] text-muted-foreground">{editTagMetaTitle.length}/60</span>
+                      </div>
+                      <Input
+                        type="text"
+                        placeholder={`${editTagName || 'Tag'} Deals, Discounts & Price Drops`}
+                        value={editTagMetaTitle}
+                        onChange={(e) => setEditTagMetaTitle(e.target.value)}
+                        className="text-xs rounded-none h-8"
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[11px] font-bold text-foreground">Meta Description</label>
+                        <span className="text-[10px] text-muted-foreground">{editTagMetaDesc.length}/160</span>
+                      </div>
+                      <textarea
+                        placeholder="Search engine snippet summary..."
+                        value={editTagMetaDesc}
+                        onChange={(e) => setEditTagMetaDesc(e.target.value)}
+                        className="w-full text-xs bg-muted/40 border border-border p-2 rounded-none focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[60px]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-foreground block mb-1">
+                        SEO Keywords (Comma separated)
+                      </label>
+                      <Input
+                        type="text"
+                        placeholder="e.g. deals, discounts, price drop, best price"
+                        value={editTagKeywords}
+                        onChange={(e) => setEditTagKeywords(e.target.value)}
+                        className="text-xs rounded-none h-8"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-foreground block mb-1">
+                        Canonical URL (Override)
+                      </label>
+                      <Input
+                        type="text"
+                        placeholder="https://suprodesign.com/tag/slug"
+                        value={editTagCanonicalUrl}
+                        onChange={(e) => setEditTagCanonicalUrl(e.target.value)}
+                        className="text-xs font-mono rounded-none h-8"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-foreground block mb-1">
+                        OG Image URL (Social Share)
+                      </label>
+                      <Input
+                        type="text"
+                        placeholder="https://.../banner.jpg"
+                        value={editTagOgImage}
+                        onChange={(e) => setEditTagOgImage(e.target.value)}
+                        className="text-xs rounded-none h-8"
+                      />
+                    </div>
+
+                    <div className="pt-1">
+                      <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={editTagNoIndex}
+                          onChange={(e) => setEditTagNoIndex(e.target.checked)}
+                          className="rounded-none"
+                        />
+                        <span className="text-rose-600 dark:text-rose-400">Noindex (Hide from search engines)</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-end gap-2 pt-3 border-t border-border">

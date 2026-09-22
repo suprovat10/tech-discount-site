@@ -94,12 +94,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // 7. Dynamic Product Tag Pages
   const productTags = await getProductTagsServer();
-  const productTagRoutes = productTags.map((tag: ProductTag) => ({
-    url: `${baseUrl}/tag/${tag.slug}`,
-    lastModified: now,
-    changeFrequency: 'daily' as const,
-    priority: 0.7,
-  }));
+  const productTagRoutes = productTags
+    .filter((tag: ProductTag) => !tag.seo?.noIndex)
+    .map((tag: ProductTag) => ({
+      url: `${baseUrl}/tag/${tag.slug}`,
+      lastModified: now,
+      changeFrequency: 'daily' as const,
+      priority: 0.7,
+    }));
 
   // 8. Dynamic Blog Tag Pages
   const uniqueBlogTagSlugs = new Set<string>();
