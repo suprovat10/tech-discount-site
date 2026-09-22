@@ -6,6 +6,7 @@ import {
 } from '@/lib/productTagServer';
 import { ProductTag } from '@/types/tag';
 import { purgeAllCaches } from '@/lib/cachePurge';
+import { isRequestAdminAuthenticated } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,6 +37,10 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  if (!isRequestAdminAuthenticated(req)) {
+    return NextResponse.json({ success: false, error: 'Unauthorized: Admin authentication required' }, { status: 401 });
+  }
+
   try {
     const body = await req.json();
     if (!body || !body.name) {
@@ -81,6 +86,10 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  if (!isRequestAdminAuthenticated(req)) {
+    return NextResponse.json({ success: false, error: 'Unauthorized: Admin authentication required' }, { status: 401 });
+  }
+
   try {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');

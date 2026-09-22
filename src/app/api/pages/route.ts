@@ -29,6 +29,7 @@ async function loadPagesFromCloud(): Promise<SitePage[]> {
 }
 
 import { purgeAllCaches } from '@/lib/cachePurge';
+import { isRequestAdminAuthenticated } from '@/lib/auth';
 
 function purgePageCaches(slug?: string) {
   purgeAllCaches({ pageSlug: slug });
@@ -51,6 +52,10 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (!isRequestAdminAuthenticated(request)) {
+    return NextResponse.json({ success: false, error: 'Unauthorized: Admin authentication required' }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
     if (!body.title) {
@@ -98,6 +103,10 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
+  if (!isRequestAdminAuthenticated(request)) {
+    return NextResponse.json({ success: false, error: 'Unauthorized: Admin authentication required' }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
     if (Array.isArray(body.pages)) {
@@ -116,6 +125,10 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  if (!isRequestAdminAuthenticated(request)) {
+    return NextResponse.json({ success: false, error: 'Unauthorized: Admin authentication required' }, { status: 401 });
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');

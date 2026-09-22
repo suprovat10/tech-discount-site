@@ -44,3 +44,39 @@ export function verifyAdminToken(token?: string | null): boolean {
 
   return signature === expectedSignature;
 }
+
+/**
+ * Validates whether an incoming HTTP Request (API route or Middleware)
+ * originates from an authenticated admin session.
+ */
+export function isRequestAdminAuthenticated(req: Request | { headers: Headers; cookies?: any }): boolean {
+  try {
+    let token: string | undefined;
+
+    // 1. Check cookies if available via NextRequest
+    if ('cookies' in req && req.cookies && typeof req.cookies.get === 'function') {
+      token = req.cookies.get(ADMIN_AUTH_COOKIE)?.value;
+    }
+
+    // 2. Fallback to Cookie header
+    if (!token && req.headers && typeof req.headers.get === 'function') {
+      const cookieHeader = req.headers.get('cookie') || '';
+      const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${ADMIN_AUTH_COOKIE}=([^;]+)`));
+      if (match && match[1]) {
+        token = decodeURIComponent(match[1]);
+      }
+    }
+
+    // 3. Fallback to Authorization: Bearer <token>
+    if (!token && req.headers && typeof req.headers.get === 'function') {
+      const authHeader = req.headers.get('authorization') || '';
+      if (authHeader.toLowerCase().startsWith('bearer ')) {
+        token = authHeader.substring(7).trim();
+      }
+    }
+
+    return verifyAdminToken(token);
+  } catch {
+    return false;
+  }
+}

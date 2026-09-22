@@ -12,6 +12,7 @@ import { BlogPost, BLOG_POSTS as DEFAULT_BLOGS } from '@/data/blogs';
 import { setSiteKV } from '@/lib/db/kv';
 
 import { purgeAllCaches } from '@/lib/cachePurge';
+import { isRequestAdminAuthenticated } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -59,6 +60,10 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  if (!isRequestAdminAuthenticated(req)) {
+    return NextResponse.json({ success: false, error: 'Unauthorized: Admin authentication required' }, { status: 401 });
+  }
+
   try {
     const body: BlogPost = await req.json();
     if (!body || !body.title) {
@@ -75,6 +80,10 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
+  if (!isRequestAdminAuthenticated(req)) {
+    return NextResponse.json({ success: false, error: 'Unauthorized: Admin authentication required' }, { status: 401 });
+  }
+
   try {
     const body = await req.json();
     if (Array.isArray(body.blogs)) {
@@ -105,6 +114,10 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  if (!isRequestAdminAuthenticated(req)) {
+    return NextResponse.json({ success: false, error: 'Unauthorized: Admin authentication required' }, { status: 401 });
+  }
+
   try {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');

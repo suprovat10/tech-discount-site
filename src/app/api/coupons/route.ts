@@ -24,6 +24,7 @@ async function loadCouponsFromCloud(): Promise<CouponItem[]> {
 }
 
 import { purgeAllCaches } from '@/lib/cachePurge';
+import { isRequestAdminAuthenticated } from '@/lib/auth';
 
 function purgeCouponCaches() {
   purgeAllCaches();
@@ -51,6 +52,10 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (!isRequestAdminAuthenticated(request)) {
+    return NextResponse.json({ success: false, error: 'Unauthorized: Admin authentication required' }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
     if (!body.title || !body.store) {
@@ -102,6 +107,10 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
+  if (!isRequestAdminAuthenticated(request)) {
+    return NextResponse.json({ success: false, error: 'Unauthorized: Admin authentication required' }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
     const coupons = body.coupons;
@@ -125,6 +134,10 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  if (!isRequestAdminAuthenticated(request)) {
+    return NextResponse.json({ success: false, error: 'Unauthorized: Admin authentication required' }, { status: 401 });
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');

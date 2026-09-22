@@ -4,6 +4,7 @@ import { setSiteKV, getSiteKV } from '@/lib/db/kv';
 import { DB_BLOGS_KEY } from '@/lib/blogServer';
 import { BlogPost } from '@/data/blogs';
 import { purgeAllCaches } from '@/lib/cachePurge';
+import { isRequestAdminAuthenticated } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 const DB_BLOG_TAGS_KEY = 'site_blog_tags';
@@ -71,6 +72,10 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  if (!isRequestAdminAuthenticated(req)) {
+    return NextResponse.json({ success: false, error: 'Unauthorized: Admin authentication required' }, { status: 401 });
+  }
+
   try {
     const body = await req.json();
     const newName = body.newName || body.newTag || body.tag || body.name;
@@ -129,6 +134,10 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  if (!isRequestAdminAuthenticated(req)) {
+    return NextResponse.json({ success: false, error: 'Unauthorized: Admin authentication required' }, { status: 401 });
+  }
+
   try {
     const { searchParams } = new URL(req.url);
     const tag = searchParams.get('tag') || searchParams.get('name');

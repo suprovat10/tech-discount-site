@@ -1,7 +1,12 @@
 import { MongoClient, Db } from 'mongodb';
 
-let cachedClient: MongoClient | null = null;
-let cachedDb: Db | null = null;
+declare global {
+  // eslint-disable-next-line no-var
+  var _mongoClientPromise: Promise<MongoClient> | undefined;
+  // eslint-disable-next-line no-var
+  var _mongoDbInstance: Db | undefined;
+}
+
 let lastMongoError: string | null = null;
 
 export function getLastMongoError(): string | null {
@@ -38,7 +43,10 @@ export async function getMongoDb(): Promise<Db | null> {
     return null;
   }
 
-  if (cachedDb) return cachedDb;
+  if (globalThis._mongoDbInstance) {
+    return globalThis._mongoDbInstance;
+  }
+
   if (!isMongoConfigured()) {
     lastMongoError = 'isMongoConfigured() returned false - no URI';
     return null;
@@ -48,24 +56,26 @@ export async function getMongoDb(): Promise<Db | null> {
     const uri = getMongoUri();
     const dbName = (process.env.MONGODB_DB_NAME || 'techpricedrop').replace(/^["']|["']$/g, '').trim();
 
-    if (!cachedClient) {
-      cachedClient = new MongoClient(uri, {
+    if (!globalThis._mongoClientPromise) {
+      const client = new MongoClient(uri, {
         maxPoolSize: 10,
         serverSelectionTimeoutMS: 5000,
         connectTimeoutMS: 10000,
       });
-      await cachedClient.connect();
+      globalThis._mongoClientPromise = client.connect();
     }
 
-    cachedDb = cachedClient.db(dbName);
+    const client = await globalThis._mongoClientPromise;
+    const db = client.db(dbName);
+    globalThis._mongoDbInstance = db;
     lastMongoError = null;
-    return cachedDb;
+    return db;
   } catch (error: any) {
     const msg = error?.message || (typeof error === 'object' ? JSON.stringify(error) : String(error));
     lastMongoError = `[${error?.name || 'Error'}] ${msg}`;
     console.error('[MongoDB] Connection failed:', lastMongoError);
-    cachedDb = null;
-    cachedClient = null;
+    globalThis._mongoDbInstance = undefined;
+    globalThis._mongoClientPromise = undefined;
     return null;
   }
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { isRequestAdminAuthenticated } from '@/lib/auth';
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -7,9 +8,7 @@ export function middleware(request: NextRequest) {
   // Protect all /supro111vat29 routes
   if (pathname.startsWith('/supro111vat29')) {
     const isLoginPage = pathname === '/supro111vat29/login';
-    const authToken = request.cookies.get('admin_auth_token')?.value;
-
-    const isAuthenticated = Boolean(authToken && authToken.split(':').length === 3);
+    const isAuthenticated = isRequestAdminAuthenticated(request);
 
     if (!isAuthenticated && !isLoginPage) {
       const loginUrl = new URL('/supro111vat29/login', request.url);

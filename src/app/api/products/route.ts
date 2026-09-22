@@ -9,6 +9,7 @@ import {
 } from '@/lib/catalogDb';
 
 import { purgeAllCaches } from '@/lib/cachePurge';
+import { isRequestAdminAuthenticated } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -69,6 +70,10 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  if (!isRequestAdminAuthenticated(request)) {
+    return NextResponse.json({ success: false, error: 'Unauthorized: Admin authentication required' }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
     if (!body.title) {
@@ -123,6 +128,10 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  if (!isRequestAdminAuthenticated(request)) {
+    return NextResponse.json({ success: false, error: 'Unauthorized: Admin authentication required' }, { status: 401 });
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     let id = searchParams.get('id');

@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { getSiteKV, setSiteKV } from '@/lib/db/kv';
 import { purgeAllCaches } from '@/lib/cachePurge';
+import { isRequestAdminAuthenticated } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -29,6 +30,10 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  if (!isRequestAdminAuthenticated(req)) {
+    return NextResponse.json({ success: false, error: 'Unauthorized: Admin authentication required' }, { status: 401 });
+  }
+
   try {
     const body = await req.json();
 
