@@ -62,7 +62,8 @@ export default async function HomePage() {
     })
     .slice(0, 8);
 
-  const heroImageUrl = settings.heroImageUrl || '/hero.webp';
+  const isDefaultHero = !settings.heroImageUrl || settings.heroImageUrl.includes('images.unsplash.com/photo-1517336714731-489689fd1ca8');
+  const heroImageUrl = isDefaultHero ? '/hero.webp' : settings.heroImageUrl;
   const heroPreloadSrc = optimizeImageUrl(heroImageUrl, 480);
   const heroSrcSet = getHeroSrcSet(heroImageUrl);
   const heroSizes = getHeroSizes();

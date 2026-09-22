@@ -27,6 +27,9 @@ export async function getServerSettings(forceFresh = false): Promise<SiteSetting
     const cloud = await getSiteKV<SiteSettings>('settings', forceFresh);
     if (cloud && typeof cloud === 'object' && Object.keys(cloud).length > 0) {
       const merged = { ...DEFAULT_SITE_SETTINGS, ...cloud };
+      if (!merged.heroImageUrl || merged.heroImageUrl.includes('images.unsplash.com/photo-1517336714731-489689fd1ca8')) {
+        merged.heroImageUrl = '/hero.webp';
+      }
       cachedSettings = merged;
       cachedSettingsTime = Date.now();
       return merged;
@@ -35,6 +38,9 @@ export async function getServerSettings(forceFresh = false): Promise<SiteSetting
     console.warn('Error reading settings from MongoDB:', err);
   }
   const syncSettings = getServerSettingsSync();
+  if (!syncSettings.heroImageUrl || syncSettings.heroImageUrl.includes('images.unsplash.com/photo-1517336714731-489689fd1ca8')) {
+    syncSettings.heroImageUrl = '/hero.webp';
+  }
   cachedSettings = syncSettings;
   cachedSettingsTime = Date.now();
   return syncSettings;
