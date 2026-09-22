@@ -22,6 +22,7 @@ import {
   LogOut,
   Megaphone,
   Hash,
+  AppWindow,
 } from 'lucide-react';
 import { useBranding } from '@/hooks/useBranding';
 
@@ -57,6 +58,7 @@ export default function AdminLayout({
     { label: 'Brand Partners', href: '/supro111vat29/brands', icon: Award },
     { label: 'Coupons & Deals', href: '/supro111vat29/coupons', icon: Ticket },
     { label: 'Ads & Banners', href: '/supro111vat29/ads', icon: Megaphone },
+    { label: 'Modal Popups', href: '/supro111vat29/popups', icon: AppWindow },
     { label: 'Blog Articles', href: '/supro111vat29/blogs', icon: FileText, exact: true },
     { label: 'Blog Categories', href: '/supro111vat29/blogs/categories', icon: FolderPlus, exact: true },
     { label: 'Blog Tags', href: '/supro111vat29/blogs/tags', icon: Hash, exact: true },

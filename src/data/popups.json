@@ -1,0 +1,23 @@
+[
+  {
+    "id": "popup-welcome-deal",
+    "name": "Special Welcome Offer",
+    "enabled": true,
+    "targetPage": "all",
+    "delaySeconds": 3,
+    "frequency": "once_per_session",
+    "imageUrl": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&q=80",
+    "imageAlt": "Special Tech Deals",
+    "badgeText": "LIMITED TIME SPECIAL OFFER",
+    "title": "NEW SEASON SALE!",
+    "description": "Save 10% on all qualifying orders across top retailers.",
+    "actionType": "coupon",
+    "couponCode": "NEWSEASON10",
+    "couponBtnText": "COPY CODE",
+    "buttonText": "Explore Deals",
+    "buttonUrl": "/products",
+    "openInNewTab": false,
+    "createdAt": "2026-09-23T00:00:00.000Z",
+    "updatedAt": "2026-09-23T00:00:00.000Z"
+  }
+]

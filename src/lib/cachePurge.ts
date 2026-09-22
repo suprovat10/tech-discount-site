@@ -4,6 +4,7 @@ import { invalidateCatalogDbCache } from './catalogDb';
 import { invalidateCategoryServerCache } from './categoryServer';
 import { invalidateSettingsServerCache } from './settingsServer';
 import { invalidatePageServerCache } from './pageServer';
+import { invalidatePopupsCache } from './popupServer';
 
 export interface PurgeOptions {
   productSlug?: string;
@@ -25,6 +26,7 @@ export function purgeAllCaches(options?: PurgeOptions) {
     invalidateCategoryServerCache();
     invalidateSettingsServerCache();
     invalidatePageServerCache();
+    invalidatePopupsCache();
 
     // 1. Root and Layout caches
     revalidatePath('/', 'layout');

@@ -1,11 +1,17 @@
 'use client';
 
 import React from 'react';
+import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
 import { Header } from '@/components/common/Header';
 import { Footer } from '@/components/common/Footer';
 import { WatchlistToast } from '@/components/watchlist/WatchlistToast';
 import { useBranding } from '@/hooks/useBranding';
+
+const StorePopupModal = dynamic(
+  () => import('@/components/popup/StorePopupModal').then((mod) => mod.StorePopupModal),
+  { ssr: false }
+);
 
 export function StoreLayoutWrapper({ children }: { children: React.ReactNode }) {
   useBranding();
@@ -26,6 +32,7 @@ export function StoreLayoutWrapper({ children }: { children: React.ReactNode }) 
       </div>
       <Footer />
       <WatchlistToast />
+      <StorePopupModal />
     </div>
   );
 }
