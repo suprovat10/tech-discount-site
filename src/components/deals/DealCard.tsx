@@ -44,11 +44,13 @@ export function DealCard({ product, priority = false }: DealCardProps) {
         title={`View ${product.title}`}
       >
         <Image
-          src={optimizeImageUrl(product.imageUrl, 400)}
+          src={optimizeImageUrl(product.imageUrl, 360)}
           alt={product.imageAlt || product.title}
           fill
           priority={priority}
           loading={priority ? 'eager' : 'lazy'}
+          fetchPriority={priority ? 'high' : undefined}
+          decoding={priority ? 'sync' : 'async'}
           className="object-cover transition-transform duration-300 group-hover:scale-105"
           sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
           unoptimized

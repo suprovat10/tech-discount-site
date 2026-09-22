@@ -570,6 +570,8 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
                   fill
                   priority
                   loading="eager"
+                  fetchPriority="high"
+                  decoding="sync"
                   className="object-cover transition-all duration-300"
                   sizes="(max-width: 768px) 100vw, 40vw"
                   unoptimized

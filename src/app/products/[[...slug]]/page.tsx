@@ -8,6 +8,7 @@ import { getDatabaseCategories } from '@/lib/categoryServer';
 import { getDatabaseProducts } from '@/lib/catalogDb';
 import { transformCatalogItemToUnified } from '@/lib/adapters';
 import { UnifiedProduct } from '@/types/product';
+import { optimizeImageUrl } from '@/lib/imageOptimization';
 
 export const revalidate = 10;
 
@@ -108,8 +109,21 @@ export default async function ProductsPage({ params }: ProductsPageProps) {
     console.error('Failed to load initial products/categories for page:', e);
   }
 
+  const firstProductImage =
+    initialProducts.length > 0 && initialProducts[0]?.imageUrl
+      ? optimizeImageUrl(initialProducts[0].imageUrl, 360)
+      : null;
+
   return (
     <div className="container mx-auto px-4 sm:px-6 py-8">
+      {firstProductImage && (
+        <link
+          rel="preload"
+          as="image"
+          href={firstProductImage}
+          fetchPriority="high"
+        />
+      )}
       <Suspense
         fallback={
           <div className="py-24 text-center space-y-4">

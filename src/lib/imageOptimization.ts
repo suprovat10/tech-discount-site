@@ -60,7 +60,7 @@ export function optimizeImageUrl(url?: string, width?: number): string {
         u.searchParams.set('w', width.toString());
       }
       u.searchParams.set('auto', 'format');
-      u.searchParams.set('q', '75');
+      u.searchParams.set('q', '65');
       return u.toString();
     } catch {
       return url;

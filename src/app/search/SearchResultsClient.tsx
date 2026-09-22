@@ -100,18 +100,9 @@ export function SearchResultsClient({
     }
   }, [dynamicMaxPrice, hasCustomMaxPrice]);
 
-  // Pagination State (14 items per page on mobile, 15 on desktop)
-  const [isMobile, setIsMobile] = useState<boolean>(false);
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(typeof window !== 'undefined' && window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  const productsPerPage = isMobile ? 14 : 15;
+  // Pagination State: 16 items per page (2 cols x 8 on mobile, 4 cols x 4 on desktop)
+  // Eliminates window.innerWidth layout query and 123ms forced reflow
+  const productsPerPage = 16;
   const [currentPage, setCurrentPage] = useState<number>(1);
 
   // Lock body scroll when mobile filter drawer is open
