@@ -195,6 +195,61 @@ export function deleteSubcategory(categoryId: string, subcategoryId: string): Ca
 }
 
 /**
+ * Reorder categories (move up or down)
+ */
+export function moveCategory(id: string, direction: 'up' | 'down'): CategoryDefinition[] {
+  const current = getCategories();
+  const index = current.findIndex((c) => c.id === id);
+  if (index < 0) return current;
+
+  const targetIndex = direction === 'up' ? index - 1 : index + 1;
+  if (targetIndex < 0 || targetIndex >= current.length) return current;
+
+  const reordered = [...current];
+  const temp = reordered[index];
+  reordered[index] = reordered[targetIndex];
+  reordered[targetIndex] = temp;
+
+  saveCategories(reordered);
+  return reordered;
+}
+
+/**
+ * Reorder subcategories within a category (move up or down)
+ */
+export function moveSubcategory(
+  categoryId: string,
+  subcategoryId: string,
+  direction: 'up' | 'down'
+): CategoryDefinition[] {
+  const current = getCategories();
+  const catIndex = current.findIndex((c) => c.id === categoryId);
+  if (catIndex < 0) return current;
+
+  const cat = current[catIndex];
+  const subs = cat.subcategories || [];
+  const subIndex = subs.findIndex((s) => s.id === subcategoryId);
+  if (subIndex < 0) return current;
+
+  const targetIndex = direction === 'up' ? subIndex - 1 : subIndex + 1;
+  if (targetIndex < 0 || targetIndex >= subs.length) return current;
+
+  const reorderedSubs = [...subs];
+  const temp = reorderedSubs[subIndex];
+  reorderedSubs[subIndex] = reorderedSubs[targetIndex];
+  reorderedSubs[targetIndex] = temp;
+
+  const updated = [...current];
+  updated[catIndex] = {
+    ...cat,
+    subcategories: reorderedSubs,
+  };
+
+  saveCategories(updated);
+  return updated;
+}
+
+/**
  * Toggle feature category on homepage
  */
 export function toggleFeaturedOnHome(categoryId: string): {

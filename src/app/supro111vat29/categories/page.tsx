@@ -11,6 +11,8 @@ import {
   addSubcategory,
   updateSubcategory,
   deleteSubcategory,
+  moveCategory,
+  moveSubcategory,
   toggleFeaturedOnHome,
   toggleTopSlider,
 } from '@/lib/categoryStore';
@@ -20,6 +22,8 @@ import {
   Trash2,
   Edit2,
   ArrowLeft,
+  ArrowUp,
+  ArrowDown,
   CheckCircle2,
   AlertCircle,
   Upload,
@@ -311,6 +315,20 @@ export default function AdminCategoriesPage() {
     setDeleteTarget(null);
   };
 
+  // Reorder Categories
+  const handleMoveCategory = (id: string, direction: 'up' | 'down') => {
+    const updated = moveCategory(id, direction);
+    setCategories(updated);
+    showNotification('Category reordered successfully!');
+  };
+
+  // Reorder Subcategories
+  const handleMoveSubcategory = (catId: string, subId: string, direction: 'up' | 'down') => {
+    const updated = moveSubcategory(catId, subId, direction);
+    setCategories(updated);
+    showNotification('Subcategory reordered successfully!');
+  };
+
   // Toggle Featured On Home
   const handleToggleHome = (catId: string) => {
     const res = toggleFeaturedOnHome(catId);
@@ -516,7 +534,7 @@ export default function AdminCategoriesPage() {
             </div>
 
             <div className="space-y-2">
-              {categories.map((cat) => {
+              {categories.map((cat, idx) => {
                 const isSelected = cat.id === activeCategory?.id;
                 return (
                   <div
@@ -573,7 +591,31 @@ export default function AdminCategoriesPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1 shrink-0 pt-1">
+                    <div className="flex items-center gap-0.5 shrink-0 pt-1">
+                      <button
+                        type="button"
+                        disabled={idx === 0}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleMoveCategory(cat.id, 'up');
+                        }}
+                        title="Move Up"
+                        className="p-1 text-muted-foreground hover:text-blue-600 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <ArrowUp className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        disabled={idx === categories.length - 1}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleMoveCategory(cat.id, 'down');
+                        }}
+                        title="Move Down"
+                        className="p-1 text-muted-foreground hover:text-blue-600 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <ArrowDown className="w-3.5 h-3.5" />
+                      </button>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -818,7 +860,7 @@ export default function AdminCategoriesPage() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {activeCategory.subcategories.map((sub) => (
+                    {activeCategory.subcategories.map((sub, subIdx) => (
                       <div
                         key={sub.id}
                         className="p-3 border border-border bg-background flex items-center justify-between gap-2"
@@ -853,7 +895,29 @@ export default function AdminCategoriesPage() {
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-1 shrink-0">
+                        <div className="flex items-center gap-0.5 shrink-0">
+                          <button
+                            type="button"
+                            disabled={subIdx === 0}
+                            onClick={() =>
+                              handleMoveSubcategory(activeCategory.id, sub.id, 'up')
+                            }
+                            title="Move Up"
+                            className="p-1 text-muted-foreground hover:text-blue-600 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                          >
+                            <ArrowUp className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            disabled={subIdx === activeCategory.subcategories.length - 1}
+                            onClick={() =>
+                              handleMoveSubcategory(activeCategory.id, sub.id, 'down')
+                            }
+                            title="Move Down"
+                            className="p-1 text-muted-foreground hover:text-blue-600 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                          >
+                            <ArrowDown className="w-3.5 h-3.5" />
+                          </button>
                           <button
                             onClick={() =>
                               setEditingSub({ categoryId: activeCategory.id, sub: { ...sub } })
