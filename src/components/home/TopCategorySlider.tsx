@@ -19,21 +19,108 @@ interface SliderItem {
 
 interface TopCategorySliderProps {
   initialSettings?: SiteSettings;
+  initialCategories?: CategoryDefinition[];
 }
 
-export function TopCategorySlider({ initialSettings }: TopCategorySliderProps) {
-  const [categories, setCategories] = useState<CategoryDefinition[]>(CATEGORIES);
-  const [settings, setSettings] = useState<SiteSettings | undefined>(initialSettings);
+export function TopCategorySlider({ initialSettings, initialCategories }: TopCategorySliderProps) {
+  // Initialize with client-side localStorage if available, or server initialCategories, preventing flash of old/default data
+  const [categories, setCategories] = useState<CategoryDefinition[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('smarttech_categories_catalog');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch {}
+    }
+    if (initialCategories && initialCategories.length > 0) {
+      return initialCategories;
+    }
+    return CATEGORIES;
+  });
+
+  // Initialize with client-side localStorage settings if available, or server initialSettings, preventing jump from left to middle
+  const [settings, setSettings] = useState<SiteSettings | undefined>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('smarttech_admin_settings');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === 'object') {
+            return { ...initialSettings, ...parsed };
+          }
+        }
+      } catch {}
+    }
+    return initialSettings;
+  });
+
   const sliderRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
+  // Sync if server props update
   useEffect(() => {
-    // 1. Categories sync
-    const loaded = getCategories();
-    if (loaded && loaded.length > 0) {
-      setCategories(loaded);
+    if (initialCategories && initialCategories.length > 0) {
+      setCategories((prev) => {
+        // Keep local if user made newer edits on this browser
+        if (typeof window !== 'undefined') {
+          const raw = localStorage.getItem('smarttech_categories_catalog');
+          if (raw) {
+            try {
+              const parsed = JSON.parse(raw);
+              if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            } catch {}
+          }
+        }
+        return initialCategories;
+      });
     }
+  }, [initialCategories]);
+
+  useEffect(() => {
+    if (initialSettings) {
+      setSettings((prev) => {
+        if (typeof window !== 'undefined') {
+          const raw = localStorage.getItem('smarttech_admin_settings');
+          if (raw) {
+            try {
+              const parsed = JSON.parse(raw);
+              if (parsed && typeof parsed === 'object') {
+                return { ...initialSettings, ...parsed };
+              }
+            } catch {}
+          }
+        }
+        return initialSettings;
+      });
+    }
+  }, [initialSettings]);
+
+  useEffect(() => {
+    // 1. Sync from localStorage immediately on mount
+    try {
+      const storedCategories = localStorage.getItem('smarttech_categories_catalog');
+      if (storedCategories) {
+        const parsed = JSON.parse(storedCategories);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setCategories(parsed);
+        }
+      }
+    } catch {}
+
+    try {
+      const storedSettings = localStorage.getItem('smarttech_admin_settings');
+      if (storedSettings) {
+        const parsed = JSON.parse(storedSettings);
+        if (parsed && typeof parsed === 'object') {
+          setSettings((prev) => ({ ...prev, ...parsed }));
+        }
+      }
+    } catch {}
+
+    // 2. Background verification sync with API
     fetch('/api/categories')
       .then((res) => res.json())
       .then((json) => {
@@ -43,7 +130,6 @@ export function TopCategorySlider({ initialSettings }: TopCategorySliderProps) {
       })
       .catch(() => {});
 
-    // 2. Settings sync
     fetch('/api/settings')
       .then((res) => res.json())
       .then((data) => {
@@ -59,6 +145,15 @@ export function TopCategorySlider({ initialSettings }: TopCategorySliderProps) {
     };
 
     const handleSettingsUpdate = () => {
+      try {
+        const stored = localStorage.getItem('smarttech_admin_settings');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed && typeof parsed === 'object') {
+            setSettings((prev) => ({ ...prev, ...parsed }));
+          }
+        }
+      } catch {}
       fetch('/api/settings')
         .then((res) => res.json())
         .then((data) => {
@@ -71,9 +166,13 @@ export function TopCategorySlider({ initialSettings }: TopCategorySliderProps) {
 
     window.addEventListener('smarttech_categories_updated', handleCategoryUpdate);
     window.addEventListener('smarttech_settings_updated', handleSettingsUpdate);
+    window.addEventListener('smarttech_branding_updated', handleSettingsUpdate);
+    window.addEventListener('storage', handleSettingsUpdate);
     return () => {
       window.removeEventListener('smarttech_categories_updated', handleCategoryUpdate);
       window.removeEventListener('smarttech_settings_updated', handleSettingsUpdate);
+      window.removeEventListener('smarttech_branding_updated', handleSettingsUpdate);
+      window.removeEventListener('storage', handleSettingsUpdate);
     };
   }, []);
 
@@ -219,13 +318,13 @@ export function TopCategorySlider({ initialSettings }: TopCategorySliderProps) {
         </button>
       )}
 
-      {/* Horizontal Slider Track with Alignment */}
+      {/* Horizontal Slider Track with Instant Alignment without breakpoint delay */}
       <div
         ref={sliderRef}
         onScroll={checkScroll}
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         className={`flex items-center gap-3.5 overflow-x-auto scrollbar-none [&::-webkit-scrollbar]:hidden scroll-smooth py-2 px-1 ${
-          alignment === 'center' ? 'sm:justify-center' : alignment === 'right' ? 'sm:justify-end' : 'justify-start'
+          alignment === 'center' ? 'justify-center' : alignment === 'right' ? 'justify-end' : 'justify-start'
         }`}
       >
         {sliderItems.map((item) => (

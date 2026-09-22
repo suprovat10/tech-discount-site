@@ -14,7 +14,7 @@ import { getServerSettings } from '@/lib/settingsServer';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { optimizeImageUrl, getHeroSrcSet, getHeroSizes } from '@/lib/imageOptimization';
 
-export const revalidate = 300;
+export const revalidate = 10;
 
 export default async function HomePage() {
   const [settings, categories, catalog] = await Promise.all([
@@ -65,7 +65,7 @@ export default async function HomePage() {
         <AdSlot placement="home_below_hero" />
 
         {/* 2. Top Category & Subcategory Image Slider (No 'All' Button) */}
-        <TopCategorySlider initialSettings={settings} />
+        <TopCategorySlider initialSettings={settings} initialCategories={categories} />
 
         {/* 3. Featured Deals Grid (Most Viewed) */}
         <section className="space-y-6">

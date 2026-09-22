@@ -192,6 +192,16 @@ export default function AdminCategoriesPage() {
     });
 
     const loadSettings = () => {
+      try {
+        const stored = localStorage.getItem('smarttech_admin_settings');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (typeof parsed.categorySliderHidden === 'boolean') setSliderHidden(parsed.categorySliderHidden);
+          if (parsed.categorySliderLayout) setSliderLayout(parsed.categorySliderLayout);
+          if (parsed.categorySliderAlignment) setSliderAlignment(parsed.categorySliderAlignment);
+        }
+      } catch {}
+
       fetch('/api/settings')
         .then((res) => res.json())
         .then((data) => {
@@ -254,6 +264,16 @@ export default function AdminCategoriesPage() {
         categorySliderLayout: sliderLayout,
         categorySliderAlignment: sliderAlignment,
       };
+
+      // 1. Immediately save to localStorage so the client updates without waiting for network
+      try {
+        const stored = localStorage.getItem('smarttech_admin_settings');
+        const parsed = stored ? JSON.parse(stored) : {};
+        localStorage.setItem(
+          'smarttech_admin_settings',
+          JSON.stringify({ ...parsed, ...updated })
+        );
+      } catch {}
 
       const res = await fetch('/api/settings', {
         method: 'POST',
