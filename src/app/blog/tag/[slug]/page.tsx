@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 import { getServerBlogs, getServerBlogCategories } from '@/lib/blogServer';
 import { getServerSettings } from '@/lib/settingsServer';
 import { slugifyTag } from '@/lib/productTagStore';
+import { optimizeImageUrl } from '@/lib/imageOptimization';
 import { BlogTagClient } from './BlogTagClient';
 
 export const revalidate = 30;
@@ -114,8 +115,18 @@ export default async function BlogTagPage({ params }: BlogTagPageProps) {
     },
   };
 
+  const firstPostImage = tagPosts.length > 0 && tagPosts[0].imageUrl ? optimizeImageUrl(tagPosts[0].imageUrl, 600) : null;
+
   return (
     <div className="container max-w-[1200px] mx-auto px-4 sm:px-6 py-8">
+      {firstPostImage && (
+        <link
+          rel="preload"
+          as="image"
+          href={firstPostImage}
+          fetchPriority="high"
+        />
+      )}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdBreadcrumb) }}

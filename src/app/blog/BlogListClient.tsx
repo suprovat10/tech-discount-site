@@ -17,7 +17,7 @@ import {
   X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { optimizeCloudinaryUrl } from '@/lib/imageOptimization';
+import { optimizeImageUrl } from '@/lib/imageOptimization';
 
 interface BlogListClientProps {
   initialPosts: BlogPost[];
@@ -366,7 +366,7 @@ export function BlogListClient({
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-              {filteredPosts.map((post) => (
+              {filteredPosts.map((post, idx) => (
                 <article
                   key={post.id}
                   className="border border-border bg-card overflow-hidden hover:border-blue-600 transition-colors flex flex-col justify-between group"
@@ -381,10 +381,11 @@ export function BlogListClient({
                     >
                       {post.imageUrl ? (
                         <img
-                          src={optimizeCloudinaryUrl(post.imageUrl, 800)}
+                          src={optimizeImageUrl(post.imageUrl, 640)}
                           alt={post.imageAlt || post.title}
-                          loading="lazy"
-                          decoding="async"
+                          loading={idx < 2 ? 'eager' : 'lazy'}
+                          decoding={idx < 2 ? 'sync' : 'async'}
+                          fetchPriority={idx === 0 ? 'high' : undefined}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           onError={(e) => {
                             e.currentTarget.src = '/logo.png';

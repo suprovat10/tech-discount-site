@@ -4,6 +4,7 @@ import { getServerBlogs, getServerBlogCategories } from '@/lib/blogServer';
 import { BlogListClient } from './BlogListClient';
 import { getServerSettings } from '@/lib/settingsServer';
 import { AdSlot } from '@/components/ads/AdSlot';
+import { optimizeImageUrl } from '@/lib/imageOptimization';
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getServerSettings();
@@ -30,9 +31,19 @@ export const revalidate = 30;
 export default async function BlogListingPage() {
   const posts = await getServerBlogs();
   const categories = await getServerBlogCategories();
+  const firstPostImage = posts.length > 0 && posts[0].imageUrl ? optimizeImageUrl(posts[0].imageUrl, 640) : null;
 
   return (
     <div className="container max-w-[1200px] mx-auto px-4 sm:px-6 py-8">
+      {firstPostImage && (
+        <link
+          rel="preload"
+          as="image"
+          href={firstPostImage}
+          fetchPriority="high"
+        />
+      )}
+
       {/* Ad Placement: Top of Blog Page Banner */}
       <AdSlot placement="blog_top" />
 

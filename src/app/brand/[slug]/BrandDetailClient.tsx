@@ -52,19 +52,31 @@ export function BrandDetailClient({
     }
   };
 
-  const syncBrandProducts = async () => {
+  const syncBrandProducts = async (forceRemote = false) => {
     try {
       const liveBrand = getBrandBySlug(slug);
       if (liveBrand) {
         setBrand(liveBrand);
       }
-      const allCatalog = await fetchAndSyncCatalogFromServer();
-      if (liveBrand && Array.isArray(allCatalog)) {
-        const brandProducts = allCatalog.filter(
+      const localCatalog = getCatalogProducts();
+      if (Array.isArray(localCatalog) && localCatalog.length > 0 && liveBrand) {
+        const brandProducts = localCatalog.filter(
           (p) => p.brand && p.brand.toLowerCase().trim() === liveBrand.name.toLowerCase().trim()
         );
         if (brandProducts.length > 0) {
           setProducts(brandProducts.map(transformCatalogItemToUnified));
+        }
+      }
+
+      if (forceRemote || (initialProducts.length === 0 && (!localCatalog || localCatalog.length === 0))) {
+        const allCatalog = await fetchAndSyncCatalogFromServer();
+        if (liveBrand && Array.isArray(allCatalog)) {
+          const brandProducts = allCatalog.filter(
+            (p) => p.brand && p.brand.toLowerCase().trim() === liveBrand.name.toLowerCase().trim()
+          );
+          if (brandProducts.length > 0) {
+            setProducts(brandProducts.map(transformCatalogItemToUnified));
+          }
         }
       }
     } catch {
@@ -73,12 +85,13 @@ export function BrandDetailClient({
   };
 
   useEffect(() => {
-    syncBrandProducts();
-    window.addEventListener('smarttech_catalog_updated', syncBrandProducts);
-    window.addEventListener('storage', syncBrandProducts);
+    syncBrandProducts(false);
+    const onUpdate = () => syncBrandProducts(true);
+    window.addEventListener('smarttech_catalog_updated', onUpdate);
+    window.addEventListener('storage', onUpdate);
     return () => {
-      window.removeEventListener('smarttech_catalog_updated', syncBrandProducts);
-      window.removeEventListener('storage', syncBrandProducts);
+      window.removeEventListener('smarttech_catalog_updated', onUpdate);
+      window.removeEventListener('storage', onUpdate);
     };
   }, [slug]);
 
@@ -216,8 +229,8 @@ export function BrandDetailClient({
           <>
             {/* Mobile 2 Columns & Desktop 3-4 Columns */}
             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-5">
-              {paginatedProducts.map((product) => (
-                <DealCard key={product.id} product={product} />
+              {paginatedProducts.map((product, idx) => (
+                <DealCard key={product.id} product={product} priority={idx < 4} />
               ))}
             </div>
 

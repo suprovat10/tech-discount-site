@@ -2,6 +2,8 @@ import React from 'react';
 import { Metadata } from 'next';
 import { PolicyPageClient } from '@/components/common/PolicyPageClient';
 
+export const revalidate = 60;
+
 interface CustomPageRouteProps {
   params: Promise<{ slug: string }>;
 }

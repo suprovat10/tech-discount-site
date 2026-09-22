@@ -18,7 +18,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { optimizeCloudinaryUrl } from '@/lib/imageOptimization';
+import { optimizeImageUrl } from '@/lib/imageOptimization';
 
 interface BlogTagClientProps {
   slug: string;
@@ -192,7 +192,7 @@ export function BlogTagClient({
       {/* Blog Posts Grid */}
       {filteredPosts.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredPosts.map((post) => (
+          {filteredPosts.map((post, idx) => (
             <article
               key={post.id}
               className="bg-card border border-border/70 hover:border-blue-500/50 rounded-xl overflow-hidden flex flex-col transition-all duration-200 group hover:shadow-md"
@@ -200,9 +200,11 @@ export function BlogTagClient({
               {/* Thumbnail */}
               <Link href={`/blog/${post.slug}`} prefetch={true} className="relative aspect-video overflow-hidden bg-muted block">
                 <img
-                  src={optimizeCloudinaryUrl(post.imageUrl, 600)}
+                  src={optimizeImageUrl(post.imageUrl, 600)}
                   alt={post.title}
-                  loading="lazy"
+                  loading={idx < 2 ? 'eager' : 'lazy'}
+                  decoding={idx < 2 ? 'sync' : 'async'}
+                  fetchPriority={idx === 0 ? 'high' : undefined}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
                 <span className="absolute top-3 left-3 px-2.5 py-1 bg-background/90 backdrop-blur-xs text-[11px] font-bold text-foreground rounded border border-border/50">

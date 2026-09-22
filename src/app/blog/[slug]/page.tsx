@@ -74,6 +74,7 @@ export async function generateMetadata({ params }: BlogDetailProps): Promise<Met
 import { getDatabaseProducts } from '@/lib/catalogDb';
 import { transformCatalogItemToUnified } from '@/lib/adapters';
 import { DEFAULT_BRANDS } from '@/data/brands';
+import { optimizeImageUrl } from '@/lib/imageOptimization';
 
 export default async function BlogDetailPage({ params }: BlogDetailProps) {
   const { slug } = await params;
@@ -114,6 +115,14 @@ export default async function BlogDetailPage({ params }: BlogDetailProps) {
 
   return (
     <div className="container max-w-[1280px] mx-auto px-4 sm:px-6 py-6">
+      {post?.imageUrl && (
+        <link
+          rel="preload"
+          as="image"
+          href={optimizeImageUrl(post.imageUrl, 800)}
+          fetchPriority="high"
+        />
+      )}
       <BlogDetailClient
         slug={slug}
         initialPost={post}

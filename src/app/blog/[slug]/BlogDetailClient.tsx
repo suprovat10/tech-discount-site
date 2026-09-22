@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AdSlot } from '@/components/ads/AdSlot';
-import { optimizeCloudinaryUrl } from '@/lib/imageOptimization';
+import { optimizeImageUrl } from '@/lib/imageOptimization';
 import { slugifyTag } from '@/lib/productTagStore';
 
 interface BlogDetailClientProps {
@@ -277,10 +277,12 @@ export function BlogDetailClient({
           {post.imageUrl && (
             <div className="relative w-full border border-border overflow-hidden bg-muted">
               <img
-                src={optimizeCloudinaryUrl(post.imageUrl, 1200)}
+                src={optimizeImageUrl(post.imageUrl, 800)}
                 alt={post.imageAlt || post.title}
                 className="w-full max-h-[520px] object-cover"
-                decoding="async"
+                loading="eager"
+                fetchPriority="high"
+                decoding="sync"
                 onError={(e) => {
                   e.currentTarget.src = '/logo.png';
                 }}
@@ -341,7 +343,7 @@ export function BlogDetailClient({
                     <div className="relative w-24 h-20 overflow-hidden shrink-0 bg-muted border border-border">
                       {r.imageUrl ? (
                         <img
-                          src={optimizeCloudinaryUrl(r.imageUrl, 300)}
+                          src={optimizeImageUrl(r.imageUrl, 300)}
                           alt={r.title}
                           loading="lazy"
                           decoding="async"
@@ -393,8 +395,8 @@ export function BlogDetailClient({
                 </Link>
               </div>
               <div className="space-y-3">
-                {featuredProducts.slice(0, 4).map((product) => (
-                  <DealCard key={product.id} product={product} />
+                {featuredProducts.slice(0, 4).map((product, idx) => (
+                  <DealCard key={product.id} product={product} priority={idx < 2} />
                 ))}
               </div>
             </div>
@@ -429,7 +431,7 @@ export function BlogDetailClient({
                   >
                     <div className="w-7 h-7 relative flex items-center justify-center mb-1">
                       <img
-                        src={optimizeCloudinaryUrl(b.logoUrl, 100)}
+                        src={optimizeImageUrl(b.logoUrl, 100)}
                         alt={b.name}
                         loading="lazy"
                         decoding="async"

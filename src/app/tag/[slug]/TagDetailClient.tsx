@@ -246,8 +246,8 @@ export function TagDetailClient({
       {/* Products Grid */}
       {paginatedProducts.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-          {paginatedProducts.map((p) => (
-            <DealCard key={p.id} product={p} />
+          {paginatedProducts.map((p, idx) => (
+            <DealCard key={p.id} product={p} priority={idx < 4} />
           ))}
         </div>
       ) : (
