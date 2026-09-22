@@ -162,14 +162,9 @@ function ContactFormInner() {
           </form>
         )}
 
-        <div className="pt-4 border-t border-border/70 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
-          <p>
-            Direct Inquiries: <a href="mailto:support@techpriceengine.com" className="text-blue-600 dark:text-blue-400 font-semibold underline">support@techpriceengine.com</a>
-          </p>
-          <div className="flex items-center gap-1.5 text-[11px]">
-            <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <span>Fast 24-Hour Response</span>
-          </div>
+        <div className="pt-4 border-t border-border/70 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+          <ShieldCheck className="w-4 h-4 text-emerald-600" />
+          <span>Fast 24-Hour Response Time</span>
         </div>
       </div>
     </div>

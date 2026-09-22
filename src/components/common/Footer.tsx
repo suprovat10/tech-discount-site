@@ -39,21 +39,8 @@ export function Footer() {
     };
   }, []);
 
-  // Items configured to show in "Explore Deals" column
+  // Top categories configured to show in "Explore Deals" column
   const exploreCategories = categories.filter((c) => c.showInExploreDeals !== false);
-  const exploreSubcategories: { id: string; name: string; href: string }[] = [];
-  categories.forEach((cat) => {
-    (cat.subcategories || []).forEach((sub) => {
-      if (sub.showInExploreDeals) {
-        exploreSubcategories.push({
-          id: `${cat.id}-${sub.id}`,
-          name: sub.name,
-          href: `/products/${cat.slug}/${sub.slug}`,
-        });
-      }
-    });
-  });
-  const explorePages = pages.filter((p) => p.showInExploreDeals);
 
   return (
     <footer className="w-full border-t border-border/70 bg-card/50 text-muted-foreground text-xs transition-all mt-20">
@@ -218,31 +205,10 @@ export function Footer() {
                 </Link>
               </li>
               {/* Dynamic categories enabled for Explore Deals */}
-              {exploreCategories.map((cat) => (
+              {exploreCategories.slice(0, 6).map((cat) => (
                 <li key={cat.id}>
                   <Link href={`/products/${cat.slug}`} className="hover:text-foreground transition-colors touch-manipulation cursor-pointer inline-block">
                     {cat.name}
-                  </Link>
-                </li>
-              ))}
-
-              {/* Dynamic subcategories enabled for Explore Deals */}
-              {exploreSubcategories.map((sub) => (
-                <li key={sub.id}>
-                  <Link href={sub.href} className="hover:text-foreground transition-colors touch-manipulation cursor-pointer inline-block">
-                    {sub.name}
-                  </Link>
-                </li>
-              ))}
-
-              {/* Dynamic pages enabled for Explore Deals */}
-              {explorePages.map((page) => (
-                <li key={page.id}>
-                  <Link
-                    href={page.isSystem ? `/${page.slug}` : `/page/${page.slug}`}
-                    className="hover:text-foreground transition-colors touch-manipulation cursor-pointer inline-block"
-                  >
-                    {page.title}
                   </Link>
                 </li>
               ))}
@@ -274,11 +240,6 @@ export function Footer() {
               <li>
                 <Link href="/retailers" className="hover:text-foreground transition-colors touch-manipulation cursor-pointer inline-block">
                   Supported Retailer Partners
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="hover:text-foreground transition-colors touch-manipulation cursor-pointer inline-block">
-                  Affiliate & Brand Partnerships
                 </Link>
               </li>
               <li>
@@ -319,11 +280,6 @@ export function Footer() {
               <li>
                 <Link href="/cookie-policy" className="hover:text-foreground transition-colors touch-manipulation cursor-pointer inline-block">
                   Cookie Policy
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="hover:text-foreground transition-colors touch-manipulation cursor-pointer inline-block">
-                  Report a Price Discrepancy
                 </Link>
               </li>
             </ul>

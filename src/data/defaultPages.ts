@@ -76,11 +76,10 @@ export const DEFAULT_PAGES: SitePage[] = [
     lastUpdated: '2026-09-18',
     content: `
 <h2>Customer & Shopper Inquiries</h2>
-<p>If you encounter a price discrepancy, broken retailer link, or out-of-stock product that did not update promptly, our automated crawler team responds within 24 business hours.</p>
-<p><strong>Direct Support Email:</strong> support@techpriceengine.com</p>
+<p>If you encounter a price discrepancy, broken retailer link, or out-of-stock product that did not update promptly, please use the direct contact form above. Our automated crawler and support team responds within 24 business hours.</p>
 
 <h2>Merchant & Affiliate Partnerships</h2>
-<p>Are you an authorized technology retailer or hardware brand looking to list your inventory in our price comparison matrix? Contact our commercial team at partnerships@techpriceengine.com.</p>
+<p>Are you an authorized technology retailer or hardware brand looking to list your inventory in our price comparison matrix? Select &quot;Affiliate &amp; Brand Partnership Inquiry&quot; in the form above to reach our commercial team.</p>
 
 <h2>Office Hours</h2>
 <p>Monday – Friday: 9:00 AM – 6:00 PM EST<br />Saturday – Sunday: Monitored automated systems only.</p>
