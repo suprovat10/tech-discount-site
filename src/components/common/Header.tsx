@@ -123,6 +123,8 @@ export function Header() {
           <img
             src={optimizeCloudinaryUrl(branding.logoUrl, 300) || '/logo.png'}
             alt={branding.brandName || 'suprodesign'}
+            width={180}
+            height={36}
             className="h-8 sm:h-9 w-auto max-w-[180px] sm:max-w-[210px] object-contain transition-transform group-hover:scale-105"
             decoding="async"
             onError={(e) => {

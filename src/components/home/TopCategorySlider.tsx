@@ -141,6 +141,8 @@ export function TopCategorySlider() {
                 <img
                   src={optimizeCloudinaryUrl(item.imageUrl, 200)}
                   alt={item.name}
+                  width={60}
+                  height={48}
                   className="h-10 sm:h-12 w-auto max-w-[85%] max-h-full object-contain transition-transform duration-300 group-hover:scale-110"
                   loading="eager"
                   decoding="async"

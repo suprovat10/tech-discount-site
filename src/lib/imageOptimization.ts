@@ -33,7 +33,7 @@ export function optimizeCloudinaryUrl(url?: string, width?: number): string {
       rest = segments.slice(1).join('/');
     }
 
-    const transform = width ? `f_auto,q_auto,w_${width},c_limit` : 'f_auto,q_auto';
+    const transform = width ? `f_auto,q_auto:eco,w_${width},c_limit` : 'f_auto,q_auto:eco';
     return `${prefix}${transform}/${rest}`;
   } catch {
     return url;
@@ -52,15 +52,17 @@ export function getAdSrcSet(url?: string, isBanner: boolean = true): string | un
 
   if (isBanner) {
     return [
-      `${optimizeCloudinaryUrl(url, 480)} 480w`,
-      `${optimizeCloudinaryUrl(url, 728)} 728w`,
-      `${optimizeCloudinaryUrl(url, 970)} 970w`,
+      `${optimizeCloudinaryUrl(url, 380)} 380w`,
+      `${optimizeCloudinaryUrl(url, 640)} 640w`,
+      `${optimizeCloudinaryUrl(url, 768)} 768w`,
+      `${optimizeCloudinaryUrl(url, 1024)} 1024w`,
       `${optimizeCloudinaryUrl(url, 1200)} 1200w`,
     ].join(', ');
   }
 
   // Square ad (max display ~320px)
   return [
+    `${optimizeCloudinaryUrl(url, 280)} 280w`,
     `${optimizeCloudinaryUrl(url, 320)} 320w`,
     `${optimizeCloudinaryUrl(url, 640)} 640w`,
   ].join(', ');
@@ -71,7 +73,7 @@ export function getAdSrcSet(url?: string, isBanner: boolean = true): string | un
  */
 export function getAdSizes(isBanner: boolean): string | undefined {
   if (isBanner) {
-    return '(max-width: 640px) 100vw, (max-width: 1024px) 728px, 970px';
+    return '(max-width: 480px) 380px, (max-width: 768px) 640px, (max-width: 1024px) 768px, 1024px';
   }
-  return '(max-width: 640px) 320px, 320px';
+  return '(max-width: 480px) 280px, 320px';
 }

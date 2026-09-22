@@ -115,6 +115,9 @@ export function HeroSection({ initialSettings }: HeroSectionProps) {
             <img
               src={optimizeCloudinaryUrl(imageUrl, 900)}
               alt={imageAlt}
+              width={600}
+              height={450}
+              fetchPriority="high"
               className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
               decoding="async"
               onError={(e) => {

@@ -123,6 +123,8 @@ export function AdSlot({ placement, initialAd, className = '' }: AdSlotProps) {
                 src={optimizedSrc}
                 srcSet={srcSet}
                 sizes={sizes}
+                width={isBanner ? 970 : 320}
+                height={isBanner ? 250 : 320}
                 alt={ad.altText || ad.title}
                 className={`max-w-full h-auto object-contain transition-transform duration-300 group-hover:scale-[1.01] ${
                   isBanner
@@ -138,6 +140,8 @@ export function AdSlot({ placement, initialAd, className = '' }: AdSlotProps) {
               src={optimizedSrc}
               srcSet={srcSet}
               sizes={sizes}
+              width={isBanner ? 970 : 320}
+              height={isBanner ? 250 : 320}
               alt={ad.altText || ad.title}
               className={`max-w-full h-auto object-contain ${
                 isBanner

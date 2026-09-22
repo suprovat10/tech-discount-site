@@ -61,6 +61,8 @@ export function BrandShowcaseSection() {
                 <img
                   src={optimizeCloudinaryUrl(brand.logoUrl, 160)}
                   alt={brand.name}
+                  width={100}
+                  height={32}
                   loading="lazy"
                   decoding="async"
                   className="h-7 sm:h-8 w-auto max-w-[85%] object-contain dark:invert transition-transform duration-200 group-hover:scale-110"
