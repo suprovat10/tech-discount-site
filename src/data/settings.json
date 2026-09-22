@@ -40,5 +40,8 @@
   "heroSecondaryBtnUrl": "/products?sort=highest-savings",
   "heroSecondaryBtnNewTab": false,
   "heroSecondaryBtnShowIcon": true,
-  "heroBadgeText": ""
+  "heroBadgeText": "",
+  "categorySliderAlignment": "left",
+  "categorySliderLayout": "slider",
+  "categorySliderHidden": false
 }

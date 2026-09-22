@@ -125,9 +125,6 @@ export default function CreateProductStudioPage() {
   useEffect(() => {
     const loaded = getCategories();
     setCategoriesList(loaded);
-    if (loaded.length > 0) {
-      setCategory(loaded[0].name);
-    }
     const brands = getBrands().map((b) => b.name);
     const standardBrands = ['Apple', 'Samsung', 'Sony', 'Bose', 'Dell', 'HP', 'Asus', 'Nintendo', 'LG', 'Google', 'Microsoft', 'Lenovo', 'Logitech', 'Anker', 'Razer'];
     const mergedBrands = Array.from(new Set([...standardBrands, ...brands])).filter(Boolean).sort();
@@ -141,7 +138,7 @@ export default function CreateProductStudioPage() {
   const [isCustomBrand, setIsCustomBrand] = useState(false);
   const [customBrandInput, setCustomBrandInput] = useState('');
   const [availableBrands, setAvailableBrands] = useState<string[]>([]);
-  const [category, setCategory] = useState(CATEGORIES[0]?.name || '');
+  const [category, setCategory] = useState('');
   const [subcategory, setSubcategory] = useState('');
   const [badge, setBadge] = useState('');
   const [rating, setRating] = useState('');
@@ -727,7 +724,7 @@ export default function CreateProductStudioPage() {
           `Compare verified live prices for ${title} across leading retailers. Save with real-time price tracking.`,
         keywords,
         canonicalUrl: `https://smarttechdeals.com/product/${generatedSlug}`,
-        ogImageUrl: ogImageUrl || images[0] || '',
+        ogImageUrl: ogImageUrl.trim() || undefined,
         ogImageAlt: ogImageAlt.trim() || undefined,
       },
       offers: constructedOffers,
@@ -848,7 +845,9 @@ export default function CreateProductStudioPage() {
               </div>
 
               <div>
-                <label className="font-bold text-foreground block mb-1">Category *</label>
+                <label className="font-bold text-foreground block mb-1">
+                  Category <span className="text-[11px] font-normal text-muted-foreground">(Optional)</span>
+                </label>
                 <select
                   value={category}
                   onChange={(e) => {
@@ -857,6 +856,7 @@ export default function CreateProductStudioPage() {
                   }}
                   className="w-full h-9 border border-input bg-background px-3 text-xs font-semibold"
                 >
+                  <option value="">None (No Category)</option>
                   {categoriesList.map((c) => (
                     <option key={c.id} value={c.name}>
                       {c.name}
@@ -2138,9 +2138,9 @@ export default function CreateProductStudioPage() {
               <div className="flex flex-col sm:flex-row items-start gap-4">
                 {/* Social Card Preview Thumbnail */}
                 <div className="relative aspect-[1.91/1] w-48 border border-border bg-background overflow-hidden shrink-0 shadow-sm">
-                  {ogImageUrl || images[0] ? (
+                  {ogImageUrl ? (
                     <Image
-                      src={ogImageUrl || images[0]}
+                      src={ogImageUrl}
                       alt="Social Share Preview"
                       fill
                       className="object-cover"
@@ -2221,14 +2221,22 @@ export default function CreateProductStudioPage() {
                   Facebook & Twitter Social Card Preview
                 </span>
                 <div className="border border-border/80 overflow-hidden max-w-sm">
-                  <div className="relative aspect-[1.91/1] w-full bg-muted">
-                    <Image
-                      src={ogImageUrl || images[0] || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80'}
-                      alt={ogImageAlt || title || "Card Preview"}
-                      fill
-                      className="object-cover"
-                      unoptimized
-                    />
+                  <div className="relative aspect-[1.91/1] w-full bg-muted flex items-center justify-center">
+                    {ogImageUrl ? (
+                      <Image
+                        src={ogImageUrl}
+                        alt={ogImageAlt || title || "Card Preview"}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center text-muted-foreground p-4 text-center">
+                        <Share2 className="w-5 h-5 mb-1 opacity-40" />
+                        <span className="text-[11px] font-semibold">No Social Image Set</span>
+                        <span className="text-[9px] opacity-75">Upload an image or click &quot;Use Product Cover Image&quot;</span>
+                      </div>
+                    )}
                   </div>
                   <div className="p-2.5 bg-card space-y-1">
                     <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">

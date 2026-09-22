@@ -922,6 +922,7 @@ export function SearchResultsClient({
       return clean.length > 0 || html.includes('<img');
     };
 
+    // Subcategory page: ONLY show subcategory's own rich description. Never inherit category's description!
     if (selectedSubcategory && selectedSubcategory !== 'all') {
       for (const cat of categories) {
         const sub = cat.subcategories?.find(
@@ -933,8 +934,10 @@ export function SearchResultsClient({
           return sub.richDescription;
         }
       }
+      return null;
     }
 
+    // Category page (when no subcategory selected): ONLY show category's own rich description
     if (selectedCategory && selectedCategory !== 'all') {
       const cat = categories.find(
         (c) =>
@@ -945,6 +948,7 @@ export function SearchResultsClient({
       if (cat && isNotEmpty(cat.richDescription)) {
         return cat.richDescription;
       }
+      return null;
     }
 
     return null;

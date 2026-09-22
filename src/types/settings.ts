@@ -41,6 +41,9 @@ export interface SiteSettings {
   heroSecondaryBtnNewTab?: boolean;
   heroSecondaryBtnShowIcon?: boolean;
   heroBadgeText?: string;
+  categorySliderAlignment?: 'left' | 'center' | 'right';
+  categorySliderLayout?: 'slider' | 'wrap';
+  categorySliderHidden?: boolean;
 }
 
 export const DEFAULT_SITE_SETTINGS: SiteSettings = {
@@ -92,4 +95,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   heroSecondaryBtnNewTab: false,
   heroSecondaryBtnShowIcon: true,
   heroBadgeText: '',
+  categorySliderAlignment: 'left',
+  categorySliderLayout: 'slider',
+  categorySliderHidden: false,
 };

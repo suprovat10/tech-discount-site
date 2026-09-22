@@ -65,7 +65,7 @@ export default async function HomePage() {
         <AdSlot placement="home_below_hero" />
 
         {/* 2. Top Category & Subcategory Image Slider (No 'All' Button) */}
-        <TopCategorySlider />
+        <TopCategorySlider initialSettings={settings} />
 
         {/* 3. Featured Deals Grid (Most Viewed) */}
         <section className="space-y-6">

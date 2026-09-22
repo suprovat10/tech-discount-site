@@ -2,11 +2,12 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { CATEGORIES, CategoryDefinition, SubcategoryDefinition } from '@/data/catalog';
+import { CategoryDefinition } from '@/data/catalog';
+import { CATEGORIES } from '@/data/catalog';
 import { getCategories, getCategorySlug, getSubcategorySlug } from '@/lib/categoryStore';
 import { ChevronLeft, ChevronRight, Layers } from 'lucide-react';
 import { optimizeImageUrl } from '@/lib/imageOptimization';
+import { SiteSettings } from '@/types/settings';
 
 interface SliderItem {
   id: string;
@@ -16,13 +17,19 @@ interface SliderItem {
   isSub?: boolean;
 }
 
-export function TopCategorySlider() {
+interface TopCategorySliderProps {
+  initialSettings?: SiteSettings;
+}
+
+export function TopCategorySlider({ initialSettings }: TopCategorySliderProps) {
   const [categories, setCategories] = useState<CategoryDefinition[]>(CATEGORIES);
+  const [settings, setSettings] = useState<SiteSettings | undefined>(initialSettings);
   const sliderRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
   useEffect(() => {
+    // 1. Categories sync
     const loaded = getCategories();
     if (loaded && loaded.length > 0) {
       setCategories(loaded);
@@ -36,12 +43,38 @@ export function TopCategorySlider() {
       })
       .catch(() => {});
 
-    const handleUpdate = () => {
+    // 2. Settings sync
+    fetch('/api/settings')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+          setSettings((prev) => ({ ...prev, ...data }));
+        }
+      })
+      .catch(() => {});
+
+    const handleCategoryUpdate = () => {
       const fresh = getCategories();
       if (fresh && fresh.length > 0) setCategories(fresh);
     };
-    window.addEventListener('smarttech_categories_updated', handleUpdate);
-    return () => window.removeEventListener('smarttech_categories_updated', handleUpdate);
+
+    const handleSettingsUpdate = () => {
+      fetch('/api/settings')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && typeof data === 'object') {
+            setSettings((prev) => ({ ...prev, ...data }));
+          }
+        })
+        .catch(() => {});
+    };
+
+    window.addEventListener('smarttech_categories_updated', handleCategoryUpdate);
+    window.addEventListener('smarttech_settings_updated', handleSettingsUpdate);
+    return () => {
+      window.removeEventListener('smarttech_categories_updated', handleCategoryUpdate);
+      window.removeEventListener('smarttech_settings_updated', handleSettingsUpdate);
+    };
   }, []);
 
   // Build items list: Featured categories + top slider subcategories
@@ -89,7 +122,7 @@ export function TopCategorySlider() {
       checkScroll();
     });
     return () => cancelAnimationFrame(id);
-  }, [sliderItems]);
+  }, [sliderItems, settings]);
 
   const handleScroll = (direction: 'left' | 'right') => {
     if (!sliderRef.current) return;
@@ -100,10 +133,71 @@ export function TopCategorySlider() {
     }, 300);
   };
 
+  // Setting 1: If category slider is hidden, don't render anything
+  if (settings?.categorySliderHidden === true) {
+    return null;
+  }
+
   if (sliderItems.length === 0) return null;
 
+  const layout = settings?.categorySliderLayout || 'slider'; // 'slider' | 'wrap'
+  const alignment = settings?.categorySliderAlignment || 'left'; // 'left' | 'center' | 'right'
+
+  const alignmentClass =
+    alignment === 'center'
+      ? 'justify-center'
+      : alignment === 'right'
+      ? 'justify-end'
+      : 'justify-start';
+
+  // Setting 2 & 3: Multi-line wrap mode (এক লাইনের নিচে আরেক লাইন)
+  if (layout === 'wrap') {
+    return (
+      <section className="relative my-3" aria-label="Product Categories">
+        <div className={`flex flex-wrap items-center gap-3 sm:gap-3.5 py-2 px-1 ${alignmentClass}`}>
+          {sliderItems.map((item) => (
+            <Link
+              key={item.id}
+              href={item.href}
+              prefetch={true}
+              className="group relative flex flex-col items-center justify-between p-2.5 sm:p-3 bg-card hover:bg-muted/30 border border-border/80 hover:border-foreground/30 transition-all rounded-sm shrink-0 w-28 sm:w-32 min-w-[115px] sm:min-w-[130px] h-[134px] sm:h-[142px] shadow-sm hover:shadow-md cursor-pointer select-none"
+              title={item.name}
+            >
+              {/* Square Image Container on TOP (1:1 ratio, transparent) */}
+              <div className="w-14 h-14 sm:w-16 sm:h-16 aspect-square shrink-0 flex items-center justify-center bg-transparent mt-1">
+                {item.imageUrl ? (
+                  <img
+                    src={optimizeImageUrl(item.imageUrl, 200)}
+                    alt={item.name}
+                    width={64}
+                    height={64}
+                    className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-transparent">
+                    <Layers className="w-8 h-8 sm:w-9 sm:h-9 stroke-1" />
+                  </div>
+                )}
+              </div>
+
+              {/* Category Name underneath (Fixed 2-line height) */}
+              <div className="h-9 sm:h-10 w-full flex items-center justify-center px-0.5">
+                <span className="text-[11.5px] sm:text-xs font-bold text-foreground group-hover:text-blue-600 transition-colors text-center line-clamp-2 leading-tight break-words">
+                  {item.name}
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  // Setting 2: Slider / Carousel mode (allow slider)
   return (
-    <section className="relative group/slider my-2">
+    <section className="relative group/slider my-2" aria-label="Category Slider">
       {/* Scroll Controls (Desktop & Mobile) */}
       {canScrollLeft && (
         <button
@@ -125,12 +219,14 @@ export function TopCategorySlider() {
         </button>
       )}
 
-      {/* Horizontal Slider Track */}
+      {/* Horizontal Slider Track with Alignment */}
       <div
         ref={sliderRef}
         onScroll={checkScroll}
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        className="flex items-center gap-3.5 overflow-x-auto scrollbar-none [&::-webkit-scrollbar]:hidden scroll-smooth py-2 px-1"
+        className={`flex items-center gap-3.5 overflow-x-auto scrollbar-none [&::-webkit-scrollbar]:hidden scroll-smooth py-2 px-1 ${
+          alignment === 'center' ? 'sm:justify-center' : alignment === 'right' ? 'sm:justify-end' : 'justify-start'
+        }`}
       >
         {sliderItems.map((item) => (
           <Link

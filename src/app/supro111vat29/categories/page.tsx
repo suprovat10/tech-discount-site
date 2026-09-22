@@ -40,6 +40,12 @@ import {
   Globe,
   Save,
   RefreshCw,
+  Sliders,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  LayoutGrid,
+  EyeOff,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -73,6 +79,13 @@ export default function AdminCategoriesPage() {
   const [hasUnsavedOrder, setHasUnsavedOrder] = useState(false);
   const [isSavingOrder, setIsSavingOrder] = useState(false);
   const hasUnsavedOrderRef = useRef(false);
+
+  // Homepage Category Slider Global Settings
+  const [sliderHidden, setSliderHidden] = useState(false);
+  const [sliderLayout, setSliderLayout] = useState<'slider' | 'wrap'>('slider');
+  const [sliderAlignment, setSliderAlignment] = useState<'left' | 'center' | 'right'>('left');
+  const [isSavingSliderSettings, setIsSavingSliderSettings] = useState(false);
+  const [sliderSettingsSaved, setSliderSettingsSaved] = useState(false);
 
   // New Category Form State
   const [newCatName, setNewCatName] = useState('');
@@ -178,12 +191,28 @@ export default function AdminCategoriesPage() {
       if (fresh && Array.isArray(fresh)) setProductTags(fresh);
     });
 
+    const loadSettings = () => {
+      fetch('/api/settings')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && typeof data === 'object') {
+            if (typeof data.categorySliderHidden === 'boolean') setSliderHidden(data.categorySliderHidden);
+            if (data.categorySliderLayout) setSliderLayout(data.categorySliderLayout);
+            if (data.categorySliderAlignment) setSliderAlignment(data.categorySliderAlignment);
+          }
+        })
+        .catch(() => {});
+    };
+    loadSettings();
+
     window.addEventListener(PRODUCT_TAGS_UPDATED_EVENT, loadTags);
     window.addEventListener('smarttech_catalog_updated', loadTags);
+    window.addEventListener('smarttech_settings_updated', loadSettings);
     window.addEventListener('storage', loadTags);
     return () => {
       window.removeEventListener(PRODUCT_TAGS_UPDATED_EVENT, loadTags);
       window.removeEventListener('smarttech_catalog_updated', loadTags);
+      window.removeEventListener('smarttech_settings_updated', loadSettings);
       window.removeEventListener('storage', loadTags);
     };
   }, []);
@@ -210,6 +239,40 @@ export default function AdminCategoriesPage() {
     } else {
       setSuccessMessage(msg);
       setTimeout(() => setSuccessMessage(null), 3000);
+    }
+  };
+
+  const handleSaveSliderSettings = async () => {
+    setIsSavingSliderSettings(true);
+    try {
+      const currentRes = await fetch('/api/settings');
+      const currentData = await currentRes.json().catch(() => ({}));
+
+      const updated = {
+        ...currentData,
+        categorySliderHidden: sliderHidden,
+        categorySliderLayout: sliderLayout,
+        categorySliderAlignment: sliderAlignment,
+      };
+
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated),
+      });
+
+      if (res.ok) {
+        setSliderSettingsSaved(true);
+        showNotification('Homepage Category Slider settings saved successfully!');
+        window.dispatchEvent(new Event('smarttech_settings_updated'));
+        setTimeout(() => setSliderSettingsSaved(false), 3000);
+      } else {
+        showNotification('Failed to save category slider settings', true);
+      }
+    } catch (e: any) {
+      showNotification('Error saving category slider settings: ' + e.message, true);
+    } finally {
+      setIsSavingSliderSettings(false);
     }
   };
 
@@ -756,8 +819,152 @@ export default function AdminCategoriesPage() {
       </div>
 
       {activeTab === 'categories' ? (
-      /* Two-Column Layout */
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+        <div className="space-y-6">
+          {/* Homepage Category Slider & Display Settings Card */}
+          <div className="p-4 sm:p-5 border border-border bg-card shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/70">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Sliders className="w-4 h-4 text-purple-600" />
+                  <h3 className="font-extrabold text-sm text-foreground">
+                    Homepage Category Slider Settings (হোমপেজ ক্যাটাগরি স্লাইডার সেটিংস)
+                  </h3>
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  Configure alignment, carousel slider vs multi-line row wrap, or toggle visibility on the homepage.
+                </p>
+              </div>
+
+              <Button
+                size="sm"
+                onClick={handleSaveSliderSettings}
+                disabled={isSavingSliderSettings}
+                className={`h-8 px-4 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  sliderSettingsSaved
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-purple-600 hover:bg-purple-700 text-white'
+                }`}
+              >
+                {isSavingSliderSettings ? (
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                ) : sliderSettingsSaved ? (
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                ) : (
+                  <Save className="w-3.5 h-3.5" />
+                )}
+                <span>{sliderSettingsSaved ? 'Settings Saved!' : isSavingSliderSettings ? 'Saving...' : 'Save Settings'}</span>
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+              {/* Setting 1: Alignment */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  <AlignLeft className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span>1. Alignment (অ্যালাইনমেন্ট)</span>
+                </label>
+                <p className="text-[10px] text-muted-foreground">Select horizontal position of category cards</p>
+                <div className="grid grid-cols-3 gap-1.5 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setSliderAlignment('left')}
+                    className={`h-8 text-xs font-bold border transition-colors flex items-center justify-center gap-1 cursor-pointer ${
+                      sliderAlignment === 'left'
+                        ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                        : 'bg-background hover:bg-muted text-foreground border-input'
+                    }`}
+                  >
+                    <AlignLeft className="w-3 h-3" />
+                    <span>Left</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSliderAlignment('center')}
+                    className={`h-8 text-xs font-bold border transition-colors flex items-center justify-center gap-1 cursor-pointer ${
+                      sliderAlignment === 'center'
+                        ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                        : 'bg-background hover:bg-muted text-foreground border-input'
+                    }`}
+                  >
+                    <AlignCenter className="w-3 h-3" />
+                    <span>Middle</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSliderAlignment('right')}
+                    className={`h-8 text-xs font-bold border transition-colors flex items-center justify-center gap-1 cursor-pointer ${
+                      sliderAlignment === 'right'
+                        ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                        : 'bg-background hover:bg-muted text-foreground border-input'
+                    }`}
+                  >
+                    <AlignRight className="w-3 h-3" />
+                    <span>Right</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Setting 2: Layout Mode */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  <LayoutGrid className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span>2. Display Layout (লেআউট মোড)</span>
+                </label>
+                <p className="text-[10px] text-muted-foreground">Horizontal slider or multi-line wrap</p>
+                <div className="grid grid-cols-2 gap-1.5 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setSliderLayout('slider')}
+                    className={`h-8 text-[11px] font-bold border transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
+                      sliderLayout === 'slider'
+                        ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                        : 'bg-background hover:bg-muted text-foreground border-input'
+                    }`}
+                    title="Horizontal slider carousel with left and right arrow buttons"
+                  >
+                    <span>Allow Slider</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSliderLayout('wrap')}
+                    className={`h-8 text-[11px] font-bold border transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
+                      sliderLayout === 'wrap'
+                        ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                        : 'bg-background hover:bg-muted text-foreground border-input'
+                    }`}
+                    title="Wrap across multiple lines without scrolling (এক লাইনের নিচে আরেক লাইন)"
+                  >
+                    <span>Multi-line Wrap</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Setting 3: Hide Category Slider */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  <EyeOff className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span>3. Visibility (হাইড সেটিংস)</span>
+                </label>
+                <p className="text-[10px] text-muted-foreground">Completely hide section from homepage</p>
+                <div className="pt-1">
+                  <label className="flex items-center gap-2.5 h-8 px-3 border border-input bg-background hover:bg-muted/40 cursor-pointer select-none transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={sliderHidden}
+                      onChange={(e) => setSliderHidden(e.target.checked)}
+                      className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 cursor-pointer"
+                    />
+                    <span className="text-xs font-bold text-foreground">
+                      Hide Category Slider
+                    </span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Two-Column Layout */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         {/* Left Column: Categories List & Create Form */}
         <div className="md:col-span-5 space-y-6">
           <div className="p-5 border border-border bg-card space-y-4">
@@ -1577,7 +1784,8 @@ export default function AdminCategoriesPage() {
           )}
         </div>
       </div>
-      ) : (
+    </div>
+    ) : (
         /* Product Tags Management Tab */
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column: Create New Product Tag */}

@@ -844,7 +844,7 @@ export default function EditProductStudioPage({
         metaDescription: metaDescription || `Compare verified prices for ${title}.`,
         keywords,
         canonicalUrl: `https://smarttechdeals.com/product/${customSlug || productId}`,
-        ogImageUrl: ogImageUrl || images[0],
+        ogImageUrl: ogImageUrl.trim() || undefined,
         ogImageAlt: ogImageAlt.trim() || undefined,
       },
       offers: constructedOffers,
@@ -992,7 +992,9 @@ export default function EditProductStudioPage({
               </div>
 
               <div>
-                <label className="font-bold text-foreground block mb-1">Category *</label>
+                <label className="font-bold text-foreground block mb-1">
+                  Category <span className="text-[11px] font-normal text-muted-foreground">(Optional)</span>
+                </label>
                 <select
                   value={category}
                   onChange={(e) => {
@@ -1001,6 +1003,7 @@ export default function EditProductStudioPage({
                   }}
                   className="w-full h-9 border border-input bg-background px-3 text-xs font-semibold"
                 >
+                  <option value="">None (No Category)</option>
                   {categoriesList.map((c) => (
                     <option key={c.id} value={c.name}>
                       {c.name}
@@ -2265,9 +2268,9 @@ export default function EditProductStudioPage({
               <div className="flex flex-col sm:flex-row items-start gap-4">
                 {/* Social Card Preview Thumbnail */}
                 <div className="relative aspect-[1.91/1] w-48 border border-border bg-background overflow-hidden shrink-0 shadow-sm">
-                  {ogImageUrl || images[0] ? (
+                  {ogImageUrl ? (
                     <Image
-                      src={ogImageUrl || images[0]}
+                      src={ogImageUrl}
                       alt="Social Share Preview"
                       fill
                       className="object-cover"
@@ -2348,14 +2351,22 @@ export default function EditProductStudioPage({
                   Facebook & Twitter Social Card Preview
                 </span>
                 <div className="border border-border/80 overflow-hidden max-w-sm">
-                  <div className="relative aspect-[1.91/1] w-full bg-muted">
-                    <Image
-                      src={ogImageUrl || images[0] || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80'}
-                      alt={ogImageAlt || title || "Card Preview"}
-                      fill
-                      className="object-cover"
-                      unoptimized
-                    />
+                  <div className="relative aspect-[1.91/1] w-full bg-muted flex items-center justify-center">
+                    {ogImageUrl ? (
+                      <Image
+                        src={ogImageUrl}
+                        alt={ogImageAlt || title || "Card Preview"}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center text-muted-foreground p-4 text-center">
+                        <Share2 className="w-5 h-5 mb-1 opacity-40" />
+                        <span className="text-[11px] font-semibold">No Social Image Set</span>
+                        <span className="text-[9px] opacity-75">Upload an image or click &quot;Use Product Cover Image&quot;</span>
+                      </div>
+                    )}
                   </div>
                   <div className="p-2.5 bg-card space-y-1">
                     <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
