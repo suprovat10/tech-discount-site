@@ -1,9 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_AUTH_COOKIE, generateAdminToken } from '@/lib/auth';
+import {
+  ADMIN_USERNAME,
+  ADMIN_PASSWORD,
+  ADMIN_AUTH_COOKIE,
+  generateAdminToken,
+  isPasswordLoginEnabled,
+} from '@/lib/auth';
 import { checkRateLimit } from '@/lib/ratelimit/limiter';
 
 export async function POST(req: NextRequest) {
   try {
+    // 1. Check if password login is temporarily disabled
+    if (!isPasswordLoginEnabled()) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Password login is temporarily disabled. Please sign in with Google.',
+        },
+        { status: 403 }
+      );
+    }
+
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '127.0.0.1';
 
     // Protect against brute-force attacks: max 5 login attempts per 15 minutes (900s)

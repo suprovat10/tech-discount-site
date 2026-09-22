@@ -19,6 +19,17 @@ export function isAllowedAdminEmail(email?: string | null): boolean {
 }
 
 /**
+ * Checks whether username/password login is enabled.
+ * Can be temporarily disabled by setting ENABLE_PASSWORD_LOGIN="false" in Vercel.
+ */
+export function isPasswordLoginEnabled(): boolean {
+  if (process.env.ENABLE_PASSWORD_LOGIN === 'false' || process.env.DISABLE_PASSWORD_LOGIN === 'true') {
+    return false;
+  }
+  return true;
+}
+
+/**
  * Creates a signed auth token
  */
 export function generateAdminToken(username: string): string {
