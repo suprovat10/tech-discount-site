@@ -88,7 +88,7 @@ export async function fetchAndSyncCatalogFromServer(): Promise<CatalogItem[]> {
           );
           if (toDeleteOnServer.length > 0) {
             for (const item of toDeleteOnServer) {
-              fetch(`/api/products?id=${encodeURIComponent(item.id)}`, { method: 'DELETE' }).catch(() => {});
+              fetch(`/api/products?id=${encodeURIComponent(item.id)}`, { method: 'DELETE', credentials: 'include' }).catch(() => {});
             }
           }
         }
@@ -161,6 +161,7 @@ export async function upsertCatalogProduct(product: CatalogItem): Promise<boolea
     const res = await fetch('/api/products', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(product),
     });
     return res.ok;
@@ -205,6 +206,7 @@ export async function bulkUpsertCatalogProducts(incoming: CatalogItem[]): Promis
     const res = await fetch('/api/products', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(incoming),
     });
     if (res.ok) {
@@ -237,6 +239,7 @@ export async function deleteCatalogProduct(id: string): Promise<boolean> {
   try {
     const res = await fetch(`/api/products?id=${encodeURIComponent(id)}`, {
       method: 'DELETE',
+      credentials: 'include',
     });
     return res.ok;
   } catch (e) {
@@ -282,6 +285,7 @@ export async function saveReorderedCatalogProducts(products: CatalogItem[]): Pro
     const res = await fetch('/api/products', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ productIds: products.map((p) => p.id) }),
     });
     return res.ok;
