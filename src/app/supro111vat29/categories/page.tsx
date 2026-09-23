@@ -49,6 +49,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { formatSlugInput } from '@/lib/utils';
 import { DeleteConfirmModal } from '@/components/admin/DeleteConfirmModal';
 import { RichTextEditor } from '@/components/admin/RichTextEditor';
 import { ProductTag } from '@/types/tag';
@@ -1135,7 +1136,7 @@ export default function AdminCategoriesPage() {
                   type="text"
                   placeholder="e.g. smart-watches"
                   value={newCatSlug}
-                  onChange={(e) => setNewCatSlug(e.target.value)}
+                  onChange={(e) => setNewCatSlug(formatSlugInput(e.target.value))}
                   className="rounded-none h-9 text-xs mt-1"
                 />
               </div>
@@ -1569,7 +1570,7 @@ export default function AdminCategoriesPage() {
                       type="text"
                       placeholder="e.g. wireless-earbuds"
                       value={newSubSlug}
-                      onChange={(e) => setNewSubSlug(e.target.value)}
+                      onChange={(e) => setNewSubSlug(formatSlugInput(e.target.value))}
                       className="rounded-none h-9 text-xs mt-1"
                     />
                   </div>
@@ -1842,7 +1843,7 @@ export default function AdminCategoriesPage() {
                     type="text"
                     placeholder="e.g. wireless"
                     value={newTagSlug}
-                    onChange={(e) => setNewTagSlug(slugifyTag(e.target.value))}
+                    onChange={(e) => setNewTagSlug(formatSlugInput(e.target.value))}
                     className="text-xs font-mono rounded-none"
                   />
                   {newTagSlug && (
@@ -2166,7 +2167,7 @@ export default function AdminCategoriesPage() {
                   type="text"
                   required
                   value={editingCategory.slug}
-                  onChange={(e) => setEditingCategory({ ...editingCategory, slug: e.target.value })}
+                  onChange={(e) => setEditingCategory({ ...editingCategory, slug: formatSlugInput(e.target.value) })}
                   className="rounded-none h-9 text-xs mt-1"
                 />
               </div>
@@ -2543,7 +2544,7 @@ export default function AdminCategoriesPage() {
                   onChange={(e) =>
                     setEditingSub({
                       ...editingSub,
-                      sub: { ...editingSub.sub, slug: e.target.value },
+                      sub: { ...editingSub.sub, slug: formatSlugInput(e.target.value) },
                     })
                   }
                   className="rounded-none h-9 text-xs mt-1"
@@ -2956,7 +2957,7 @@ export default function AdminCategoriesPage() {
                   type="text"
                   required
                   value={editTagSlug}
-                  onChange={(e) => setEditTagSlug(slugifyTag(e.target.value))}
+                  onChange={(e) => setEditTagSlug(formatSlugInput(e.target.value))}
                   className="rounded-none h-9 text-xs font-mono"
                 />
               </div>

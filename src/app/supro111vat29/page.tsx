@@ -7,13 +7,14 @@ import { CategoryDefinition } from '@/data/catalog';
 import { BlogPost } from '@/data/blogs';
 import { getCatalogProducts, fetchAndSyncCatalogFromServer } from '@/lib/catalogStore';
 import { getCategories } from '@/lib/categoryStore';
-import { getBrands } from '@/lib/brandStore';
+import { getPages } from '@/lib/pageStore';
 import {
   Package,
   Layers,
+  FolderTree,
   FileText,
   FolderPlus,
-  Award,
+  Globe,
   Sliders,
   PlusCircle,
   ExternalLink,
@@ -29,7 +30,7 @@ export default function AdminDashboardPage() {
   const [products, setProducts] = useState<CatalogItem[]>([]);
   const [categories, setCategories] = useState<CategoryDefinition[]>([]);
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
-  const [brandsCount, setBrandsCount] = useState<number>(0);
+  const [pagesCount, setPagesCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
@@ -72,21 +73,11 @@ export default function AdminDashboardPage() {
         }
       } catch {}
 
-      // 4. Calculate unique brands
-      let storedBrands = getBrands();
+      // 4. Load pages count
       try {
-        const brandRes = await fetch('/api/brands', { cache: 'no-store' });
-        if (brandRes.ok) {
-          const bData = await brandRes.json();
-          if (bData.data && Array.isArray(bData.data)) {
-            storedBrands = bData.data;
-          }
-        }
+        const pages = getPages();
+        setPagesCount(pages.length);
       } catch {}
-      const activeCatalog = Array.isArray(freshProducts) ? freshProducts : localProducts;
-      const productBrands = new Set(activeCatalog.map((p) => (p.brand || '').trim().toLowerCase()).filter(Boolean));
-      storedBrands.forEach((b) => productBrands.add(b.name.trim().toLowerCase()));
-      setBrandsCount(productBrands.size);
     } catch (e) {
       console.warn('Dashboard load error:', e);
     } finally {
@@ -120,6 +111,8 @@ export default function AdminDashboardPage() {
   const totalCategories = categories.length;
   const totalSubcategories = categories.reduce((acc, c) => acc + (c.subcategories?.length || 0), 0);
   const totalBlogs = blogs.length;
+  // Core routes (5) + Categories + Subcategories + Products + Blogs + Site Pages
+  const totalSitemapPages = 5 + totalCategories + totalSubcategories + totalProducts + totalBlogs + (pagesCount || 10);
 
   return (
     <div className="space-y-8 pb-16">
@@ -198,22 +191,22 @@ export default function AdminDashboardPage() {
             {isLoading ? '...' : totalCategories}
           </p>
           <p className="text-[10px] text-muted-foreground font-semibold">
-            {totalSubcategories} Subcategories Indexed
+            Parent Category Groups
           </p>
         </div>
 
-        {/* Metric 3: Brands */}
+        {/* Metric 3: Subcategories */}
         <div className="p-5 border border-border bg-card shadow-xs space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-muted-foreground uppercase">Brand Partners</span>
+            <span className="text-[11px] font-bold text-muted-foreground uppercase">Subcategories</span>
             <div className="p-2 bg-amber-50 dark:bg-amber-950/60 text-amber-600">
-              <Award className="w-4 h-4" />
+              <FolderTree className="w-4 h-4" />
             </div>
           </div>
           <p className="text-2xl font-black text-foreground">
-            {isLoading ? '...' : brandsCount}
+            {isLoading ? '...' : totalSubcategories}
           </p>
-          <p className="text-[10px] text-muted-foreground font-semibold">Active Tech Brands</p>
+          <p className="text-[10px] text-muted-foreground font-semibold">Across {totalCategories} Categories</p>
         </div>
 
         {/* Metric 4: Blogs */}
@@ -230,16 +223,21 @@ export default function AdminDashboardPage() {
           <p className="text-[10px] text-muted-foreground font-semibold">Published Buying Guides</p>
         </div>
 
-        {/* Metric 5: Tracking & SEO */}
+        {/* Metric 5: Sitemap Pages */}
         <div className="p-5 border border-border bg-card shadow-xs space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-muted-foreground uppercase">Tracking & SEO</span>
+            <span className="text-[11px] font-bold text-muted-foreground uppercase">Sitemap Pages</span>
             <div className="p-2 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600">
-              <Sliders className="w-4 h-4" />
+              <Globe className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-black text-foreground">Active</p>
-          <p className="text-[10px] text-emerald-600 font-semibold">GA4 + Pixels Connected</p>
+          <p className="text-2xl font-black text-foreground">
+            {isLoading ? '...' : totalSitemapPages}
+          </p>
+          <p className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
+            <CheckCircle2 className="w-3 h-3" />
+            <span>Indexed in sitemap.xml</span>
+          </p>
         </div>
       </div>
 
@@ -276,17 +274,17 @@ export default function AdminDashboardPage() {
         </Link>
 
         <Link
-          href="/supro111vat29/brands"
+          href="/supro111vat29/pages"
           className="group p-5 border border-border bg-card hover:border-amber-500 hover:shadow-xs transition-all space-y-2"
         >
           <div className="p-2.5 bg-amber-50 dark:bg-amber-950/60 text-amber-600 w-fit">
-            <Award className="w-5 h-5" />
+            <Globe className="w-5 h-5" />
           </div>
           <h3 className="text-base font-black text-foreground group-hover:text-amber-600 transition-colors">
-            Brand Partners Manager →
+            Custom Pages & Legal →
           </h3>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Configure featured manufacturers, brand logos, official store websites, and 20-product brand catalogs.
+            Create, edit, and publish static pages like About Us, Privacy Policy, Terms, and custom landing pages.
           </p>
         </Link>
 

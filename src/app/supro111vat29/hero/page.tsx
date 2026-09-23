@@ -23,6 +23,8 @@ interface HeroSettingsState {
   heroSubtitle: string;
   heroImageUrl: string;
   heroImageAlt: string;
+  heroImageLink?: string;
+  heroImageNewTab?: boolean;
   heroPrimaryBtnText: string;
   heroPrimaryBtnUrl: string;
   heroPrimaryBtnNewTab?: boolean;
@@ -41,6 +43,8 @@ const DEFAULT_HERO_SETTINGS: HeroSettingsState = {
     'Instantly compare real-time offers and verified discounts from Amazon, Walmart, Best Buy, and Target before making any purchase.',
   heroImageUrl: '',
   heroImageAlt: 'Hero Banner',
+  heroImageLink: '',
+  heroImageNewTab: false,
   heroPrimaryBtnText: 'Browse Products',
   heroPrimaryBtnUrl: '/products',
   heroPrimaryBtnNewTab: false,
@@ -75,6 +79,8 @@ export default function AdminHeroPage() {
           heroSubtitle: parsed.heroSubtitle ?? prev.heroSubtitle,
           heroImageUrl: parsed.heroImageUrl ?? prev.heroImageUrl,
           heroImageAlt: parsed.heroImageAlt ?? prev.heroImageAlt,
+          heroImageLink: parsed.heroImageLink ?? prev.heroImageLink,
+          heroImageNewTab: parsed.heroImageNewTab ?? prev.heroImageNewTab,
           heroPrimaryBtnText: parsed.heroPrimaryBtnText ?? prev.heroPrimaryBtnText,
           heroPrimaryBtnUrl: parsed.heroPrimaryBtnUrl ?? prev.heroPrimaryBtnUrl,
           heroPrimaryBtnNewTab: parsed.heroPrimaryBtnNewTab ?? prev.heroPrimaryBtnNewTab,
@@ -103,6 +109,8 @@ export default function AdminHeroPage() {
             heroSubtitle: serverData.heroSubtitle ?? prev.heroSubtitle,
             heroImageUrl: serverData.heroImageUrl ?? prev.heroImageUrl,
             heroImageAlt: serverData.heroImageAlt ?? prev.heroImageAlt,
+            heroImageLink: serverData.heroImageLink ?? prev.heroImageLink,
+            heroImageNewTab: serverData.heroImageNewTab ?? prev.heroImageNewTab,
             heroPrimaryBtnText: serverData.heroPrimaryBtnText ?? prev.heroPrimaryBtnText,
             heroPrimaryBtnUrl: serverData.heroPrimaryBtnUrl ?? prev.heroPrimaryBtnUrl,
             heroPrimaryBtnNewTab: serverData.heroPrimaryBtnNewTab ?? prev.heroPrimaryBtnNewTab,
@@ -303,12 +311,33 @@ export default function AdminHeroPage() {
             <div className="md:col-span-5 relative">
               <div className="aspect-[4/3] w-full border border-border/80 bg-muted/20 relative overflow-hidden flex items-center justify-center">
                 {hero.heroImageUrl ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={hero.heroImageUrl}
-                    alt={hero.heroImageAlt || 'Hero Showcase'}
-                    className="w-full h-full object-cover"
-                  />
+                  hero.heroImageLink && hero.heroImageLink.trim() ? (
+                    <a
+                      href={hero.heroImageLink.trim()}
+                      target={hero.heroImageNewTab ? '_blank' : undefined}
+                      rel={hero.heroImageNewTab ? 'noopener noreferrer' : undefined}
+                      className="w-full h-full block cursor-pointer group"
+                      title={`Hero Link: ${hero.heroImageLink}`}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={hero.heroImageUrl}
+                        alt={hero.heroImageAlt || 'Hero Showcase'}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                      <span className="absolute bottom-2 right-2 bg-black/75 text-white text-[9px] font-bold px-1.5 py-0.5 flex items-center gap-1">
+                        <ExternalLink className="w-2.5 h-2.5" />
+                        <span>Clickable Link</span>
+                      </span>
+                    </a>
+                  ) : (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={hero.heroImageUrl}
+                      alt={hero.heroImageAlt || 'Hero Showcase'}
+                      className="w-full h-full object-cover"
+                    />
+                  )
                 ) : (
                   <div className="text-center p-4 text-muted-foreground">
                     <ImageIcon className="w-8 h-8 mx-auto mb-1 text-muted-foreground/50" />
@@ -462,6 +491,33 @@ export default function AdminHeroPage() {
                   placeholder="e.g. MacBook Pro and tech accessories showcase"
                   className="h-8 text-xs"
                 />
+              </div>
+
+              {/* Target Link */}
+              <div>
+                <label className="text-[11px] font-semibold text-muted-foreground block mb-1">
+                  Image Target Link (Optional - Leave empty if non-clickable):
+                </label>
+                <Input
+                  value={hero.heroImageLink || ''}
+                  onChange={(e) => handleChange('heroImageLink', e.target.value)}
+                  placeholder="e.g. /products or https://... (clickable image link)"
+                  className="h-8 text-xs font-mono"
+                />
+              </div>
+
+              {/* Open in New Tab */}
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="heroImageNewTab"
+                  checked={hero.heroImageNewTab || false}
+                  onChange={(e) => handleChange('heroImageNewTab', e.target.checked)}
+                  className="rounded border-border text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
+                />
+                <label htmlFor="heroImageNewTab" className="text-xs text-foreground font-medium cursor-pointer">
+                  Open Image Link in New Tab (<code className="text-[10px] text-muted-foreground font-mono">{'target="_blank"'}</code>)
+                </label>
               </div>
             </div>
           </div>

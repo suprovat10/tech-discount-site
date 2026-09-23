@@ -32,6 +32,8 @@ export interface SiteSettings {
   heroSubtitle?: string;
   heroImageUrl?: string;
   heroImageAlt?: string;
+  heroImageLink?: string;
+  heroImageNewTab?: boolean;
   heroPrimaryBtnText?: string;
   heroPrimaryBtnUrl?: string;
   heroPrimaryBtnNewTab?: boolean;
@@ -86,6 +88,8 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   heroImageUrl:
     'https://res.cloudinary.com/koayelts/image/upload/f_auto,q_auto,w_1600,c_limit/v1790111669/techpricedrop/hero/brrklc8lesvqxe3zkqrg.jpg',
   heroImageAlt: 'MacBook and Tech Gear',
+  heroImageLink: '',
+  heroImageNewTab: false,
   heroPrimaryBtnText: 'Browse Products',
   heroPrimaryBtnUrl: '/products',
   heroPrimaryBtnNewTab: false,

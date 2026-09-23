@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { formatSlugInput } from '@/lib/utils';
 import { RichTextEditor } from '@/components/admin/RichTextEditor';
 import { savePage } from '@/lib/pageStore';
 import { SitePage } from '@/data/defaultPages';
@@ -158,7 +159,7 @@ export default function AdminNewPage() {
               <Input
                 type="text"
                 value={slug}
-                onChange={(e) => setSlug(e.target.value)}
+                onChange={(e) => setSlug(formatSlugInput(e.target.value))}
                 placeholder="warranty-returns"
                 className="h-9 text-xs font-mono max-w-xs"
               />

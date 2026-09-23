@@ -41,7 +41,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { getRetailerDisplayName } from '@/lib/utils';
+import { getRetailerDisplayName, formatSlugInput } from '@/lib/utils';
 
 export interface StoreOfferFormItem {
   id: string;
@@ -2117,7 +2117,7 @@ export default function CreateProductStudioPage() {
                 <Input
                   placeholder="sony-wh-1000xm5-deals"
                   value={customSlug}
-                  onChange={(e) => setCustomSlug(e.target.value)}
+                  onChange={(e) => setCustomSlug(formatSlugInput(e.target.value))}
                   className="h-9 text-xs font-mono"
                 />
               </div>

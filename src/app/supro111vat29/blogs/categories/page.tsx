@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { formatSlugInput } from '@/lib/utils';
 
 export default function AdminBlogCategoriesPage() {
   const [categories, setCategories] = useState<BlogCategory[]>([]);
@@ -215,7 +216,7 @@ export default function AdminBlogCategoriesPage() {
               </label>
               <Input
                 value={slug}
-                onChange={(e) => setSlug(e.target.value)}
+                onChange={(e) => setSlug(formatSlugInput(e.target.value))}
                 placeholder="smart-home-iot"
                 className="h-9 text-xs font-mono"
                 required
@@ -382,7 +383,7 @@ export default function AdminBlogCategoriesPage() {
                 </label>
                 <Input
                   value={editSlug}
-                  onChange={(e) => setEditSlug(e.target.value)}
+                  onChange={(e) => setEditSlug(formatSlugInput(e.target.value))}
                   className="h-9 text-xs font-mono"
                   required
                 />

@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { formatSlugInput } from '@/lib/utils';
 import { DeleteConfirmModal } from '@/components/admin/DeleteConfirmModal';
 import { RichTextEditor } from '@/components/admin/RichTextEditor';
 import { BrandItem } from '@/data/brands';
@@ -139,7 +140,7 @@ export default function AdminBrandsPage() {
   const handleNameChange = (val: string) => {
     setName(val);
     if (!editingId) {
-      setSlug(val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''));
+      setSlug(formatSlugInput(val));
     }
   };
 
@@ -385,7 +386,7 @@ export default function AdminBrandsPage() {
                     required
                     placeholder="e.g. apple"
                     value={slug}
-                    onChange={(e) => setSlug(e.target.value)}
+                    onChange={(e) => setSlug(formatSlugInput(e.target.value))}
                     className="h-9 text-xs font-mono"
                   />
                 </div>

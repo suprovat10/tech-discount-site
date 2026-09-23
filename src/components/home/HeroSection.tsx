@@ -54,6 +54,8 @@ export function HeroSection({ initialSettings }: HeroSectionProps) {
   const isDefaultHero = !settings.heroImageUrl || settings.heroImageUrl.includes('v8wowdztetwveiot2ahw') || settings.heroImageUrl.includes('images.unsplash.com/photo-1517336714731-489689fd1ca8');
   const imageUrl = isDefaultHero ? '/hero.webp' : settings.heroImageUrl;
   const imageAlt = settings.heroImageAlt || 'MacBook and Tech Gear';
+  const imageLink = (settings.heroImageLink || '').trim();
+  const imageNewTab = Boolean(settings.heroImageNewTab);
   const primaryText = settings.heroPrimaryBtnText || 'Browse Products';
   const primaryUrl = (settings.heroPrimaryBtnUrl === '/search' ? '/products' : settings.heroPrimaryBtnUrl) || '/products';
   const secondaryText = settings.heroSecondaryBtnText || "Today's Best Deals";
@@ -113,23 +115,50 @@ export function HeroSection({ initialSettings }: HeroSectionProps) {
 
         {/* Right Side: Hero Image Showcase */}
         <div className="md:col-span-5 relative">
-          <div className="relative aspect-[4/3] w-full border border-border/80 bg-muted/20 p-2 sm:p-4 flex items-center justify-center overflow-hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={optimizeImageUrl(imageUrl, 480)}
-              srcSet={getHeroSrcSet(imageUrl)}
-              sizes={getHeroSizes()}
-              alt={imageAlt}
-              width={600}
-              height={450}
-              fetchPriority="high"
-              loading="eager"
-              decoding="sync"
-              className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-              onError={(e) => {
-                e.currentTarget.src = '/hero.webp';
-              }}
-            />
+          <div className="relative aspect-[4/3] w-full border border-border/80 bg-muted/20 p-2 sm:p-4 flex items-center justify-center overflow-hidden group">
+            {imageLink ? (
+              <a
+                href={imageLink}
+                target={imageNewTab ? '_blank' : undefined}
+                rel={imageNewTab ? 'noopener noreferrer' : undefined}
+                className="w-full h-full block cursor-pointer"
+                title={imageAlt || 'Hero Banner'}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={optimizeImageUrl(imageUrl, 480)}
+                  srcSet={getHeroSrcSet(imageUrl)}
+                  sizes={getHeroSizes()}
+                  alt={imageAlt}
+                  width={600}
+                  height={450}
+                  fetchPriority="high"
+                  loading="eager"
+                  decoding="sync"
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  onError={(e) => {
+                    e.currentTarget.src = '/hero.webp';
+                  }}
+                />
+              </a>
+            ) : (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={optimizeImageUrl(imageUrl, 480)}
+                srcSet={getHeroSrcSet(imageUrl)}
+                sizes={getHeroSizes()}
+                alt={imageAlt}
+                width={600}
+                height={450}
+                fetchPriority="high"
+                loading="eager"
+                decoding="sync"
+                className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                onError={(e) => {
+                  e.currentTarget.src = '/hero.webp';
+                }}
+              />
+            )}
           </div>
         </div>
       </div>

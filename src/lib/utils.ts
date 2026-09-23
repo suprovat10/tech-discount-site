@@ -35,6 +35,27 @@ export function slugify(text: string): string {
     .replace(/-+$/, "");
 }
 
+/**
+ * Real-time slug formatter for input fields.
+ * Whenever spacebar is pressed or space is entered, converts it to hyphen (-)
+ * while preserving ongoing typing and lowercase alphanumeric structure.
+ */
+export function formatSlugInput(value: string): string {
+  if (!value) return '';
+  return value
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-');
+}
+
+/**
+ * Strips leading and trailing hyphens when saving or on blur.
+ */
+export function cleanFinalSlug(value: string): string {
+  return formatSlugInput(value).replace(/^-+|-+$/g, '');
+}
+
 export function getRetailerDisplayName(retailer: RetailerId | string): string {
   if (!retailer) return "Store";
   switch (retailer.toLowerCase()) {

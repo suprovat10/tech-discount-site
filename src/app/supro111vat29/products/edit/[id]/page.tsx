@@ -41,7 +41,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { getRetailerDisplayName } from '@/lib/utils';
+import { getRetailerDisplayName, formatSlugInput } from '@/lib/utils';
 
 export interface StoreOfferFormItem {
   id: string;
@@ -2247,7 +2247,7 @@ export default function EditProductStudioPage({
                 <label className="font-bold text-foreground block mb-1">Custom Slug</label>
                 <Input
                   value={customSlug}
-                  onChange={(e) => setCustomSlug(e.target.value)}
+                  onChange={(e) => setCustomSlug(formatSlugInput(e.target.value))}
                   className="h-9 text-xs font-mono"
                 />
               </div>

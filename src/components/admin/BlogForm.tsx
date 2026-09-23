@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { formatSlugInput } from '@/lib/utils';
 
 interface BlogFormProps {
   initialData?: Partial<BlogPost>;
@@ -245,7 +246,7 @@ export default function BlogForm({
                 <input
                   type="text"
                   value={slug}
-                  onChange={(e) => setSlug(e.target.value)}
+                  onChange={(e) => setSlug(formatSlugInput(e.target.value))}
                   placeholder="article-slug"
                   className="bg-transparent text-foreground font-mono focus:outline-none flex-1"
                 />

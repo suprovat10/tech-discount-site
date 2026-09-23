@@ -32,6 +32,8 @@
   "heroSubtitle": "Instantly compare real-time offers and verified discounts from Amazon, Walmart, Best Buy, and Target before making any purchase.",
   "heroImageUrl": "https://res.cloudinary.com/koayelts/image/upload/f_auto,q_auto,w_1600,c_limit/v1790111669/techpricedrop/hero/brrklc8lesvqxe3zkqrg.jpg",
   "heroImageAlt": "MacBook and Tech Gear",
+  "heroImageLink": "",
+  "heroImageNewTab": false,
   "heroPrimaryBtnText": "Browse Products",
   "heroPrimaryBtnUrl": "/products",
   "heroPrimaryBtnNewTab": false,

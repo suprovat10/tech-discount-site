@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { formatSlugInput } from '@/lib/utils';
 import { RichTextEditor } from '@/components/admin/RichTextEditor';
 import { getPages, savePage } from '@/lib/pageStore';
 import { DEFAULT_PAGES, SitePage } from '@/data/defaultPages';
@@ -234,7 +235,7 @@ export default function AdminPageEditor() {
                 type="text"
                 value={slug}
                 disabled={page.isSystem}
-                onChange={(e) => setSlug(e.target.value)}
+                onChange={(e) => setSlug(formatSlugInput(e.target.value))}
                 className="h-9 text-xs font-mono max-w-xs"
               />
             </div>
