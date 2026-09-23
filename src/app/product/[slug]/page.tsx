@@ -10,7 +10,7 @@ import { getCategories, getCategorySlug } from '@/lib/categoryStore';
 
 import { optimizeImageUrl } from '@/lib/imageOptimization';
 
-export const revalidate = 300;
+export const revalidate = 30;
 
 export async function generateStaticParams() {
   const products = await getDatabaseProducts();
@@ -90,6 +90,11 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   const rawProduct = await getDatabaseProductBySlug(slug);
   const product = rawProduct ? transformCatalogItemToUnified(rawProduct) : null;
 
+  // Product deleted or not found — show 404
+  if (!product) {
+    notFound();
+  }
+
   const allCatalog = await getDatabaseProducts();
 
   // Related products strictly from the same category
@@ -152,7 +157,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
 
       <ProductDetailClient
         key={slug}
-        product={product || null}
+        product={product}
         slug={slug}
         relatedProducts={relatedProducts}
       />

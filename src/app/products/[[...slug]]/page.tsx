@@ -9,7 +9,7 @@ import { getDatabaseProducts } from '@/lib/catalogDb';
 import { transformCatalogItemToUnified } from '@/lib/adapters';
 import { UnifiedProduct } from '@/types/product';
 
-export const revalidate = 300;
+export const revalidate = 30;
 
 export async function generateStaticParams() {
   const categories = await getDatabaseCategories();

@@ -5,7 +5,7 @@ export const DB_CATALOG_KEY = 'products_catalog';
 
 let cachedProducts: CatalogItem[] | null = null;
 let lastProductsFetchTime = 0;
-const PRODUCTS_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const PRODUCTS_CACHE_TTL_MS = 30 * 1000; // 30 seconds
 
 export function invalidateCatalogDbCache(): void {
   cachedProducts = null;
