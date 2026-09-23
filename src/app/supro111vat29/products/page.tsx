@@ -49,6 +49,8 @@ export default function AdminProductsManager() {
   const [isImporting, setIsImporting] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [hasUnsavedOrder, setHasUnsavedOrder] = useState<boolean>(false);
   const [isSavingOrder, setIsSavingOrder] = useState<boolean>(false);
@@ -224,6 +226,27 @@ export default function AdminProductsManager() {
 
   const handleClearSelection = () => {
     setSelectedIds(new Set());
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    setIsBulkDeleting(true);
+    try {
+      const idsToDelete = Array.from(selectedIds);
+      // Optimistically remove from UI first
+      setProducts((prev) => prev.filter((p) => !selectedIds.has(p.id)));
+      // Delete all in parallel
+      await Promise.all(idsToDelete.map((id) => deleteCatalogProduct(id)));
+      setSelectedIds(new Set());
+      setIsBulkDeleteOpen(false);
+      setSuccessMessage(`Successfully deleted ${idsToDelete.length} product${idsToDelete.length > 1 ? 's' : ''} permanently.`);
+      setTimeout(() => setSuccessMessage(null), 3500);
+    } catch {
+      setErrorMessage('Some products could not be deleted. Please refresh and try again.');
+      setTimeout(() => setErrorMessage(null), 4000);
+    } finally {
+      setIsBulkDeleting(false);
+    }
   };
 
   // Export Products to JSON file (Selected or All)
@@ -554,6 +577,14 @@ export default function AdminProductsManager() {
             >
               <Download className="w-3 h-3" />
               <span>Export Selected ({selectedIds.size})</span>
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => setIsBulkDeleteOpen(true)}
+              className="bg-red-600 hover:bg-red-700 text-white text-xs font-bold h-7 px-3 flex items-center gap-1 cursor-pointer"
+            >
+              <Trash2 className="w-3 h-3" />
+              <span>Delete Selected ({selectedIds.size})</span>
             </Button>
             <button
               onClick={() => setSelectedIds(new Set(products.map((p) => p.id)))}
@@ -940,6 +971,17 @@ export default function AdminProductsManager() {
         isDeleting={isDeleting}
         onConfirm={handleConfirmDelete}
         onClose={() => setDeleteTarget(null)}
+      />
+
+      <DeleteConfirmModal
+        isOpen={isBulkDeleteOpen}
+        title={`Delete ${selectedIds.size} Product${selectedIds.size > 1 ? 's' : ''}`}
+        itemType="products"
+        message={`Are you sure you want to permanently delete ${selectedIds.size} selected product${selectedIds.size > 1 ? 's' : ''}? This action cannot be undone and will remove all associated data from the database.`}
+        confirmText={`Delete ${selectedIds.size} Product${selectedIds.size > 1 ? 's' : ''}`}
+        isDeleting={isBulkDeleting}
+        onConfirm={handleBulkDelete}
+        onClose={() => !isBulkDeleting && setIsBulkDeleteOpen(false)}
       />
     </div>
   );
