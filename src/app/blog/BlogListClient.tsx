@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -32,24 +32,36 @@ interface BlogListClientProps {
   initialCategory?: string;
 }
 
+// ─── Small child that reads URL search params and notifies parent ────────────
+// Isolated here so the main list renders immediately (no Suspense block).
+interface SearchParamsReaderProps {
+  onParams: (category: string, page: number) => void;
+}
+
+function SearchParamsReader({ onParams }: SearchParamsReaderProps) {
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    if (!searchParams) return;
+    const cat = searchParams.get('category') || searchParams.get('cat') || '';
+    const p = parseInt(searchParams.get('page') || '1', 10);
+    onParams(cat, isNaN(p) || p < 1 ? 1 : p);
+  }, [searchParams, onParams]);
+  return null;
+}
+
+// ─── Main list component ─────────────────────────────────────────────────────
 export function BlogListClient({
   initialPosts,
   initialCategories,
   initialCategory,
 }: BlogListClientProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  const urlCategory = searchParams ? (searchParams.get('category') || searchParams.get('cat') || '') : '';
-  const urlPage = searchParams ? parseInt(searchParams.get('page') || '1', 10) : 1;
-
+  // Initialise from SSR prop so first render is correct without searchParams
   const [blogs, setBlogs] = useState<BlogPost[]>(initialPosts);
   const [categories, setCategories] = useState<BlogCategory[]>(initialCategories);
   const [selectedCategory, setSelectedCategory] = useState<string>(() => {
-    if (urlCategory) return urlCategory;
-    if (initialCategory && initialCategory !== 'all') {
-      return initialCategory;
-    }
+    if (initialCategory && initialCategory !== 'all') return initialCategory;
     if (typeof window !== 'undefined') {
       try {
         const stored = sessionStorage.getItem('smarttech_last_blog_category');
@@ -59,7 +71,7 @@ export function BlogListClient({
     return 'all';
   });
   const [searchQuery, setSearchQuery] = useState('');
-  const [currentPage, setCurrentPage] = useState<number>(urlPage > 0 ? urlPage : 1);
+  const [currentPage, setCurrentPage] = useState(1);
   const POSTS_PER_PAGE = 12;
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -68,28 +80,21 @@ export function BlogListClient({
     setIsMounted(true);
   }, []);
 
-  // Synchronize category & page state whenever Next.js searchParams change (handles Back / Forward browser buttons)
-  useEffect(() => {
-    if (!searchParams) return;
-    const qCat = searchParams.get('category') || searchParams.get('cat');
-    if (qCat) {
-      setSelectedCategory(qCat);
-      try {
-        sessionStorage.setItem('smarttech_last_blog_category', qCat);
-      } catch {}
+  // Callback from SearchParamsReader – sync URL → state on Back/Forward
+  const handleParamsChange = React.useCallback((cat: string, page: number) => {
+    if (cat) {
+      setSelectedCategory(cat);
+      try { sessionStorage.setItem('smarttech_last_blog_category', cat); } catch {}
     } else {
-      const stored = typeof window !== 'undefined' ? sessionStorage.getItem('smarttech_last_blog_category') : null;
-      if (stored && stored !== 'all') {
-        setSelectedCategory(stored);
-      } else {
-        setSelectedCategory('all');
-      }
+      const stored = typeof window !== 'undefined'
+        ? sessionStorage.getItem('smarttech_last_blog_category')
+        : null;
+      setSelectedCategory(stored && stored !== 'all' ? stored : 'all');
     }
+    setCurrentPage(page);
+  }, []);
 
-    const p = parseInt(searchParams.get('page') || '1', 10);
-    setCurrentPage(isNaN(p) || p < 1 ? 1 : p);
-  }, [searchParams]);
-
+  // Load fresh data from localStorage / KV on mount and on updates
   useEffect(() => {
     const loadData = () => {
       const loadedBlogs = getBlogs();
@@ -128,26 +133,16 @@ export function BlogListClient({
 
     if (isAll) {
       setSelectedCategory('all');
-      if (typeof window !== 'undefined') {
-        try {
-          sessionStorage.removeItem('smarttech_last_blog_category');
-        } catch {}
-      }
+      try { sessionStorage.removeItem('smarttech_last_blog_category'); } catch {}
       router.push('/blog', { scroll: false });
     } else {
       const slug = getBlogCategorySlug(catIdentifier, categories) || catIdentifier;
       setSelectedCategory(slug);
-      if (typeof window !== 'undefined') {
-        try {
-          sessionStorage.setItem('smarttech_last_blog_category', slug);
-        } catch {}
-      }
+      try { sessionStorage.setItem('smarttech_last_blog_category', slug); } catch {}
       router.push(`/blog?category=${encodeURIComponent(slug)}`, { scroll: false });
     }
 
-    if (isMobileFilterOpen) {
-      setIsMobileFilterOpen(false);
-    }
+    if (isMobileFilterOpen) setIsMobileFilterOpen(false);
   };
 
   const handlePageChange = (page: number) => {
@@ -170,13 +165,11 @@ export function BlogListClient({
   // Filter posts by category and search
   const filteredPosts = blogs.filter((post) => {
     const matchesCategory = doesBlogPostMatchCategory(post.category, selectedCategory, categories);
-
     const matchesSearch =
       !searchQuery.trim() ||
       post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
       post.tags?.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
-
     return matchesCategory && matchesSearch;
   });
 
@@ -192,15 +185,12 @@ export function BlogListClient({
   // Render filter controls for both desktop sidebar and mobile drawer
   const renderFilterControls = () => (
     <div className="space-y-6">
-      {/* 1. Search Articles (Header-style search bar) */}
+      {/* 1. Search Articles */}
       <div className="space-y-2.5">
         <h3 className="text-xs font-black uppercase tracking-wider text-foreground/80">
           Search Articles
         </h3>
-        <form
-          onSubmit={(e) => e.preventDefault()}
-          className="relative flex items-center w-full"
-        >
+        <form onSubmit={(e) => e.preventDefault()} className="relative flex items-center w-full">
           <input
             type="text"
             value={searchQuery}
@@ -211,15 +201,11 @@ export function BlogListClient({
             placeholder="Search topics & guides..."
             className="w-full h-9 pl-3.5 pr-16 text-xs font-medium rounded-none bg-muted/40 border border-border focus:bg-background focus:border-blue-600 focus:outline-none transition-all placeholder:text-muted-foreground"
           />
-
           <div className="absolute right-1 inset-y-1 flex items-center gap-0.5">
             {searchQuery.length > 0 && (
               <button
                 type="button"
-                onClick={() => {
-                  setSearchQuery('');
-                  setCurrentPage(1);
-                }}
+                onClick={() => { setSearchQuery(''); setCurrentPage(1); }}
                 className="h-7 w-7 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-none transition-colors cursor-pointer"
                 title="Clear text"
                 aria-label="Clear text"
@@ -227,7 +213,6 @@ export function BlogListClient({
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
-
             <button
               type="submit"
               className="h-7 w-7 flex items-center justify-center text-muted-foreground hover:text-blue-600 hover:bg-muted/80 rounded-none transition-colors cursor-pointer"
@@ -240,20 +225,16 @@ export function BlogListClient({
         </form>
       </div>
 
-      {/* 2. Blog Categories Hierarchy (Product Page Style) */}
+      {/* 2. Blog Categories */}
       <div className="space-y-2.5 pt-4 border-t border-border/60">
         <h3 className="text-xs font-black uppercase tracking-wider text-foreground/80">
           Categories
         </h3>
-
         <div className="space-y-1 text-xs">
           {/* All Articles option */}
           <Link
             href="/blog"
-            onClick={(e) => {
-              e.preventDefault();
-              handleSelectCategory('all');
-            }}
+            onClick={(e) => { e.preventDefault(); handleSelectCategory('all'); }}
             className={`w-full text-left py-2 px-2.5 rounded-none flex items-center justify-between transition-all cursor-pointer ${
               selectedCategory === 'all'
                 ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950 font-bold shadow-xs'
@@ -261,13 +242,11 @@ export function BlogListClient({
             }`}
           >
             <span className="tracking-tight">All Articles</span>
-            <span
-              className={`text-[11px] px-2 py-0.5 rounded-full font-semibold tabular-nums transition-colors ${
-                selectedCategory === 'all'
-                  ? 'bg-white/20 dark:bg-black/15 text-white dark:text-slate-900'
-                  : 'bg-muted text-muted-foreground'
-              }`}
-            >
+            <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold tabular-nums transition-colors ${
+              selectedCategory === 'all'
+                ? 'bg-white/20 dark:bg-black/15 text-white dark:text-slate-900'
+                : 'bg-muted text-muted-foreground'
+            }`}>
               {blogs.length}
             </span>
           </Link>
@@ -285,10 +264,7 @@ export function BlogListClient({
               <Link
                 key={cat.id}
                 href={`/blog?category=${encodeURIComponent(catSlug)}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleSelectCategory(catSlug);
-                }}
+                onClick={(e) => { e.preventDefault(); handleSelectCategory(catSlug); }}
                 className={`w-full text-left py-1.5 px-2.5 rounded-none transition-all flex items-center justify-between cursor-pointer ${
                   isCatSelected
                     ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 font-bold shadow-xs border border-blue-100/80 dark:border-blue-900/40'
@@ -296,13 +272,9 @@ export function BlogListClient({
                 }`}
               >
                 <span className="truncate pr-1 tracking-tight">{cat.name}</span>
-                <span
-                  className={`text-[11px] tabular-nums font-semibold shrink-0 ${
-                    isCatSelected
-                      ? 'text-blue-600/80 dark:text-blue-400/80'
-                      : 'text-muted-foreground/70'
-                  }`}
-                >
+                <span className={`text-[11px] tabular-nums font-semibold shrink-0 ${
+                  isCatSelected ? 'text-blue-600/80 dark:text-blue-400/80' : 'text-muted-foreground/70'
+                }`}>
                   ({count})
                 </span>
               </Link>
@@ -315,21 +287,26 @@ export function BlogListClient({
 
   return (
     <div className="space-y-8 max-w-[1200px] mx-auto">
+      {/* SearchParamsReader in its own Suspense – does NOT block main render */}
+      <Suspense fallback={null}>
+        <SearchParamsReader onParams={handleParamsChange} />
+      </Suspense>
+
       {/* Blog Page Hero Header */}
       <div className="border-b border-border/60 pb-6 space-y-2">
         <div className="inline-flex items-center gap-1.5 text-blue-600 dark:text-blue-400 text-xs font-bold uppercase tracking-wider">
           <BookOpen className="w-3.5 h-3.5" />
-          <span>TechPriceDrop Insights & Buying Guides</span>
+          <span>TechPriceDrop Insights &amp; Buying Guides</span>
         </div>
         <h1 className="text-2xl sm:text-4xl font-black text-foreground tracking-tight">
-          Tech Buying Guides, Reviews & Price Trends
+          Tech Buying Guides, Reviews &amp; Price Trends
         </h1>
         <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl">
           In-depth price analyses, store comparisons, and buying tips to help you find genuine discounts across Amazon, Walmart, Best Buy, and Target.
         </p>
       </div>
 
-      {/* Mobile Slide-in Filter Drawer Backdrop & Drawer */}
+      {/* Mobile Slide-in Filter Drawer */}
       {isMounted &&
         createPortal(
           <>
@@ -350,7 +327,7 @@ export function BlogListClient({
                 <div className="flex items-center gap-2">
                   <Filter className="w-4 h-4 text-blue-600 shrink-0" />
                   <span className="text-xs font-black uppercase tracking-wider text-foreground">
-                    Filters & Categories
+                    Filters &amp; Categories
                   </span>
                   {activeFiltersCount > 0 && (
                     <span className="px-1.5 py-0.5 text-[10px] font-bold bg-blue-600 text-white rounded-none">
@@ -383,7 +360,7 @@ export function BlogListClient({
                 {renderFilterControls()}
               </div>
 
-              {/* Drawer Footer / Show Results Button */}
+              {/* Drawer Footer */}
               <div className="p-3 border-t border-border bg-card/95 backdrop-blur-md shrink-0">
                 <Button
                   onClick={() => setIsMobileFilterOpen(false)}
@@ -397,9 +374,9 @@ export function BlogListClient({
           document.body
         )}
 
-      {/* Two-Column Layout: Left Sidebar Categories + Right Main Articles Grid */}
+      {/* Two-Column Layout: Left Sidebar + Right Articles Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* LEFT SIDEBAR: Categories & Search (Desktop Only) */}
+        {/* LEFT SIDEBAR: Desktop Only */}
         <aside className="hidden lg:block lg:col-span-3 space-y-6">
           <div className="border border-border/80 bg-card p-4 space-y-6 shadow-sm">
             {renderFilterControls()}
@@ -408,7 +385,7 @@ export function BlogListClient({
 
         {/* RIGHT MAIN: ARTICLES GRID */}
         <main className="lg:col-span-9 space-y-5">
-          {/* Mobile Toolbar: Filter & Category Button */}
+          {/* Mobile Toolbar */}
           <div className="lg:hidden">
             <button
               type="button"
@@ -417,7 +394,7 @@ export function BlogListClient({
             >
               <span className="flex items-center gap-1.5 truncate">
                 <Filter className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                <span className="truncate">Filters & Categories</span>
+                <span className="truncate">Filters &amp; Categories</span>
               </span>
               {activeFiltersCount > 0 ? (
                 <span className="w-4 h-4 shrink-0 rounded-full bg-blue-600 text-white text-[10px] font-extrabold flex items-center justify-center">
@@ -444,10 +421,7 @@ export function BlogListClient({
                 </h1>
                 {searchQuery && (
                   <button
-                    onClick={() => {
-                      setSearchQuery('');
-                      setCurrentPage(1);
-                    }}
+                    onClick={() => { setSearchQuery(''); setCurrentPage(1); }}
                     className="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors cursor-pointer"
                     title="Clear search keyword"
                   >
@@ -490,93 +464,78 @@ export function BlogListClient({
             <>
               <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-5">
                 {paginatedPosts.map((post, idx) => (
-                  <article
+                  // Single <Link> wrapping the entire card — no z-index conflict
+                  <Link
                     key={post.id}
-                    className="relative border border-border bg-card overflow-hidden hover:border-blue-600 transition-colors flex flex-col justify-between group shadow-2xs"
+                    href={`/blog/${post.slug}`}
+                    prefetch={true}
+                    className="relative border border-border bg-card overflow-hidden hover:border-blue-600 transition-colors flex flex-col justify-between group shadow-2xs focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
                   >
-                    <div>
-                      {/* Featured Image - Clickable */}
-                      <Link
-                        href={`/blog/${post.slug}`}
-                        prefetch={true}
-                        className="relative block aspect-[16/10] w-full overflow-hidden bg-muted border-b border-border cursor-pointer z-10"
-                        title={post.title}
-                      >
-                        {post.imageUrl ? (
-                          <img
-                            src={optimizeImageUrl(post.imageUrl, 640)}
-                            alt={post.imageAlt || post.title}
-                            loading={idx < 2 ? 'eager' : 'lazy'}
-                            decoding={idx < 2 ? 'sync' : 'async'}
-                            fetchPriority={idx === 0 ? 'high' : undefined}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            onError={(e) => {
-                              e.currentTarget.src = '/logo.png';
-                            }}
-                          />
-                        ) : (
-                          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800 p-2 sm:p-4 text-center">
-                            <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-background/90 border border-border flex items-center justify-center mb-1 sm:mb-2 shadow-xs group-hover:scale-110 transition-transform">
-                              <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400" />
-                            </div>
-                            <span className="text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase tracking-wider line-clamp-1">
-                              {post.category || 'Tech Guide'}
-                            </span>
+                    {/* Featured Image */}
+                    <div className="relative block aspect-[16/10] w-full overflow-hidden bg-muted border-b border-border">
+                      {post.imageUrl ? (
+                        <img
+                          src={optimizeImageUrl(post.imageUrl, 640)}
+                          alt={post.imageAlt || post.title}
+                          loading={idx < 4 ? 'eager' : 'lazy'}
+                          decoding={idx < 4 ? 'sync' : 'async'}
+                          fetchPriority={idx < 2 ? 'high' : undefined}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          onError={(e) => {
+                            e.currentTarget.src = '/logo.png';
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800 p-2 sm:p-4 text-center">
+                          <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-background/90 border border-border flex items-center justify-center mb-1 sm:mb-2 shadow-xs group-hover:scale-110 transition-transform">
+                            <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400" />
                           </div>
-                        )}
-                        {post.category && (
-                          <span className="absolute top-1.5 left-1.5 sm:top-2.5 sm:left-2.5 px-1.5 sm:px-2.5 py-0.5 bg-blue-600 text-white font-bold text-[9px] sm:text-[10px] uppercase shadow-sm max-w-[85%] truncate z-20">
-                            {post.category}
-                          </span>
-                        )}
-                      </Link>
-
-                      {/* Content */}
-                      <div className="p-2.5 sm:p-4 space-y-1.5 sm:space-y-2.5">
-                        <div className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-[11px] text-muted-foreground font-medium flex-wrap">
-                          <span className="flex items-center gap-1">
-                            <Calendar className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-blue-500 shrink-0" />
-                            <span className="truncate">{post.date}</span>
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-blue-500 shrink-0" />
-                            <span>{post.readTime}</span>
+                          <span className="text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase tracking-wider line-clamp-1">
+                            {post.category || 'Tech Guide'}
                           </span>
                         </div>
-
-                        {/* Title - Stretched Link covering the entire card body */}
-                        <Link
-                          href={`/blog/${post.slug}`}
-                          prefetch={true}
-                          className="block cursor-pointer after:absolute after:inset-0 after:z-10 focus:outline-none"
-                        >
-                          <h3 className="text-xs sm:text-sm font-black text-foreground group-hover:text-blue-600 transition-colors line-clamp-2 leading-snug">
-                            {post.title}
-                          </h3>
-                        </Link>
-
-                        <p className="text-[11px] sm:text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                          {post.excerpt}
-                        </p>
-                      </div>
+                      )}
+                      {post.category && (
+                        <span className="absolute top-1.5 left-1.5 sm:top-2.5 sm:left-2.5 px-1.5 sm:px-2.5 py-0.5 bg-blue-600 text-white font-bold text-[9px] sm:text-[10px] uppercase shadow-sm max-w-[85%] truncate">
+                          {post.category}
+                        </span>
+                      )}
                     </div>
 
-                    {/* Card Footer: Read More button - Clickable */}
-                    <div className="p-2.5 sm:p-4 pt-0 border-t border-border/40 mt-2 sm:mt-3 pt-2 sm:pt-3 flex items-center justify-end relative z-20">
-                      <Link
-                        href={`/blog/${post.slug}`}
-                        prefetch={true}
-                        className="text-[11px] sm:text-xs font-bold text-blue-600 group-hover:text-blue-700 transition-colors flex items-center gap-1 cursor-pointer"
-                      >
+                    {/* Content */}
+                    <div className="p-2.5 sm:p-4 space-y-1.5 sm:space-y-2.5 flex-1">
+                      <div className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-[11px] text-muted-foreground font-medium flex-wrap">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-blue-500 shrink-0" />
+                          <span className="truncate">{post.date}</span>
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-blue-500 shrink-0" />
+                          <span>{post.readTime}</span>
+                        </span>
+                      </div>
+
+                      <h3 className="text-xs sm:text-sm font-black text-foreground group-hover:text-blue-600 transition-colors line-clamp-2 leading-snug">
+                        {post.title}
+                      </h3>
+
+                      <p className="text-[11px] sm:text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                        {post.excerpt}
+                      </p>
+                    </div>
+
+                    {/* Card Footer */}
+                    <div className="p-2.5 sm:p-4 pt-0 border-t border-border/40 mt-2 sm:mt-3 pt-2 sm:pt-3 flex items-center justify-end">
+                      <span className="text-[11px] sm:text-xs font-bold text-blue-600 group-hover:text-blue-700 transition-colors flex items-center gap-1">
                         <span>Read Guide</span>
                         <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3 transition-transform group-hover:translate-x-0.5" />
-                      </Link>
+                      </span>
                     </div>
-                  </article>
+                  </Link>
                 ))}
               </div>
 
-              {/* Pagination Controls (12 Articles Per Page) */}
+              {/* Pagination Controls */}
               {totalPages > 1 && (
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-6 mt-[30px] border-t border-border/60">
                   <div className="text-xs text-muted-foreground">
