@@ -147,6 +147,8 @@ export default function AdminBrandsPage() {
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Reset file input so the same file can be re-uploaded
+      e.target.value = '';
       try {
         const formData = new FormData();
         formData.append('file', file);
@@ -582,6 +584,8 @@ export default function AdminBrandsPage() {
                           className="hidden"
                           onChange={async (e) => {
                             const file = e.target.files?.[0];
+                            // Reset file input so the same file can be re-uploaded
+                            e.target.value = '';
                             if (file) {
                               try {
                                 const formData = new FormData();

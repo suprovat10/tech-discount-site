@@ -375,6 +375,8 @@ export default function AdminCategoriesPage() {
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    // Reset file input so the same file can be re-uploaded
+    e.target.value = '';
     try {
       const formData = new FormData();
       formData.append('file', file);

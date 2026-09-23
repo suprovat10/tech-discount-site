@@ -376,6 +376,8 @@ export default function BlogForm({
               className="hidden"
               onChange={(e) => {
                 const file = e.target.files?.[0];
+                // Reset file input so the same file can be re-uploaded
+                e.target.value = '';
                 if (file) handleCoverUpload(file);
               }}
             />

@@ -622,6 +622,8 @@ export default function AdminPopupsPage() {
                   className="hidden"
                   onChange={(e) => {
                     const f = e.target.files?.[0];
+                    // Reset file input so the same file can be re-uploaded
+                    e.target.value = '';
                     if (f) handleImageUpload(f);
                   }}
                 />

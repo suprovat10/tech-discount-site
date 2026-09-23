@@ -468,6 +468,8 @@ export default function CreateProductStudioPage() {
   const handleReplaceCoverLocal = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Reset file input so the same file can be re-uploaded
+      e.target.value = '';
       try {
         const formData = new FormData();
         formData.append('file', file);
@@ -495,6 +497,8 @@ export default function CreateProductStudioPage() {
   const handleLocalGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
+    // Reset file input so the same file(s) can be re-uploaded
+    e.target.value = '';
 
     for (const file of files) {
       try {
@@ -555,6 +559,8 @@ export default function CreateProductStudioPage() {
   const handleSocialImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Reset file input so the same file can be re-uploaded
+      e.target.value = '';
       try {
         const formData = new FormData();
         formData.append('file', file);
