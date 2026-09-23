@@ -67,8 +67,15 @@ export async function getServerBlogs(): Promise<BlogPost[]> {
  */
 export async function getServerBlogBySlug(slug: string): Promise<BlogPost | undefined> {
   const blogs = await getServerBlogs();
-  const clean = slug.toLowerCase().trim();
-  return blogs.find((b) => b.slug.toLowerCase().trim() === clean || b.id === slug);
+  const clean = decodeURIComponent(slug).toLowerCase().trim();
+  const rawClean = slug.toLowerCase().trim();
+  return blogs.find(
+    (b) =>
+      b.slug.toLowerCase().trim() === clean ||
+      b.slug.toLowerCase().trim() === rawClean ||
+      b.id === slug ||
+      b.id === clean
+  );
 }
 
 /**

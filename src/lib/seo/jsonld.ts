@@ -101,14 +101,15 @@ export function generateArticleJsonLd(
   logoUrl = '/logo-techpricedrop.png'
 ) {
   const fullLogoUrl = logoUrl.startsWith('http') ? logoUrl : `${siteUrl}${logoUrl}`;
-  const postUrl = `${siteUrl}/blog/${post.slug}`;
-  const imageUrl = post.imageUrl.startsWith('http') ? post.imageUrl : `${siteUrl}${post.imageUrl}`;
+  const postUrl = post.seo?.canonicalUrl || `${siteUrl}/blog/${post.slug}`;
+  const rawImage = post.seo?.ogImageUrl || post.imageUrl;
+  const imageUrl = rawImage ? (rawImage.startsWith('http') ? rawImage : `${siteUrl}${rawImage}`) : fullLogoUrl;
 
   return {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
-    headline: post.title,
-    description: post.excerpt,
+    headline: post.seo?.metaTitle || post.title,
+    description: post.seo?.metaDescription || post.excerpt,
     image: [imageUrl],
     datePublished: post.date,
     dateModified: post.date,

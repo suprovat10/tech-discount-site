@@ -12,6 +12,7 @@ import {
   BookOpen,
   Search,
   ChevronRight,
+  ChevronLeft,
   Filter,
   RotateCcw,
   X,
@@ -53,6 +54,17 @@ export function BlogListClient({
     return 'all';
   });
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const p = parseInt(params.get('page') || '1', 10);
+        return isNaN(p) || p < 1 ? 1 : p;
+      } catch {}
+    }
+    return 1;
+  });
+  const POSTS_PER_PAGE = 12;
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -60,12 +72,14 @@ export function BlogListClient({
     setIsMounted(true);
   }, []);
 
-  // Listen to browser Back / Forward buttons so selected category is seamlessly restored
+  // Listen to browser Back / Forward buttons so selected category & page are seamlessly restored
   useEffect(() => {
     const handlePopState = () => {
       try {
         const params = new URLSearchParams(window.location.search);
         const qCat = params.get('category') || params.get('cat');
+        const p = parseInt(params.get('page') || '1', 10);
+        setCurrentPage(isNaN(p) || p < 1 ? 1 : p);
         if (qCat) {
           setSelectedCategory(qCat);
           sessionStorage.setItem('smarttech_last_blog_category', qCat);
@@ -121,10 +135,12 @@ export function BlogListClient({
   const handleSelectCategory = (catIdentifier: string) => {
     const isAll = !catIdentifier || catIdentifier === 'all';
     setSelectedCategory(isAll ? 'all' : catIdentifier);
+    setCurrentPage(1);
 
     if (typeof window !== 'undefined') {
       try {
         const url = new URL(window.location.href);
+        url.searchParams.delete('page');
         if (isAll) {
           url.searchParams.delete('category');
           url.searchParams.delete('cat');
@@ -144,9 +160,26 @@ export function BlogListClient({
     }
   };
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    if (typeof window !== 'undefined') {
+      try {
+        const url = new URL(window.location.href);
+        if (page === 1) {
+          url.searchParams.delete('page');
+        } else {
+          url.searchParams.set('page', String(page));
+        }
+        window.history.pushState({}, '', url.toString());
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch {}
+    }
+  };
+
   const handleReset = () => {
     handleSelectCategory('all');
     setSearchQuery('');
+    setCurrentPage(1);
   };
 
   // Filter posts by category and search
@@ -161,6 +194,12 @@ export function BlogListClient({
 
     return matchesCategory && matchesSearch;
   });
+
+  const totalPages = Math.ceil(filteredPosts.length / POSTS_PER_PAGE);
+  const paginatedPosts = filteredPosts.slice(
+    (currentPage - 1) * POSTS_PER_PAGE,
+    currentPage * POSTS_PER_PAGE
+  );
 
   const activeFiltersCount =
     (selectedCategory !== 'all' ? 1 : 0) + (searchQuery.trim().length > 0 ? 1 : 0);
@@ -180,7 +219,10 @@ export function BlogListClient({
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
             placeholder="Search topics & guides..."
             className="w-full h-9 pl-3.5 pr-16 text-xs font-medium rounded-none bg-muted/40 border border-border focus:bg-background focus:border-blue-600 focus:outline-none transition-all placeholder:text-muted-foreground"
           />
@@ -189,7 +231,10 @@ export function BlogListClient({
             {searchQuery.length > 0 && (
               <button
                 type="button"
-                onClick={() => setSearchQuery('')}
+                onClick={() => {
+                  setSearchQuery('');
+                  setCurrentPage(1);
+                }}
                 className="h-7 w-7 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-none transition-colors cursor-pointer"
                 title="Clear text"
                 aria-label="Clear text"
@@ -419,7 +464,9 @@ export function BlogListClient({
                 )}
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Showing {filteredPosts.length} published {filteredPosts.length === 1 ? 'article' : 'articles'}
+                Showing {filteredPosts.length === 0 ? 0 : (currentPage - 1) * POSTS_PER_PAGE + 1} to{' '}
+                {Math.min(currentPage * POSTS_PER_PAGE, filteredPosts.length)} of {filteredPosts.length} published{' '}
+                {filteredPosts.length === 1 ? 'article' : 'articles'}
               </p>
             </div>
 
@@ -447,87 +494,162 @@ export function BlogListClient({
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-              {filteredPosts.map((post, idx) => (
-                <article
-                  key={post.id}
-                  className="border border-border bg-card overflow-hidden hover:border-blue-600 transition-colors flex flex-col justify-between group"
-                >
-                  <div>
-                    {/* Featured Image - Clickable */}
-                    <Link
-                      href={`/blog/${post.slug}`}
-                      prefetch={true}
-                      className="relative block aspect-[16/10] w-full overflow-hidden bg-muted border-b border-border cursor-pointer"
-                      title={post.title}
-                    >
-                      {post.imageUrl ? (
-                        <img
-                          src={optimizeImageUrl(post.imageUrl, 640)}
-                          alt={post.imageAlt || post.title}
-                          loading={idx < 2 ? 'eager' : 'lazy'}
-                          decoding={idx < 2 ? 'sync' : 'async'}
-                          fetchPriority={idx === 0 ? 'high' : undefined}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          onError={(e) => {
-                            e.currentTarget.src = '/logo.png';
-                          }}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800 p-4 text-center">
-                          <div className="w-11 h-11 rounded-full bg-background/90 border border-border flex items-center justify-center mb-2 shadow-xs group-hover:scale-110 transition-transform">
-                            <BookOpen className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-5">
+                {paginatedPosts.map((post, idx) => (
+                  <article
+                    key={post.id}
+                    className="border border-border bg-card overflow-hidden hover:border-blue-600 transition-colors flex flex-col justify-between group shadow-2xs"
+                  >
+                    <div>
+                      {/* Featured Image - Clickable */}
+                      <Link
+                        href={`/blog/${post.slug}`}
+                        prefetch={true}
+                        className="relative block aspect-[16/10] w-full overflow-hidden bg-muted border-b border-border cursor-pointer"
+                        title={post.title}
+                      >
+                        {post.imageUrl ? (
+                          <img
+                            src={optimizeImageUrl(post.imageUrl, 640)}
+                            alt={post.imageAlt || post.title}
+                            loading={idx < 2 ? 'eager' : 'lazy'}
+                            decoding={idx < 2 ? 'sync' : 'async'}
+                            fetchPriority={idx === 0 ? 'high' : undefined}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            onError={(e) => {
+                              e.currentTarget.src = '/logo.png';
+                            }}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800 p-2 sm:p-4 text-center">
+                            <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-background/90 border border-border flex items-center justify-center mb-1 sm:mb-2 shadow-xs group-hover:scale-110 transition-transform">
+                              <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <span className="text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase tracking-wider line-clamp-1">
+                              {post.category || 'Tech Guide'}
+                            </span>
                           </div>
-                          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                            {post.category || 'Tech Guide'}
+                        )}
+                        {post.category && (
+                          <span className="absolute top-1.5 left-1.5 sm:top-2.5 sm:left-2.5 px-1.5 sm:px-2.5 py-0.5 bg-blue-600 text-white font-bold text-[9px] sm:text-[10px] uppercase shadow-sm max-w-[85%] truncate">
+                            {post.category}
                           </span>
-                        </div>
-                      )}
-                      <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 bg-blue-600 text-white font-bold text-[10px] uppercase shadow-sm">
-                        {post.category}
-                      </span>
-                    </Link>
-
-                    {/* Content */}
-                    <div className="p-4 space-y-2.5">
-                      <div className="flex items-center gap-3 text-[11px] text-muted-foreground font-medium">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3 text-blue-500" />
-                          {post.date}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3 text-blue-500" />
-                          {post.readTime}
-                        </span>
-                      </div>
-
-                      {/* Title - Clickable */}
-                      <Link href={`/blog/${post.slug}`} prefetch={true} className="block cursor-pointer">
-                        <h3 className="text-sm font-black text-foreground hover:text-blue-600 transition-colors line-clamp-2 leading-snug">
-                          {post.title}
-                        </h3>
+                        )}
                       </Link>
 
-                      <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                        {post.excerpt}
-                      </p>
+                      {/* Content */}
+                      <div className="p-2.5 sm:p-4 space-y-1.5 sm:space-y-2.5">
+                        <div className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-[11px] text-muted-foreground font-medium flex-wrap">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-blue-500 shrink-0" />
+                            <span className="truncate">{post.date}</span>
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-blue-500 shrink-0" />
+                            <span>{post.readTime}</span>
+                          </span>
+                        </div>
+
+                        {/* Title - Clickable */}
+                        <Link href={`/blog/${post.slug}`} prefetch={true} className="block cursor-pointer">
+                          <h3 className="text-xs sm:text-sm font-black text-foreground hover:text-blue-600 transition-colors line-clamp-2 leading-snug">
+                            {post.title}
+                          </h3>
+                        </Link>
+
+                        <p className="text-[11px] sm:text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                          {post.excerpt}
+                        </p>
+                      </div>
                     </div>
+
+                    {/* Card Footer: Read More button - Clickable */}
+                    <div className="p-2.5 sm:p-4 pt-0 border-t border-border/40 mt-2 sm:mt-3 pt-2 sm:pt-3 flex items-center justify-end">
+                      <Link
+                        href={`/blog/${post.slug}`}
+                        prefetch={true}
+                        className="text-[11px] sm:text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>Read Guide</span>
+                        <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                      </Link>
+                    </div>
+                  </article>
+                ))}
+              </div>
+
+              {/* Pagination Controls (12 Articles Per Page) */}
+              {totalPages > 1 && (
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-6 mt-[30px] border-t border-border/60">
+                  <div className="text-xs text-muted-foreground">
+                    Showing <span className="font-bold text-foreground">{(currentPage - 1) * POSTS_PER_PAGE + 1}</span> to{' '}
+                    <span className="font-bold text-foreground">
+                      {Math.min(currentPage * POSTS_PER_PAGE, filteredPosts.length)}
+                    </span>{' '}
+                    of <span className="font-bold text-foreground">{filteredPosts.length}</span> articles
                   </div>
 
-                  {/* Card Footer: Read More button - Clickable */}
-                  <div className="p-4 pt-0 border-t border-border/40 mt-3 pt-3 flex items-center justify-end">
-                    <Link
-                      href={`/blog/${post.slug}`}
-                      prefetch={true}
-                      className="text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1 cursor-pointer"
+                  <div className="flex items-center gap-1.5 flex-wrap justify-center">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage <= 1}
+                      className="h-8 px-2 text-xs font-bold gap-1 cursor-pointer disabled:opacity-50 rounded-none"
                     >
-                      <span>Read Guide</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </Link>
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Prev</span>
+                    </Button>
+
+                    {Array.from({ length: totalPages }).map((_, idx) => {
+                      const pageNum = idx + 1;
+                      if (
+                        pageNum === 1 ||
+                        pageNum === totalPages ||
+                        Math.abs(pageNum - currentPage) <= 1
+                      ) {
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => handlePageChange(pageNum)}
+                            className={`w-8 h-8 text-xs font-bold transition-colors cursor-pointer rounded-none ${
+                              currentPage === pageNum
+                                ? 'bg-blue-600 text-white shadow-xs'
+                                : 'border border-border bg-card text-muted-foreground hover:bg-muted/40 hover:text-foreground'
+                            }`}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      }
+                      if (
+                        (pageNum === 2 && currentPage > 3) ||
+                        (pageNum === totalPages - 1 && currentPage < totalPages - 2)
+                      ) {
+                        return (
+                          <span key={pageNum} className="px-1 text-muted-foreground text-xs">
+                            ...
+                          </span>
+                        );
+                      }
+                      return null;
+                    })}
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage >= totalPages}
+                      className="h-8 px-2 text-xs font-bold gap-1 cursor-pointer disabled:opacity-50 rounded-none"
+                    >
+                      <span className="hidden sm:inline">Next</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </Button>
                   </div>
-                </article>
-              ))}
-            </div>
+                </div>
+              )}
+            </>
           )}
         </main>
       </div>

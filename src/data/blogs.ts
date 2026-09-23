@@ -13,6 +13,15 @@ export const DEFAULT_BLOG_CATEGORIES: BlogCategory[] = [
   { id: 'deals-savings', name: 'Deals & Price Trends', slug: 'deals-savings', description: 'Retailer discount analysis and seasonal sales' },
 ];
 
+export interface BlogPostSeo {
+  metaTitle?: string;
+  metaDescription?: string;
+  keywords?: string;
+  canonicalUrl?: string;
+  ogImageUrl?: string;
+  ogImageAlt?: string;
+}
+
 export interface BlogPost {
   id: string;
   slug: string;
@@ -27,6 +36,7 @@ export interface BlogPost {
   imageAlt?: string;
   tags: string[];
   updatedAt?: string;
+  seo?: BlogPostSeo;
 }
 
 export const BLOG_POSTS: BlogPost[] = [

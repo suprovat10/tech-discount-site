@@ -37,7 +37,7 @@ export function TagDetailClient({
   const [products, setProducts] = useState<UnifiedProduct[]>(initialProducts);
   const [sortBy, setSortBy] = useState<string>('latest');
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const PRODUCTS_PER_PAGE = 20;
+  const PRODUCTS_PER_PAGE = 16;
 
   // Load saved sort preference
   useEffect(() => {
@@ -243,7 +243,7 @@ export function TagDetailClient({
 
       {/* Products Grid */}
       {paginatedProducts.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-5">
           {paginatedProducts.map((p, idx) => (
             <DealCard key={p.id} product={p} priority={idx < 4} />
           ))}

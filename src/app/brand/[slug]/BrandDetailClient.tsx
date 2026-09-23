@@ -28,7 +28,7 @@ export function BrandDetailClient({
   const [products, setProducts] = useState<UnifiedProduct[]>(initialProducts);
   const [sortBy, setSortBy] = useState<string>('latest');
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const PRODUCTS_PER_PAGE = 20;
+  const PRODUCTS_PER_PAGE = 16;
 
   // Load and remember user sort preference across browser visits
   useEffect(() => {
@@ -202,7 +202,7 @@ export function BrandDetailClient({
               {brandDisplayName} Products ({sortedProducts.length})
             </h2>
             <span className="text-xs text-muted-foreground font-semibold">
-              ● Showing 20 items per page • Real-time multi-store prices
+              ● Showing 16 items per page • Real-time multi-store prices
             </span>
           </div>
 
@@ -232,7 +232,7 @@ export function BrandDetailClient({
               ))}
             </div>
 
-            {/* Pagination Controls (20 Products Per Page) */}
+            {/* Pagination Controls (16 Products Per Page) */}
             {totalPages > 1 && (
               <div className="flex items-center justify-between pt-6 mt-[30px] border-t border-border/60">
                 <div className="text-xs text-muted-foreground">

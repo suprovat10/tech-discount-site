@@ -266,6 +266,7 @@ export default function CreateProductStudioPage() {
   const [customSlug, setCustomSlug] = useState('');
   const [ogImageUrl, setOgImageUrl] = useState('');
   const [ogImageAlt, setOgImageAlt] = useState('');
+  const [isOgImageCustomized, setIsOgImageCustomized] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successToast, setSuccessToast] = useState(false);
@@ -478,9 +479,15 @@ export default function CreateProductStudioPage() {
         const data = await res.json();
         if (data.success && data.url && !data.url.startsWith('data:')) {
           setImages((prev) => [data.url, ...prev.slice(1)]);
+          if (!isOgImageCustomized || !ogImageUrl) {
+            setOgImageUrl(data.url);
+          }
           return;
         } else if (data.url && !data.url.startsWith('data:')) {
           setImages((prev) => [data.url, ...prev.slice(1)]);
+          if (!isOgImageCustomized || !ogImageUrl) {
+            setOgImageUrl(data.url);
+          }
           return;
         } else {
           alert(data.error || 'Failed to upload image to Cloudinary. Please verify your Cloudinary settings in Vercel.');
@@ -508,7 +515,12 @@ export default function CreateProductStudioPage() {
         const res = await fetch('/api/upload', { method: 'POST', body: formData });
         const data = await res.json();
         if (data.success && data.url && !data.url.startsWith('data:')) {
-          setImages((prev) => [...prev, data.url]);
+          setImages((prev) => {
+            if (prev.length === 0 && (!isOgImageCustomized || !ogImageUrl)) {
+              setOgImageUrl(data.url);
+            }
+            return [...prev, data.url];
+          });
           setImageAlts((prev) => [...prev, file.name.replace(/\.[^/.]+$/, '')]);
           continue;
         } else {
@@ -524,6 +536,9 @@ export default function CreateProductStudioPage() {
   // 4. Add image by URL with SEO Alt Text
   const handleAddImageUrl = () => {
     if (newImageUrl.trim()) {
+      if (images.length === 0 && (!isOgImageCustomized || !ogImageUrl)) {
+        setOgImageUrl(newImageUrl.trim());
+      }
       setImages([...images, newImageUrl.trim()]);
       setImageAlts([...imageAlts, newImageAlt.trim()]);
       setNewImageUrl('');
@@ -553,6 +568,9 @@ export default function CreateProductStudioPage() {
     setImages([targetImg, ...otherImgs]);
     setImageAlts([coverAlt, ...otherAlts]);
     setCoverAlt(targetAlt);
+    if (!isOgImageCustomized || !ogImageUrl) {
+      setOgImageUrl(targetImg);
+    }
   };
 
   // SEO Social Image Handlers
@@ -569,6 +587,7 @@ export default function CreateProductStudioPage() {
         const data = await res.json();
         if (data.success && data.url) {
           setOgImageUrl(data.url);
+          setIsOgImageCustomized(true);
           return;
         }
       } catch (err) {
@@ -578,6 +597,7 @@ export default function CreateProductStudioPage() {
       reader.onloadend = () => {
         if (typeof reader.result === 'string') {
           setOgImageUrl(reader.result);
+          setIsOgImageCustomized(true);
         }
       };
       reader.readAsDataURL(file);
@@ -587,6 +607,7 @@ export default function CreateProductStudioPage() {
   const handleUseCoverForSeo = () => {
     if (images[0]) {
       setOgImageUrl(images[0]);
+      setIsOgImageCustomized(false);
     }
   };
 
@@ -730,8 +751,8 @@ export default function CreateProductStudioPage() {
           `Compare verified live prices for ${title} across leading retailers. Save with real-time price tracking.`,
         keywords,
         canonicalUrl: `https://www.techpricedrop.com/product/${generatedSlug}`,
-        ogImageUrl: ogImageUrl.trim() || undefined,
-        ogImageAlt: ogImageAlt.trim() || undefined,
+        ogImageUrl: (ogImageUrl.trim() || images[0] || '').trim() || undefined,
+        ogImageAlt: (ogImageAlt.trim() || coverAlt.trim() || title.trim()).trim() || undefined,
       },
       offers: constructedOffers,
     };

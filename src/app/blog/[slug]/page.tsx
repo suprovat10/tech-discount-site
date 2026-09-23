@@ -21,6 +21,7 @@ interface BlogDetailProps {
 
 export async function generateMetadata({ params }: BlogDetailProps): Promise<Metadata> {
   const { slug } = await params;
+  const decodedSlug = decodeURIComponent(slug).toLowerCase().trim();
   const settings = await getServerSettings();
   const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
   const brand = settings.siteBrandName || 'TechPriceDrop';
@@ -28,7 +29,7 @@ export async function generateMetadata({ params }: BlogDetailProps): Promise<Met
   const post = await getServerBlogBySlug(slug);
 
   if (!post) {
-    const formattedTitle = slug
+    const formattedTitle = decodedSlug
       .split('-')
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
       .join(' ');
@@ -38,17 +39,26 @@ export async function generateMetadata({ params }: BlogDetailProps): Promise<Met
     };
   }
 
-  const postUrl = `${siteUrl}/blog/${post.slug}`;
+  const postUrl = post.seo?.canonicalUrl || `${siteUrl}/blog/${post.slug}`;
+  const metaTitle = post.seo?.metaTitle || `${post.title} | ${brand} Blog`;
+  const metaDescription = post.seo?.metaDescription || post.excerpt;
+  const keywordsList = post.seo?.keywords
+    ? post.seo.keywords.split(',').map((k) => k.trim()).filter(Boolean)
+    : post.tags;
+
+  const socialImgUrl = post.seo?.ogImageUrl || post.imageUrl || settings.ogImageUrl || '';
+  const socialImgAlt = post.seo?.ogImageAlt || post.imageAlt || post.title;
 
   return {
-    title: `${post.title} | ${brand} Blog`,
-    description: post.excerpt,
+    title: metaTitle,
+    description: metaDescription,
+    keywords: keywordsList,
     alternates: {
       canonical: postUrl,
     },
     openGraph: {
-      title: post.title,
-      description: post.excerpt,
+      title: post.seo?.metaTitle || post.title,
+      description: metaDescription,
       url: postUrl,
       siteName: brand,
       type: 'article',
@@ -60,13 +70,13 @@ export async function generateMetadata({ params }: BlogDetailProps): Promise<Met
           return undefined;
         }
       })(),
-      images: post.imageUrl ? [{ url: post.imageUrl, alt: post.imageAlt || post.title }] : [],
+      images: socialImgUrl ? [{ url: socialImgUrl, alt: socialImgAlt }] : [],
     },
     twitter: {
       card: 'summary_large_image',
-      title: post.title,
-      description: post.excerpt,
-      images: post.imageUrl ? [post.imageUrl] : [],
+      title: post.seo?.metaTitle || post.title,
+      description: metaDescription,
+      images: socialImgUrl ? [socialImgUrl] : [],
     },
   };
 }
@@ -78,6 +88,8 @@ import { optimizeImageUrl } from '@/lib/imageOptimization';
 
 export default async function BlogDetailPage({ params }: BlogDetailProps) {
   const { slug } = await params;
+  const decodedSlug = decodeURIComponent(slug).toLowerCase().trim();
+  const rawClean = slug.toLowerCase().trim();
   const settings = await getServerSettings();
   const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
   const brand = settings.siteBrandName || 'TechPriceDrop';
@@ -88,7 +100,14 @@ export default async function BlogDetailPage({ params }: BlogDetailProps) {
     getDatabaseProducts().catch(() => []),
   ]);
 
-  const post = allBlogs.find((p) => p.slug === slug || p.id === slug) || null;
+  const post =
+    allBlogs.find(
+      (p) =>
+        p.slug.toLowerCase().trim() === decodedSlug ||
+        p.slug.toLowerCase().trim() === rawClean ||
+        p.id === slug ||
+        p.id === decodedSlug
+    ) || null;
 
   // 4 related articles from the same category
   let relatedPosts: typeof allBlogs = [];

@@ -183,8 +183,16 @@ export function getBlogs(): BlogPost[] {
  */
 export function getBlogById(idOrSlug: string): BlogPost | undefined {
   const blogs = getBlogs();
-  const clean = idOrSlug.toLowerCase().trim();
-  return blogs.find((b) => b.id === idOrSlug || b.slug.toLowerCase().trim() === clean);
+  if (!idOrSlug) return undefined;
+  const clean = decodeURIComponent(idOrSlug).toLowerCase().trim();
+  const rawClean = idOrSlug.toLowerCase().trim();
+  return blogs.find(
+    (b) =>
+      b.id === idOrSlug ||
+      b.id === clean ||
+      b.slug.toLowerCase().trim() === clean ||
+      b.slug.toLowerCase().trim() === rawClean
+  );
 }
 
 /**

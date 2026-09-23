@@ -260,6 +260,7 @@ export default function EditProductStudioPage({
   const [keywords, setKeywords] = useState('');
   const [ogImageUrl, setOgImageUrl] = useState('');
   const [ogImageAlt, setOgImageAlt] = useState('');
+  const [isOgImageCustomized, setIsOgImageCustomized] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successToast, setSuccessToast] = useState(false);
@@ -376,12 +377,18 @@ export default function EditProductStudioPage({
       }
 
       // SEO
+      const coverImg = (existing.images && existing.images[0]) || existing.imageUrl || '';
       if (existing.seo) {
         setMetaTitle(existing.seo.metaTitle || '');
         setMetaDescription(existing.seo.metaDescription || '');
         setKeywords(existing.seo.keywords || '');
-        setOgImageUrl(existing.seo.ogImageUrl || '');
+        const savedOg = existing.seo.ogImageUrl || '';
+        setOgImageUrl(savedOg || coverImg);
+        setIsOgImageCustomized(Boolean(savedOg && savedOg !== coverImg));
         setOgImageAlt(existing.seo.ogImageAlt || '');
+      } else if (coverImg) {
+        setOgImageUrl(coverImg);
+        setIsOgImageCustomized(false);
       }
       setCustomSlug(existing.slug);
 
@@ -599,6 +606,7 @@ export default function EditProductStudioPage({
 
   const handleSetAsCover = (index: number) => {
     if (index === 0) return;
+    const targetImg = images[index];
     setImages((prev) => {
       const selected = prev[index];
       const remaining = prev.filter((_, i) => i !== index);
@@ -612,6 +620,10 @@ export default function EditProductStudioPage({
       const remaining = prev.filter((_, i) => i !== index);
       return [oldCoverAlt, ...remaining];
     });
+
+    if (!isOgImageCustomized || !ogImageUrl) {
+      setOgImageUrl(targetImg);
+    }
   };
 
   const handleReplaceCoverLocal = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -627,9 +639,15 @@ export default function EditProductStudioPage({
         const data = await res.json();
         if (data.success && data.url && !data.url.startsWith('data:')) {
           setImages((prev) => [data.url, ...prev.slice(1)]);
+          if (!isOgImageCustomized || !ogImageUrl) {
+            setOgImageUrl(data.url);
+          }
           return;
         } else if (data.url && !data.url.startsWith('data:')) {
           setImages((prev) => [data.url, ...prev.slice(1)]);
+          if (!isOgImageCustomized || !ogImageUrl) {
+            setOgImageUrl(data.url);
+          }
           return;
         } else {
           alert(data.error || 'Failed to upload image to Cloudinary. Please verify your Cloudinary settings in Vercel.');
@@ -656,7 +674,12 @@ export default function EditProductStudioPage({
         const res = await fetch('/api/upload', { method: 'POST', body: formData });
         const data = await res.json();
         if (data.success && data.url && !data.url.startsWith('data:')) {
-          setImages((prev) => [...prev, data.url]);
+          setImages((prev) => {
+            if (prev.length === 0 && (!isOgImageCustomized || !ogImageUrl)) {
+              setOgImageUrl(data.url);
+            }
+            return [...prev, data.url];
+          });
           setImageAlts((prev) => [...prev, file.name.replace(/\.[^/.]+$/, '')]);
           continue;
         } else {
@@ -671,6 +694,9 @@ export default function EditProductStudioPage({
 
   const handleAddImageUrl = () => {
     if (newImageUrl.trim()) {
+      if (images.length === 0 && (!isOgImageCustomized || !ogImageUrl)) {
+        setOgImageUrl(newImageUrl.trim());
+      }
       setImages([...images, newImageUrl.trim()]);
       setImageAlts([...imageAlts, newImageAlt.trim()]);
       setNewImageUrl('');
@@ -701,6 +727,7 @@ export default function EditProductStudioPage({
         const data = await res.json();
         if (data.success && data.url) {
           setOgImageUrl(data.url);
+          setIsOgImageCustomized(true);
           return;
         }
       } catch (err) {
@@ -710,6 +737,7 @@ export default function EditProductStudioPage({
       reader.onloadend = () => {
         if (typeof reader.result === 'string') {
           setOgImageUrl(reader.result);
+          setIsOgImageCustomized(true);
         }
       };
       reader.readAsDataURL(file);
@@ -719,6 +747,7 @@ export default function EditProductStudioPage({
   const handleUseCoverForSeo = () => {
     if (images[0]) {
       setOgImageUrl(images[0]);
+      setIsOgImageCustomized(false);
     }
   };
 
@@ -850,7 +879,7 @@ export default function EditProductStudioPage({
         metaDescription: metaDescription || `Compare verified prices for ${title}.`,
         keywords,
         canonicalUrl: `https://www.techpricedrop.com/product/${customSlug || productId}`,
-        ogImageUrl: ogImageUrl.trim() || undefined,
+        ogImageUrl: (ogImageUrl.trim() || images[0] || '').trim() || undefined,
         ogImageAlt: ogImageAlt.trim() || undefined,
       },
       offers: constructedOffers,
