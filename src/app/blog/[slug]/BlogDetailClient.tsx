@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { BlogPost } from '@/data/blogs';
-import { getBlogById, getBlogs } from '@/lib/blogStore';
+import { getBlogById, getBlogs, getBlogCategorySlug, doesBlogPostMatchCategory } from '@/lib/blogStore';
 import { UnifiedProduct } from '@/types/product';
 import { BrandItem } from '@/data/brands';
 import { DealCard } from '@/components/deals/DealCard';
@@ -68,13 +68,13 @@ export function BlogDetailClient({
       }
       const all = getBlogs();
       const currentSlug = found?.slug || initialPost?.slug || slug;
-      const currentCat = (found?.category || initialPost?.category || '').trim().toLowerCase();
+      const currentCat = found?.category || initialPost?.category || '';
 
       const sameCat = currentCat
-        ? all.filter((p) => p.slug !== currentSlug && (p.category || '').trim().toLowerCase() === currentCat)
+        ? all.filter((p) => p.slug !== currentSlug && doesBlogPostMatchCategory(p.category, currentCat))
         : [];
       const other = all.filter(
-        (p) => p.slug !== currentSlug && (p.category || '').trim().toLowerCase() !== currentCat
+        (p) => p.slug !== currentSlug && !doesBlogPostMatchCategory(p.category, currentCat)
       );
       const related = [...sameCat, ...other].slice(0, 4);
       if (related.length > 0) {
@@ -228,6 +228,18 @@ export function BlogDetailClient({
         <Link href="/blog" prefetch={true} className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
           Blog
         </Link>
+        {post.category && (
+          <>
+            <ChevronRight className="w-3.5 h-3.5 shrink-0 text-muted-foreground/40" />
+            <Link
+              href={`/blog?category=${encodeURIComponent(getBlogCategorySlug(post.category))}`}
+              prefetch={true}
+              className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap"
+            >
+              {post.category}
+            </Link>
+          </>
+        )}
         <ChevronRight className="w-3.5 h-3.5 shrink-0 text-muted-foreground/40" />
         <span className="text-foreground truncate shrink-0 whitespace-nowrap max-w-[200px] sm:max-w-md">
           {post.title}
@@ -241,9 +253,13 @@ export function BlogDetailClient({
           {/* Header Info */}
           <div className="space-y-3">
             <div className="flex items-center gap-2.5">
-              <span className="px-2.5 py-0.5 bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 font-bold text-xs uppercase tracking-wider border border-blue-200 dark:border-blue-800">
+              <Link
+                href={`/blog?category=${encodeURIComponent(getBlogCategorySlug(post.category))}`}
+                prefetch={true}
+                className="px-2.5 py-0.5 bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 font-bold text-xs uppercase tracking-wider border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors"
+              >
                 {post.category}
-              </span>
+              </Link>
               <span className="text-xs text-muted-foreground flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-blue-500" />
                 {post.date}
@@ -327,8 +343,12 @@ export function BlogDetailClient({
             <div className="pt-8 border-t border-border space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-black text-foreground">Related Articles</h3>
-                <Link href="/blog" prefetch={true} className="text-xs font-bold text-blue-600 hover:underline">
-                  View all →
+                <Link
+                  href={post.category ? `/blog?category=${encodeURIComponent(getBlogCategorySlug(post.category))}` : '/blog'}
+                  prefetch={true}
+                  className="text-xs font-bold text-blue-600 hover:underline"
+                >
+                  {post.category ? `View more in ${post.category} →` : 'View all →'}
                 </Link>
               </div>
 

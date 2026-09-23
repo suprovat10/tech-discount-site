@@ -279,3 +279,87 @@ export function deleteBlog(id: string): BlogPost[] {
   syncBlogDeleteToServer(id);
   return updated;
 }
+
+/**
+ * Find blog category by slug, id, or name (case-insensitive and hyphen-normalized)
+ */
+export function findBlogCategory(
+  categoryIdentifier: string,
+  categories: BlogCategory[] = []
+): BlogCategory | undefined {
+  if (!categoryIdentifier || categoryIdentifier === 'all') return undefined;
+  const target = categoryIdentifier.trim().toLowerCase();
+  const cleanTarget = target.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+  return categories.find((c) => {
+    const name = (c.name || '').trim().toLowerCase();
+    const slug = (c.slug || '').trim().toLowerCase();
+    const id = (c.id || '').trim().toLowerCase();
+    const cleanName = name.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+    return (
+      target === name ||
+      target === slug ||
+      target === id ||
+      (cleanTarget && (cleanTarget === slug || cleanTarget === cleanName))
+    );
+  });
+}
+
+/**
+ * Get slug for a blog category name or identifier
+ */
+export function getBlogCategorySlug(
+  categoryNameOrSlug: string,
+  categories: BlogCategory[] = []
+): string {
+  if (!categoryNameOrSlug || categoryNameOrSlug === 'all') return '';
+  const def = findBlogCategory(categoryNameOrSlug, categories);
+  if (def && def.slug) return def.slug;
+  return categoryNameOrSlug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
+/**
+ * Accurately check if a blog post belongs to a selected category.
+ * Prevents mismatch between slug, name, or id (e.g. 'laptops-computers' matches 'Laptops & Computers').
+ */
+export function doesBlogPostMatchCategory(
+  postCategory: string | undefined | null,
+  categoryIdentifier: string,
+  categories: BlogCategory[] = []
+): boolean {
+  if (!categoryIdentifier || categoryIdentifier === 'all') return true;
+  if (!postCategory) return false;
+
+  const prodCat = postCategory.trim().toLowerCase();
+  const target = categoryIdentifier.trim().toLowerCase();
+
+  // 1. Direct exact string match
+  if (prodCat === target) return true;
+
+  // 2. Slugified match
+  const cleanProdCat = prodCat.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  const cleanTarget = target.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  if (cleanProdCat && cleanTarget && cleanProdCat === cleanTarget) return true;
+
+  // 3. Category definition resolution
+  if (categories && categories.length > 0) {
+    const targetDef = findBlogCategory(categoryIdentifier, categories);
+    if (targetDef) {
+      const defName = (targetDef.name || '').trim().toLowerCase();
+      const defSlug = (targetDef.slug || '').trim().toLowerCase();
+      const defId = (targetDef.id || '').trim().toLowerCase();
+      const cleanDefName = defName.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+      if (prodCat === defName || prodCat === defSlug || prodCat === defId) return true;
+      if (cleanProdCat && (cleanProdCat === defSlug || cleanProdCat === cleanDefName)) return true;
+    }
+
+    const postCatDef = findBlogCategory(postCategory, categories);
+    if (postCatDef && targetDef) {
+      return postCatDef.id === targetDef.id || postCatDef.slug.toLowerCase() === targetDef.slug.toLowerCase();
+    }
+  }
+
+  return false;
+}

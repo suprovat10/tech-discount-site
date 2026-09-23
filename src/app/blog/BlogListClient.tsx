@@ -18,19 +18,40 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { optimizeImageUrl } from '@/lib/imageOptimization';
+import {
+  doesBlogPostMatchCategory,
+  findBlogCategory,
+  getBlogCategorySlug,
+} from '@/lib/blogStore';
 
 interface BlogListClientProps {
   initialPosts: BlogPost[];
   initialCategories: BlogCategory[];
+  initialCategory?: string;
 }
 
 export function BlogListClient({
   initialPosts,
   initialCategories,
+  initialCategory,
 }: BlogListClientProps) {
   const [blogs, setBlogs] = useState<BlogPost[]>(initialPosts);
   const [categories, setCategories] = useState<BlogCategory[]>(initialCategories);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>(() => {
+    if (initialCategory && initialCategory !== 'all') {
+      return initialCategory;
+    }
+    if (typeof window !== 'undefined') {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const qCat = params.get('category') || params.get('cat');
+        if (qCat) return qCat;
+        const stored = sessionStorage.getItem('smarttech_last_blog_category');
+        if (stored) return stored;
+      } catch {}
+    }
+    return 'all';
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -38,6 +59,32 @@ export function BlogListClient({
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Listen to browser Back / Forward buttons so selected category is seamlessly restored
+  useEffect(() => {
+    const handlePopState = () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const qCat = params.get('category') || params.get('cat');
+        if (qCat) {
+          setSelectedCategory(qCat);
+          sessionStorage.setItem('smarttech_last_blog_category', qCat);
+        } else {
+          setSelectedCategory('all');
+          sessionStorage.removeItem('smarttech_last_blog_category');
+        }
+      } catch {}
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  useEffect(() => {
+    if (initialCategory) {
+      setSelectedCategory(initialCategory);
+    }
+  }, [initialCategory]);
 
   useEffect(() => {
     const loadData = () => {
@@ -71,16 +118,40 @@ export function BlogListClient({
     };
   }, [isMobileFilterOpen]);
 
+  const handleSelectCategory = (catIdentifier: string) => {
+    const isAll = !catIdentifier || catIdentifier === 'all';
+    setSelectedCategory(isAll ? 'all' : catIdentifier);
+
+    if (typeof window !== 'undefined') {
+      try {
+        const url = new URL(window.location.href);
+        if (isAll) {
+          url.searchParams.delete('category');
+          url.searchParams.delete('cat');
+          sessionStorage.removeItem('smarttech_last_blog_category');
+        } else {
+          const slug = getBlogCategorySlug(catIdentifier, categories) || catIdentifier;
+          url.searchParams.set('category', slug);
+          url.searchParams.delete('cat');
+          sessionStorage.setItem('smarttech_last_blog_category', slug);
+        }
+        window.history.pushState({}, '', url.toString());
+      } catch {}
+    }
+
+    if (isMobileFilterOpen) {
+      setIsMobileFilterOpen(false);
+    }
+  };
+
   const handleReset = () => {
-    setSelectedCategory('all');
+    handleSelectCategory('all');
     setSearchQuery('');
   };
 
   // Filter posts by category and search
   const filteredPosts = blogs.filter((post) => {
-    const matchesCategory =
-      selectedCategory === 'all' ||
-      post.category.toLowerCase() === selectedCategory.toLowerCase();
+    const matchesCategory = doesBlogPostMatchCategory(post.category, selectedCategory, categories);
 
     const matchesSearch =
       !searchQuery.trim() ||
@@ -147,8 +218,12 @@ export function BlogListClient({
 
         <div className="space-y-1 text-xs">
           {/* All Articles option */}
-          <button
-            onClick={() => setSelectedCategory('all')}
+          <Link
+            href="/blog"
+            onClick={(e) => {
+              e.preventDefault();
+              handleSelectCategory('all');
+            }}
             className={`w-full text-left py-2 px-2.5 rounded-none flex items-center justify-between transition-all cursor-pointer ${
               selectedCategory === 'all'
                 ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950 font-bold shadow-xs'
@@ -165,19 +240,24 @@ export function BlogListClient({
             >
               {blogs.length}
             </span>
-          </button>
+          </Link>
 
           {/* Dynamic Categories */}
           {categories.map((cat) => {
-            const count = blogs.filter(
-              (b) => b.category.toLowerCase() === cat.name.toLowerCase()
+            const count = blogs.filter((b) =>
+              doesBlogPostMatchCategory(b.category, cat.name, categories)
             ).length;
-            const isCatSelected = selectedCategory.toLowerCase() === cat.name.toLowerCase();
+            const isCatSelected = doesBlogPostMatchCategory(cat.name, selectedCategory, categories);
+            const catSlug = cat.slug || getBlogCategorySlug(cat.name, categories);
 
             return (
-              <button
+              <Link
                 key={cat.id}
-                onClick={() => setSelectedCategory(cat.name)}
+                href={`/blog?category=${encodeURIComponent(catSlug)}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleSelectCategory(catSlug);
+                }}
                 className={`w-full text-left py-1.5 px-2.5 rounded-none transition-all flex items-center justify-between cursor-pointer ${
                   isCatSelected
                     ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 font-bold shadow-xs border border-blue-100/80 dark:border-blue-900/40'
@@ -194,7 +274,7 @@ export function BlogListClient({
                 >
                   ({count})
                 </span>
-              </button>
+              </Link>
             );
           })}
         </div>
@@ -323,7 +403,9 @@ export function BlogListClient({
             <div>
               <div className="flex items-center gap-2.5 flex-wrap">
                 <h1 className="text-lg font-black text-foreground">
-                  {selectedCategory === 'all' ? 'All Articles' : selectedCategory}
+                  {selectedCategory === 'all'
+                    ? 'All Articles'
+                    : findBlogCategory(selectedCategory, categories)?.name || selectedCategory}
                 </h1>
                 {searchQuery && (
                   <button
@@ -343,8 +425,8 @@ export function BlogListClient({
 
             {selectedCategory !== 'all' && (
               <button
-                onClick={() => setSelectedCategory('all')}
-                className="text-xs font-semibold text-blue-600 hover:underline"
+                onClick={() => handleSelectCategory('all')}
+                className="text-xs font-semibold text-blue-600 hover:underline cursor-pointer"
               >
                 View all categories →
               </button>

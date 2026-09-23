@@ -16,6 +16,7 @@ import {
   moveSubcategory,
   toggleFeaturedOnHome,
   toggleTopSlider,
+  fetchAndSyncCategoriesFromServer,
 } from '@/lib/categoryStore';
 import {
   Layers,
@@ -82,9 +83,54 @@ export default function AdminCategoriesPage() {
   const hasUnsavedOrderRef = useRef(false);
 
   // Homepage Category Slider Global Settings
-  const [sliderHidden, setSliderHidden] = useState(false);
-  const [sliderLayout, setSliderLayout] = useState<'slider' | 'wrap'>('slider');
-  const [sliderAlignment, setSliderAlignment] = useState<'left' | 'center' | 'right'>('left');
+  const [sliderHidden, setSliderHidden] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('smarttech_admin_settings');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (typeof parsed.categorySliderHidden === 'boolean') return parsed.categorySliderHidden;
+        }
+      } catch {}
+    }
+    return false;
+  });
+
+  const [sliderLayout, setSliderLayout] = useState<'slider' | 'wrap'>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('smarttech_admin_settings');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed.categorySliderLayout === 'slider' || parsed.categorySliderLayout === 'wrap') {
+            return parsed.categorySliderLayout;
+          }
+        }
+      } catch {}
+    }
+    return 'slider';
+  });
+
+  const [sliderAlignment, setSliderAlignment] = useState<'left' | 'center' | 'right'>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('smarttech_admin_settings');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (
+            parsed.categorySliderAlignment === 'left' ||
+            parsed.categorySliderAlignment === 'center' ||
+            parsed.categorySliderAlignment === 'right'
+          ) {
+            return parsed.categorySliderAlignment;
+          }
+        }
+      } catch {}
+    }
+    return 'center';
+  });
+
+  const [isSliderSettingsLoaded, setIsSliderSettingsLoaded] = useState(false);
   const [isSavingSliderSettings, setIsSavingSliderSettings] = useState(false);
   const [sliderSettingsSaved, setSliderSettingsSaved] = useState(false);
 
@@ -183,6 +229,19 @@ export default function AdminCategoriesPage() {
       setSelectedCatId((prev) => prev || loaded[0].id);
     }
 
+    const handleCategoriesUpdate = () => {
+      const fresh = getCategories();
+      if (fresh && fresh.length > 0) {
+        setCategories(fresh);
+      }
+    };
+
+    fetchAndSyncCategoriesFromServer().then((fresh) => {
+      if (fresh && Array.isArray(fresh) && fresh.length > 0) {
+        setCategories(fresh);
+      }
+    });
+
     const loadTags = () => {
       setProductTags(getProductTags());
       setCatalogProducts(getCatalogProducts());
@@ -200,6 +259,7 @@ export default function AdminCategoriesPage() {
           if (typeof parsed.categorySliderHidden === 'boolean') setSliderHidden(parsed.categorySliderHidden);
           if (parsed.categorySliderLayout) setSliderLayout(parsed.categorySliderLayout);
           if (parsed.categorySliderAlignment) setSliderAlignment(parsed.categorySliderAlignment);
+          setIsSliderSettingsLoaded(true);
         }
       } catch {}
 
@@ -210,17 +270,28 @@ export default function AdminCategoriesPage() {
             if (typeof data.categorySliderHidden === 'boolean') setSliderHidden(data.categorySliderHidden);
             if (data.categorySliderLayout) setSliderLayout(data.categorySliderLayout);
             if (data.categorySliderAlignment) setSliderAlignment(data.categorySliderAlignment);
+            // Save fresh settings to localStorage so future loads are instantaneous
+            try {
+              const current = localStorage.getItem('smarttech_admin_settings');
+              const parsed = current ? JSON.parse(current) : {};
+              localStorage.setItem('smarttech_admin_settings', JSON.stringify({ ...parsed, ...data }));
+            } catch {}
           }
         })
-        .catch(() => {});
+        .catch(() => {})
+        .finally(() => {
+          setIsSliderSettingsLoaded(true);
+        });
     };
     loadSettings();
 
+    window.addEventListener('smarttech_categories_updated', handleCategoriesUpdate);
     window.addEventListener(PRODUCT_TAGS_UPDATED_EVENT, loadTags);
     window.addEventListener('smarttech_catalog_updated', loadTags);
     window.addEventListener('smarttech_settings_updated', loadSettings);
     window.addEventListener('storage', loadTags);
     return () => {
+      window.removeEventListener('smarttech_categories_updated', handleCategoriesUpdate);
       window.removeEventListener(PRODUCT_TAGS_UPDATED_EVENT, loadTags);
       window.removeEventListener('smarttech_catalog_updated', loadTags);
       window.removeEventListener('smarttech_settings_updated', loadSettings);
@@ -877,111 +948,131 @@ export default function AdminCategoriesPage() {
               </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
-              {/* Setting 1: Alignment */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                  <AlignLeft className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span>1. Alignment</span>
-                </label>
-                <p className="text-[10px] text-muted-foreground">Select horizontal position of category cards</p>
-                <div className="grid grid-cols-3 gap-1.5 pt-1">
-                  <button
-                    type="button"
-                    onClick={() => setSliderAlignment('left')}
-                    className={`h-8 text-xs font-bold border transition-colors flex items-center justify-center gap-1 cursor-pointer ${
-                      sliderAlignment === 'left'
-                        ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
-                        : 'bg-background hover:bg-muted text-foreground border-input'
-                    }`}
-                  >
-                    <AlignLeft className="w-3 h-3" />
-                    <span>Left</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSliderAlignment('center')}
-                    className={`h-8 text-xs font-bold border transition-colors flex items-center justify-center gap-1 cursor-pointer ${
-                      sliderAlignment === 'center'
-                        ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
-                        : 'bg-background hover:bg-muted text-foreground border-input'
-                    }`}
-                  >
-                    <AlignCenter className="w-3 h-3" />
-                    <span>Middle</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSliderAlignment('right')}
-                    className={`h-8 text-xs font-bold border transition-colors flex items-center justify-center gap-1 cursor-pointer ${
-                      sliderAlignment === 'right'
-                        ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
-                        : 'bg-background hover:bg-muted text-foreground border-input'
-                    }`}
-                  >
-                    <AlignRight className="w-3 h-3" />
-                    <span>Right</span>
-                  </button>
+            {!isSliderSettingsLoaded ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1 animate-pulse">
+                <div className="space-y-1.5">
+                  <div className="h-3.5 w-24 bg-muted/80 rounded-none" />
+                  <div className="h-2.5 w-36 bg-muted/50 rounded-none" />
+                  <div className="h-8 bg-muted/60 rounded-none mt-1" />
+                </div>
+                <div className="space-y-1.5">
+                  <div className="h-3.5 w-28 bg-muted/80 rounded-none" />
+                  <div className="h-2.5 w-36 bg-muted/50 rounded-none" />
+                  <div className="h-8 bg-muted/60 rounded-none mt-1" />
+                </div>
+                <div className="space-y-1.5">
+                  <div className="h-3.5 w-20 bg-muted/80 rounded-none" />
+                  <div className="h-2.5 w-40 bg-muted/50 rounded-none" />
+                  <div className="h-8 bg-muted/60 rounded-none mt-1" />
                 </div>
               </div>
-
-              {/* Setting 2: Layout Mode */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                  <LayoutGrid className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span>2. Display Layout</span>
-                </label>
-                <p className="text-[10px] text-muted-foreground">Horizontal slider or multi-line wrap</p>
-                <div className="grid grid-cols-2 gap-1.5 pt-1">
-                  <button
-                    type="button"
-                    onClick={() => setSliderLayout('slider')}
-                    className={`h-8 text-[11px] font-bold border transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
-                      sliderLayout === 'slider'
-                        ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
-                        : 'bg-background hover:bg-muted text-foreground border-input'
-                    }`}
-                    title="Horizontal slider carousel with left and right arrow buttons"
-                  >
-                    <span>Allow Slider</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSliderLayout('wrap')}
-                    className={`h-8 text-[11px] font-bold border transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
-                      sliderLayout === 'wrap'
-                        ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
-                        : 'bg-background hover:bg-muted text-foreground border-input'
-                    }`}
-                    title="Wrap across multiple lines without scrolling"
-                  >
-                    <span>Multi-line Wrap</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Setting 3: Hide Category Slider */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                  <EyeOff className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span>3. Visibility</span>
-                </label>
-                <p className="text-[10px] text-muted-foreground">Completely hide section from homepage</p>
-                <div className="pt-1">
-                  <label className="flex items-center gap-2.5 h-8 px-3 border border-input bg-background hover:bg-muted/40 cursor-pointer select-none transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={sliderHidden}
-                      onChange={(e) => setSliderHidden(e.target.checked)}
-                      className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 cursor-pointer"
-                    />
-                    <span className="text-xs font-bold text-foreground">
-                      Hide Category Slider
-                    </span>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+                {/* Setting 1: Alignment */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    <AlignLeft className="w-3.5 h-3.5 text-muted-foreground" />
+                    <span>1. Alignment</span>
                   </label>
+                  <p className="text-[10px] text-muted-foreground">Select horizontal position of category cards</p>
+                  <div className="grid grid-cols-3 gap-1.5 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setSliderAlignment('left')}
+                      className={`h-8 text-xs font-bold border transition-colors flex items-center justify-center gap-1 cursor-pointer ${
+                        sliderAlignment === 'left'
+                          ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                          : 'bg-background hover:bg-muted text-foreground border-input'
+                      }`}
+                    >
+                      <AlignLeft className="w-3 h-3" />
+                      <span>Left</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSliderAlignment('center')}
+                      className={`h-8 text-xs font-bold border transition-colors flex items-center justify-center gap-1 cursor-pointer ${
+                        sliderAlignment === 'center'
+                          ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                          : 'bg-background hover:bg-muted text-foreground border-input'
+                      }`}
+                    >
+                      <AlignCenter className="w-3 h-3" />
+                      <span>Middle</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSliderAlignment('right')}
+                      className={`h-8 text-xs font-bold border transition-colors flex items-center justify-center gap-1 cursor-pointer ${
+                        sliderAlignment === 'right'
+                          ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                          : 'bg-background hover:bg-muted text-foreground border-input'
+                      }`}
+                    >
+                      <AlignRight className="w-3 h-3" />
+                      <span>Right</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Setting 2: Layout Mode */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    <LayoutGrid className="w-3.5 h-3.5 text-muted-foreground" />
+                    <span>2. Display Layout</span>
+                  </label>
+                  <p className="text-[10px] text-muted-foreground">Horizontal slider or multi-line wrap</p>
+                  <div className="grid grid-cols-2 gap-1.5 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setSliderLayout('slider')}
+                      className={`h-8 text-[11px] font-bold border transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
+                        sliderLayout === 'slider'
+                          ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                          : 'bg-background hover:bg-muted text-foreground border-input'
+                      }`}
+                      title="Horizontal slider carousel with left and right arrow buttons"
+                    >
+                      <span>Allow Slider</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSliderLayout('wrap')}
+                      className={`h-8 text-[11px] font-bold border transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
+                        sliderLayout === 'wrap'
+                          ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                          : 'bg-background hover:bg-muted text-foreground border-input'
+                      }`}
+                      title="Wrap across multiple lines without scrolling"
+                    >
+                      <span>Multi-line Wrap</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Setting 3: Hide Category Slider */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    <EyeOff className="w-3.5 h-3.5 text-muted-foreground" />
+                    <span>3. Visibility</span>
+                  </label>
+                  <p className="text-[10px] text-muted-foreground">Completely hide section from homepage</p>
+                  <div className="pt-1">
+                    <label className="flex items-center gap-2.5 h-8 px-3 border border-input bg-background hover:bg-muted/40 cursor-pointer select-none transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={sliderHidden}
+                        onChange={(e) => setSliderHidden(e.target.checked)}
+                        className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 cursor-pointer"
+                      />
+                      <span className="text-xs font-bold text-foreground">
+                        Hide Category Slider
+                      </span>
+                    </label>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Two-Column Layout */}
