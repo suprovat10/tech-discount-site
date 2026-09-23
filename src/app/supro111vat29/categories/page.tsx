@@ -847,7 +847,7 @@ export default function AdminCategoriesPage() {
                 <div className="flex items-center gap-2">
                   <Sliders className="w-4 h-4 text-purple-600" />
                   <h3 className="font-extrabold text-sm text-foreground">
-                    Homepage Category Slider Settings (হোমপেজ ক্যাটাগরি স্লাইডার সেটিংস)
+                    Homepage Category Slider Settings
                   </h3>
                 </div>
                 <p className="text-[11px] text-muted-foreground mt-0.5">
@@ -881,7 +881,7 @@ export default function AdminCategoriesPage() {
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
                   <AlignLeft className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span>1. Alignment (অ্যালাইনমেন্ট)</span>
+                  <span>1. Alignment</span>
                 </label>
                 <p className="text-[10px] text-muted-foreground">Select horizontal position of category cards</p>
                 <div className="grid grid-cols-3 gap-1.5 pt-1">
@@ -928,7 +928,7 @@ export default function AdminCategoriesPage() {
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
                   <LayoutGrid className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span>2. Display Layout (লেআউট মোড)</span>
+                  <span>2. Display Layout</span>
                 </label>
                 <p className="text-[10px] text-muted-foreground">Horizontal slider or multi-line wrap</p>
                 <div className="grid grid-cols-2 gap-1.5 pt-1">
@@ -952,7 +952,7 @@ export default function AdminCategoriesPage() {
                         ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
                         : 'bg-background hover:bg-muted text-foreground border-input'
                     }`}
-                    title="Wrap across multiple lines without scrolling (এক লাইনের নিচে আরেক লাইন)"
+                    title="Wrap across multiple lines without scrolling"
                   >
                     <span>Multi-line Wrap</span>
                   </button>
@@ -963,7 +963,7 @@ export default function AdminCategoriesPage() {
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
                   <EyeOff className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span>3. Visibility (হাইড সেটিংস)</span>
+                  <span>3. Visibility</span>
                 </label>
                 <p className="text-[10px] text-muted-foreground">Completely hide section from homepage</p>
                 <div className="pt-1">

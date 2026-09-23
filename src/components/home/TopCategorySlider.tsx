@@ -249,7 +249,7 @@ export function TopCategorySlider({ initialSettings, initialCategories }: TopCat
       ? 'justify-end'
       : 'justify-start';
 
-  // Setting 2 & 3: Multi-line wrap mode (এক লাইনের নিচে আরেক লাইন)
+  // Setting 2 & 3: Multi-line wrap mode
   if (layout === 'wrap') {
     return (
       <section className="relative my-3" aria-label="Product Categories">
