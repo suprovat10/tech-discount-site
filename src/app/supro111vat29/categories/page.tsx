@@ -1406,7 +1406,7 @@ export default function AdminCategoriesPage() {
                       </label>
                       <Input
                         type="text"
-                        placeholder="https://suprodesign.com/products/slug"
+                        placeholder="https://www.techpricedrop.com/products/slug"
                         value={newCatCanonicalUrl}
                         onChange={(e) => setNewCatCanonicalUrl(e.target.value)}
                         className="text-xs font-mono rounded-none h-8"
@@ -1797,7 +1797,7 @@ export default function AdminCategoriesPage() {
                         </label>
                         <Input
                           type="text"
-                          placeholder="https://suprodesign.com/products/category/slug"
+                          placeholder="https://www.techpricedrop.com/products/category/slug"
                           value={newSubCanonicalUrl}
                           onChange={(e) => setNewSubCanonicalUrl(e.target.value)}
                           className="text-xs font-mono rounded-none h-8"
@@ -2037,7 +2037,7 @@ export default function AdminCategoriesPage() {
                         </label>
                         <Input
                           type="text"
-                          placeholder="https://suprodesign.com/tag/slug"
+                          placeholder="https://www.techpricedrop.com/tag/slug"
                           value={newTagCanonicalUrl}
                           onChange={(e) => setNewTagCanonicalUrl(e.target.value)}
                           className="text-xs font-mono rounded-none h-8"
@@ -2468,7 +2468,7 @@ export default function AdminCategoriesPage() {
                       </label>
                       <Input
                         type="text"
-                        placeholder="https://suprodesign.com/products/slug"
+                        placeholder="https://www.techpricedrop.com/products/slug"
                         value={editingCategory.seo?.canonicalUrl || ''}
                         onChange={(e) =>
                           setEditingCategory({
@@ -2860,7 +2860,7 @@ export default function AdminCategoriesPage() {
                       </label>
                       <Input
                         type="text"
-                        placeholder="https://suprodesign.com/products/category/slug"
+                        placeholder="https://www.techpricedrop.com/products/category/slug"
                         value={editingSub.sub.seo?.canonicalUrl || ''}
                         onChange={(e) =>
                           setEditingSub({
@@ -3146,7 +3146,7 @@ export default function AdminCategoriesPage() {
                       </label>
                       <Input
                         type="text"
-                        placeholder="https://suprodesign.com/tag/slug"
+                        placeholder="https://www.techpricedrop.com/tag/slug"
                         value={editTagCanonicalUrl}
                         onChange={(e) => setEditTagCanonicalUrl(e.target.value)}
                         className="text-xs font-mono rounded-none h-8"

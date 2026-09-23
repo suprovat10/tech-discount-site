@@ -23,8 +23,8 @@ import { getDatabaseBrands } from '@/lib/brandServer';
 export async function generateMetadata({ params }: BrandPageProps): Promise<Metadata> {
   const { slug } = await params;
   const settings = await getServerSettings();
-  const siteBrand = settings.siteBrandName || 'suprodesign';
-  const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
+  const siteBrand = settings.siteBrandName || 'TechPriceDrop';
+  const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
 
   const allBrands = await getDatabaseBrands();
   const brand = allBrands.find(

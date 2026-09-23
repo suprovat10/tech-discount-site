@@ -28,8 +28,8 @@ interface ProductPageProps {
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
   const settings = await getServerSettings();
-  const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
-  const brand = settings.siteBrandName || 'suprodesign';
+  const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
+  const brand = settings.siteBrandName || 'TechPriceDrop';
 
   const rawProduct = await getDatabaseProductBySlug(slug);
   const product = rawProduct ? transformCatalogItemToUnified(rawProduct) : null;
@@ -85,7 +85,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 export default async function ProductDetailPage({ params }: ProductPageProps) {
   const { slug } = await params;
   const settings = await getServerSettings();
-  const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
+  const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
 
   const rawProduct = await getDatabaseProductBySlug(slug);
   const product = rawProduct ? transformCatalogItemToUnified(rawProduct) : null;

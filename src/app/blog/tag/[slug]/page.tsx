@@ -39,8 +39,8 @@ export async function generateMetadata({ params }: BlogTagPageProps): Promise<Me
   const { slug } = await params;
   const cleanSlug = decodeURIComponent(slug).toLowerCase().trim();
   const settings = await getServerSettings();
-  const brand = settings.siteBrandName || 'suprodesign';
-  const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
+  const brand = settings.siteBrandName || 'TechPriceDrop';
+  const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
 
   const tagName = cleanSlug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
   const tagUrl = `${siteUrl}/blog/tag/${cleanSlug}`;
@@ -69,8 +69,8 @@ export default async function BlogTagPage({ params }: BlogTagPageProps) {
   const cleanSlug = decodeURIComponent(slug).toLowerCase().trim();
 
   const settings = await getServerSettings();
-  const brand = settings.siteBrandName || 'suprodesign';
-  const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
+  const brand = settings.siteBrandName || 'TechPriceDrop';
+  const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
 
   const allPosts = await getServerBlogs();
   const categories = await getServerBlogCategories();

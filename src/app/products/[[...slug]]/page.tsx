@@ -35,8 +35,8 @@ export async function generateMetadata({ params }: ProductsPageProps): Promise<M
   const slugs = resolvedParams.slug || [];
   const categories = await getDatabaseCategories();
   const settings = await getServerSettings();
-  const brand = settings.siteBrandName || 'suprodesign';
-  const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
+  const brand = settings.siteBrandName || 'TechPriceDrop';
+  const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
 
   const catSlug = slugs[0];
   const subSlug = slugs[1];

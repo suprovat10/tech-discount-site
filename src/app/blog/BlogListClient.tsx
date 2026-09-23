@@ -288,7 +288,7 @@ export function BlogListClient({
       <div className="border-b border-border/60 pb-6 space-y-2">
         <div className="inline-flex items-center gap-1.5 text-blue-600 dark:text-blue-400 text-xs font-bold uppercase tracking-wider">
           <BookOpen className="w-3.5 h-3.5" />
-          <span>SmartTech Insights & Buying Guides</span>
+          <span>TechPriceDrop Insights & Buying Guides</span>
         </div>
         <h1 className="text-2xl sm:text-4xl font-black text-foreground tracking-tight">
           Tech Buying Guides, Reviews & Price Trends
@@ -474,8 +474,13 @@ export function BlogListClient({
                           }}
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-muted">
-                          <BookOpen className="w-8 h-8 opacity-40" />
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800 p-4 text-center">
+                          <div className="w-11 h-11 rounded-full bg-background/90 border border-border flex items-center justify-center mb-2 shadow-xs group-hover:scale-110 transition-transform">
+                            <BookOpen className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                          </div>
+                          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                            {post.category || 'Tech Guide'}
+                          </span>
                         </div>
                       )}
                       <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 bg-blue-600 text-white font-bold text-[10px] uppercase shadow-sm">

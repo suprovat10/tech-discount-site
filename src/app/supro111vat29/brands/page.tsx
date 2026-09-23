@@ -558,7 +558,7 @@ export default function AdminBrandsPage() {
                       </label>
                       <Input
                         type="text"
-                        placeholder="https://suprodesign.com/brand/slug"
+                        placeholder="https://www.techpricedrop.com/brand/slug"
                         value={canonicalUrl}
                         onChange={(e) => setCanonicalUrl(e.target.value)}
                         className="text-xs font-mono rounded-none h-8"

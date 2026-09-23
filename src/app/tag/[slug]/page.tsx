@@ -55,8 +55,8 @@ export async function generateMetadata({ params }: TagPageProps): Promise<Metada
   const { slug } = await params;
   const cleanSlug = decodeURIComponent(slug).toLowerCase().trim();
   const settings = await getServerSettings();
-  const siteBrand = settings.siteBrandName || 'suprodesign';
-  const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
+  const siteBrand = settings.siteBrandName || 'TechPriceDrop';
+  const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
 
   const allTags = await getProductTagsServer();
   const matchedTag = allTags.find((t: ProductTag) => t.slug === cleanSlug || slugifyTag(t.name) === cleanSlug);
@@ -94,8 +94,8 @@ export default async function TagPage({ params }: TagPageProps) {
   const cleanSlug = decodeURIComponent(slug).toLowerCase().trim();
 
   const settings = await getServerSettings();
-  const siteBrand = settings.siteBrandName || 'suprodesign';
-  const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
+  const siteBrand = settings.siteBrandName || 'TechPriceDrop';
+  const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
 
   const allTags = await getProductTagsServer();
   const matchedTag = allTags.find((t: ProductTag) => t.slug === cleanSlug || slugifyTag(t.name) === cleanSlug);

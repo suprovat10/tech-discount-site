@@ -16,6 +16,50 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react"],
   },
+  async redirects() {
+    return [
+      {
+        source: '/privacy',
+        destination: '/privacy-policy',
+        permanent: true,
+      },
+      {
+        source: '/deals',
+        destination: '/products',
+        permanent: true,
+      },
+      {
+        source: '/terms-of-service',
+        destination: '/terms',
+        permanent: true,
+      },
+      {
+        source: '/tos',
+        destination: '/terms',
+        permanent: true,
+      },
+      {
+        source: '/cookie',
+        destination: '/cookie-policy',
+        permanent: true,
+      },
+      {
+        source: '/cookies',
+        destination: '/cookie-policy',
+        permanent: true,
+      },
+      {
+        source: '/category',
+        destination: '/products',
+        permanent: true,
+      },
+      {
+        source: '/categories',
+        destination: '/products',
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

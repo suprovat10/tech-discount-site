@@ -729,7 +729,7 @@ export default function CreateProductStudioPage() {
           metaDescription ||
           `Compare verified live prices for ${title} across leading retailers. Save with real-time price tracking.`,
         keywords,
-        canonicalUrl: `https://smarttechdeals.com/product/${generatedSlug}`,
+        canonicalUrl: `https://www.techpricedrop.com/product/${generatedSlug}`,
         ogImageUrl: ogImageUrl.trim() || undefined,
         ogImageAlt: ogImageAlt.trim() || undefined,
       },
@@ -2246,7 +2246,7 @@ export default function CreateProductStudioPage() {
                   </div>
                   <div className="p-2.5 bg-card space-y-1">
                     <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
-                      smarttechdeals.com
+                      techpricedrop.com
                     </span>
                     <h4 className="text-xs font-bold text-foreground line-clamp-1">
                       {metaTitle || (title ? `${title} - Compare Prices` : 'Product Title')}
@@ -2265,10 +2265,10 @@ export default function CreateProductStudioPage() {
                 Google Search Result Preview
               </span>
               <div className="text-[#1a0dab] dark:text-[#8ab4f8] text-sm font-semibold truncate hover:underline cursor-pointer">
-                {metaTitle || (title ? `${title} - 4-Store Price Comparison | SmartTech` : 'Product Title')}
+                {metaTitle || (title ? `${title} - 4-Store Price Comparison | TechPriceDrop` : 'Product Title')}
               </div>
               <div className="text-[#006621] dark:text-[#34a853] text-[11px] truncate">
-                https://smarttechdeals.com/product/{customSlug || (title ? title.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'product-slug')}
+                https://www.techpricedrop.com/product/{customSlug || (title ? title.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'product-slug')}
               </div>
               <p className="text-xs text-muted-foreground line-clamp-2">
                 {metaDescription ||

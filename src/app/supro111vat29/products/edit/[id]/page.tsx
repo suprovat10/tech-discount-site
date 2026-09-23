@@ -849,7 +849,7 @@ export default function EditProductStudioPage({
         metaTitle: metaTitle || `${title} - Compare Lowest Prices & Deals`,
         metaDescription: metaDescription || `Compare verified prices for ${title}.`,
         keywords,
-        canonicalUrl: `https://smarttechdeals.com/product/${customSlug || productId}`,
+        canonicalUrl: `https://www.techpricedrop.com/product/${customSlug || productId}`,
         ogImageUrl: ogImageUrl.trim() || undefined,
         ogImageAlt: ogImageAlt.trim() || undefined,
       },
@@ -2376,7 +2376,7 @@ export default function EditProductStudioPage({
                   </div>
                   <div className="p-2.5 bg-card space-y-1">
                     <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
-                      smarttechdeals.com
+                      techpricedrop.com
                     </span>
                     <h4 className="text-xs font-bold text-foreground line-clamp-1">
                       {metaTitle || title}

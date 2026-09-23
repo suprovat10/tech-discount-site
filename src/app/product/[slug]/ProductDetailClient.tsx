@@ -304,7 +304,7 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
       : [
           {
             question: `Is ${activeProduct.title} backed by official manufacturer warranty?`,
-            answer: `Yes, every retailer offer listed on SmartTech (Amazon, Walmart, Best Buy, Target) is from authorized US sellers and includes official manufacturer warranty and original retail packaging.`,
+            answer: `Yes, every retailer offer listed on TechPriceDrop (Amazon, Walmart, Best Buy, Target) is from authorized US sellers and includes official manufacturer warranty and original retail packaging.`,
           },
           {
             question: 'How frequently are store prices and deals updated?',

@@ -8,8 +8,8 @@ export const revalidate = 30;
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getServerSettings();
-  const brand = settings.siteBrandName || 'suprodesign';
-  const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
+  const brand = settings.siteBrandName || 'TechPriceDrop';
+  const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
 
   return {
     title: `Verified Tech Coupons & Promo Codes | ${brand}`,

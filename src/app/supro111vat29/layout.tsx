@@ -72,11 +72,11 @@ export default function AdminLayout({
       <div className="md:hidden flex items-center justify-between p-4 border-b border-border bg-card">
         <div className="flex items-center gap-2 font-black text-sm">
           <img
-            src={branding.faviconUrl || '/favicon.png'}
+            src={branding.faviconUrl || '/favicon-techpricedrop.png'}
             alt="Favicon"
             className="w-5 h-5 object-contain"
           />
-          <span>{branding.brandName || 'suprodesign'} Admin</span>
+          <span>{branding.brandName || 'TechPriceDrop'} Admin</span>
         </div>
         <button
           onClick={() => setIsMobileNavOpen(!isMobileNavOpen)}
@@ -98,14 +98,14 @@ export default function AdminLayout({
             <Link href="/supro111vat29" className="flex items-center gap-2.5">
               <div className="w-8 h-8 bg-white/10 border border-white/20 p-1 flex items-center justify-center shrink-0">
                 <img
-                  src={branding.faviconUrl || '/favicon.png'}
+                  src={branding.faviconUrl || '/favicon-techpricedrop.png'}
                   alt="Favicon"
                   className="w-6 h-6 object-contain"
                 />
               </div>
               <div>
                 <h2 className="font-black text-sm tracking-tight text-white leading-none">
-                  {branding.brandName || 'suprodesign'}
+                  {branding.brandName || 'TechPriceDrop'}
                 </h2>
                 <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
                   Admin Console

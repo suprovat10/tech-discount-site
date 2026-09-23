@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { CategoryDefinition } from '@/data/catalog';
 import { CATEGORIES } from '@/data/catalog';
 import { getCategories, getCategorySlug, getSubcategorySlug } from '@/lib/categoryStore';
-import { ChevronLeft, ChevronRight, Layers } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Layers, Laptop, Headphones, Smartphone, Gamepad2, Tv, Camera, Watch, Speaker } from 'lucide-react';
 import { optimizeImageUrl } from '@/lib/imageOptimization';
 import { SiteSettings } from '@/types/settings';
 
@@ -20,6 +20,44 @@ interface SliderItem {
 interface TopCategorySliderProps {
   initialSettings?: SiteSettings;
   initialCategories?: CategoryDefinition[];
+}
+
+function renderCategoryFallbackIcon(name: string) {
+  const n = name.toLowerCase();
+  let IconComponent = Layers;
+  let colorClass = 'text-slate-600 dark:text-slate-400';
+
+  if (n.includes('laptop') || n.includes('macbook') || n.includes('computer')) {
+    IconComponent = Laptop;
+    colorClass = 'text-blue-600 dark:text-blue-400';
+  } else if (n.includes('audio') || n.includes('headphone') || n.includes('earbud') || n.includes('sound')) {
+    IconComponent = Headphones;
+    colorClass = 'text-indigo-600 dark:text-indigo-400';
+  } else if (n.includes('speaker')) {
+    IconComponent = Speaker;
+    colorClass = 'text-sky-600 dark:text-sky-400';
+  } else if (n.includes('phone') || n.includes('mobile')) {
+    IconComponent = Smartphone;
+    colorClass = 'text-emerald-600 dark:text-emerald-400';
+  } else if (n.includes('watch') || n.includes('fitness')) {
+    IconComponent = Watch;
+    colorClass = 'text-amber-600 dark:text-amber-400';
+  } else if (n.includes('gaming') || n.includes('playstation') || n.includes('xbox') || n.includes('console')) {
+    IconComponent = Gamepad2;
+    colorClass = 'text-purple-600 dark:text-purple-400';
+  } else if (n.includes('tv') || n.includes('theater')) {
+    IconComponent = Tv;
+    colorClass = 'text-rose-600 dark:text-rose-400';
+  } else if (n.includes('camera') || n.includes('smart home')) {
+    IconComponent = Camera;
+    colorClass = 'text-cyan-600 dark:text-cyan-400';
+  }
+
+  return (
+    <div className="w-12 h-12 rounded-full bg-muted/60 dark:bg-muted/40 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+      <IconComponent className={`w-6 h-6 sm:w-7 sm:h-7 stroke-[1.6] ${colorClass}`} />
+    </div>
+  );
 }
 
 export function TopCategorySlider({ initialSettings, initialCategories }: TopCategorySliderProps) {
@@ -275,9 +313,7 @@ export function TopCategorySlider({ initialSettings, initialCategories }: TopCat
                     decoding="async"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-transparent">
-                    <Layers className="w-8 h-8 sm:w-9 sm:h-9 stroke-1" />
-                  </div>
+                  renderCategoryFallbackIcon(item.name)
                 )}
               </div>
 
@@ -348,9 +384,7 @@ export function TopCategorySlider({ initialSettings, initialCategories }: TopCat
                   decoding="async"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-transparent">
-                  <Layers className="w-8 h-8 sm:w-9 sm:h-9 stroke-1" />
-                </div>
+                renderCategoryFallbackIcon(item.name)
               )}
             </div>
 

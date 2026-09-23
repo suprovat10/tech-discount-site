@@ -106,7 +106,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/90 backdrop-blur-md transition-all">
       <div className="container max-w-[1200px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4 sm:gap-8">
-        {/* Brand Logo - suprodesign */}
+        {/* Brand Logo - TechPriceDrop */}
         <Link
           href="/"
           prefetch={true}
@@ -118,14 +118,14 @@ export function Header() {
           className="flex items-center gap-2.5 shrink-0 group cursor-pointer"
         >
           <img
-            src={optimizeCloudinaryUrl(branding.logoUrl, 300) || '/logo.png'}
-            alt={branding.brandName || 'suprodesign'}
+            src={optimizeCloudinaryUrl(branding.logoUrl, 300) || '/logo-techpricedrop.png'}
+            alt={branding.brandName || 'TechPriceDrop'}
             width={180}
             height={36}
             className="h-8 sm:h-9 w-auto max-w-[180px] sm:max-w-[210px] object-contain transition-transform group-hover:scale-105"
             decoding="async"
             onError={(e) => {
-              e.currentTarget.src = '/logo.png';
+              e.currentTarget.src = '/logo-techpricedrop.png';
             }}
           />
         </Link>

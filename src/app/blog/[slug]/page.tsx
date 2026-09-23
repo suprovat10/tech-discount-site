@@ -22,8 +22,8 @@ interface BlogDetailProps {
 export async function generateMetadata({ params }: BlogDetailProps): Promise<Metadata> {
   const { slug } = await params;
   const settings = await getServerSettings();
-  const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
-  const brand = settings.siteBrandName || 'suprodesign';
+  const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
+  const brand = settings.siteBrandName || 'TechPriceDrop';
 
   const post = await getServerBlogBySlug(slug);
 
@@ -80,8 +80,8 @@ export default async function BlogDetailPage({ params }: BlogDetailProps) {
   const { slug } = await params;
   const settings = await getServerSettings();
   const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
-  const brand = settings.siteBrandName || 'suprodesign';
-  const logoUrl = settings.logoUrl || '/logo.png';
+  const brand = settings.siteBrandName || 'TechPriceDrop';
+  const logoUrl = settings.logoUrl || '/logo-techpricedrop.png';
 
   const [allBlogs, catalog] = await Promise.all([
     getServerBlogs(),

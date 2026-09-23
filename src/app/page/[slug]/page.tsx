@@ -14,7 +14,7 @@ import { getDatabasePageBySlug } from '@/lib/pageServer';
 export async function generateMetadata({ params }: CustomPageRouteProps): Promise<Metadata> {
   const { slug } = await params;
   const settings = await getServerSettings();
-  const brand = settings.siteBrandName || 'suprodesign';
+  const brand = settings.siteBrandName || 'TechPriceDrop';
   const page = await getDatabasePageBySlug(slug);
   const title = page?.title || slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, ' ');
 

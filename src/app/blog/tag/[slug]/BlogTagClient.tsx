@@ -209,8 +209,13 @@ export function BlogTagClient({
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-muted">
-                    <BookOpen className="w-8 h-8 opacity-40" />
+                  <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800 p-4 text-center">
+                    <div className="w-11 h-11 rounded-full bg-background/90 border border-border flex items-center justify-center mb-2 shadow-xs group-hover:scale-110 transition-transform">
+                      <BookOpen className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                      {post.category || 'Tech Guide'}
+                    </span>
                   </div>
                 )}
                 <span className="absolute top-3 left-3 px-2.5 py-1 bg-background/90 backdrop-blur-xs text-[11px] font-bold text-foreground rounded border border-border/50">

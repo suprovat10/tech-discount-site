@@ -8,8 +8,8 @@ import { optimizeImageUrl } from '@/lib/imageOptimization';
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getServerSettings();
-  const brand = settings.siteBrandName || 'suprodesign';
-  const siteUrl = settings.canonicalUrl || 'https://suprodesign.com';
+  const brand = settings.siteBrandName || 'TechPriceDrop';
+  const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
 
   return {
     title: `Tech Buying Guides & Price Analysis Blog | ${brand}`,
