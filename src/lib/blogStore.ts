@@ -184,15 +184,22 @@ export function getBlogs(): BlogPost[] {
 export function getBlogById(idOrSlug: string): BlogPost | undefined {
   const blogs = getBlogs();
   if (!idOrSlug) return undefined;
-  const clean = decodeURIComponent(idOrSlug).toLowerCase().trim();
+  let clean = idOrSlug.toLowerCase().trim();
+  try {
+    clean = decodeURIComponent(idOrSlug).toLowerCase().trim();
+  } catch {}
   const rawClean = idOrSlug.toLowerCase().trim();
-  return blogs.find(
-    (b) =>
-      b.id === idOrSlug ||
-      b.id === clean ||
-      b.slug.toLowerCase().trim() === clean ||
-      b.slug.toLowerCase().trim() === rawClean
-  );
+  const cleanParam = clean.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+  return blogs.find((b) => {
+    if (!b) return false;
+    if (b.id === idOrSlug || b.id === clean) return true;
+    if (!b.slug) return false;
+    const s = b.slug.toLowerCase().trim();
+    if (s === clean || s === rawClean) return true;
+    const cleanS = s.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    return cleanS.length > 0 && cleanS === cleanParam;
+  });
 }
 
 /**

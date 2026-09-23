@@ -67,15 +67,23 @@ export async function getServerBlogs(): Promise<BlogPost[]> {
  */
 export async function getServerBlogBySlug(slug: string): Promise<BlogPost | undefined> {
   const blogs = await getServerBlogs();
-  const clean = decodeURIComponent(slug).toLowerCase().trim();
+  if (!slug) return undefined;
+  let clean = slug.toLowerCase().trim();
+  try {
+    clean = decodeURIComponent(slug).toLowerCase().trim();
+  } catch {}
   const rawClean = slug.toLowerCase().trim();
-  return blogs.find(
-    (b) =>
-      b.slug.toLowerCase().trim() === clean ||
-      b.slug.toLowerCase().trim() === rawClean ||
-      b.id === slug ||
-      b.id === clean
-  );
+  const cleanParam = clean.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+  return blogs.find((b) => {
+    if (!b) return false;
+    if (b.id === slug || b.id === clean) return true;
+    if (!b.slug) return false;
+    const s = b.slug.toLowerCase().trim();
+    if (s === clean || s === rawClean) return true;
+    const cleanS = s.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    return cleanS.length > 0 && cleanS === cleanParam;
+  });
 }
 
 /**

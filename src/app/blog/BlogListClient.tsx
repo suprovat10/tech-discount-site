@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { BlogPost, BlogCategory } from '@/data/blogs';
 import { getBlogs, getBlogCategories } from '@/lib/blogStore';
 import {
@@ -36,17 +37,21 @@ export function BlogListClient({
   initialCategories,
   initialCategory,
 }: BlogListClientProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const urlCategory = searchParams ? (searchParams.get('category') || searchParams.get('cat') || '') : '';
+  const urlPage = searchParams ? parseInt(searchParams.get('page') || '1', 10) : 1;
+
   const [blogs, setBlogs] = useState<BlogPost[]>(initialPosts);
   const [categories, setCategories] = useState<BlogCategory[]>(initialCategories);
   const [selectedCategory, setSelectedCategory] = useState<string>(() => {
+    if (urlCategory) return urlCategory;
     if (initialCategory && initialCategory !== 'all') {
       return initialCategory;
     }
     if (typeof window !== 'undefined') {
       try {
-        const params = new URLSearchParams(window.location.search);
-        const qCat = params.get('category') || params.get('cat');
-        if (qCat) return qCat;
         const stored = sessionStorage.getItem('smarttech_last_blog_category');
         if (stored) return stored;
       } catch {}
@@ -54,16 +59,7 @@ export function BlogListClient({
     return 'all';
   });
   const [searchQuery, setSearchQuery] = useState('');
-  const [currentPage, setCurrentPage] = useState<number>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const params = new URLSearchParams(window.location.search);
-        const p = parseInt(params.get('page') || '1', 10);
-        return isNaN(p) || p < 1 ? 1 : p;
-      } catch {}
-    }
-    return 1;
-  });
+  const [currentPage, setCurrentPage] = useState<number>(urlPage > 0 ? urlPage : 1);
   const POSTS_PER_PAGE = 12;
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -72,33 +68,27 @@ export function BlogListClient({
     setIsMounted(true);
   }, []);
 
-  // Listen to browser Back / Forward buttons so selected category & page are seamlessly restored
+  // Synchronize category & page state whenever Next.js searchParams change (handles Back / Forward browser buttons)
   useEffect(() => {
-    const handlePopState = () => {
+    if (!searchParams) return;
+    const qCat = searchParams.get('category') || searchParams.get('cat');
+    if (qCat) {
+      setSelectedCategory(qCat);
       try {
-        const params = new URLSearchParams(window.location.search);
-        const qCat = params.get('category') || params.get('cat');
-        const p = parseInt(params.get('page') || '1', 10);
-        setCurrentPage(isNaN(p) || p < 1 ? 1 : p);
-        if (qCat) {
-          setSelectedCategory(qCat);
-          sessionStorage.setItem('smarttech_last_blog_category', qCat);
-        } else {
-          setSelectedCategory('all');
-          sessionStorage.removeItem('smarttech_last_blog_category');
-        }
+        sessionStorage.setItem('smarttech_last_blog_category', qCat);
       } catch {}
-    };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
-
-  useEffect(() => {
-    if (initialCategory) {
-      setSelectedCategory(initialCategory);
+    } else {
+      const stored = typeof window !== 'undefined' ? sessionStorage.getItem('smarttech_last_blog_category') : null;
+      if (stored && stored !== 'all') {
+        setSelectedCategory(stored);
+      } else {
+        setSelectedCategory('all');
+      }
     }
-  }, [initialCategory]);
+
+    const p = parseInt(searchParams.get('page') || '1', 10);
+    setCurrentPage(isNaN(p) || p < 1 ? 1 : p);
+  }, [searchParams]);
 
   useEffect(() => {
     const loadData = () => {
@@ -134,25 +124,25 @@ export function BlogListClient({
 
   const handleSelectCategory = (catIdentifier: string) => {
     const isAll = !catIdentifier || catIdentifier === 'all';
-    setSelectedCategory(isAll ? 'all' : catIdentifier);
     setCurrentPage(1);
 
-    if (typeof window !== 'undefined') {
-      try {
-        const url = new URL(window.location.href);
-        url.searchParams.delete('page');
-        if (isAll) {
-          url.searchParams.delete('category');
-          url.searchParams.delete('cat');
+    if (isAll) {
+      setSelectedCategory('all');
+      if (typeof window !== 'undefined') {
+        try {
           sessionStorage.removeItem('smarttech_last_blog_category');
-        } else {
-          const slug = getBlogCategorySlug(catIdentifier, categories) || catIdentifier;
-          url.searchParams.set('category', slug);
-          url.searchParams.delete('cat');
+        } catch {}
+      }
+      router.push('/blog', { scroll: false });
+    } else {
+      const slug = getBlogCategorySlug(catIdentifier, categories) || catIdentifier;
+      setSelectedCategory(slug);
+      if (typeof window !== 'undefined') {
+        try {
           sessionStorage.setItem('smarttech_last_blog_category', slug);
-        }
-        window.history.pushState({}, '', url.toString());
-      } catch {}
+        } catch {}
+      }
+      router.push(`/blog?category=${encodeURIComponent(slug)}`, { scroll: false });
     }
 
     if (isMobileFilterOpen) {
@@ -162,18 +152,13 @@ export function BlogListClient({
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    if (typeof window !== 'undefined') {
-      try {
-        const url = new URL(window.location.href);
-        if (page === 1) {
-          url.searchParams.delete('page');
-        } else {
-          url.searchParams.set('page', String(page));
-        }
-        window.history.pushState({}, '', url.toString());
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } catch {}
-    }
+    const cat = selectedCategory !== 'all' ? selectedCategory : '';
+    const params = new URLSearchParams();
+    if (cat) params.set('category', cat);
+    if (page > 1) params.set('page', String(page));
+    const qs = params.toString();
+    router.push(qs ? `/blog?${qs}` : '/blog', { scroll: false });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleReset = () => {
@@ -292,7 +277,8 @@ export function BlogListClient({
             const count = blogs.filter((b) =>
               doesBlogPostMatchCategory(b.category, cat.name, categories)
             ).length;
-            const isCatSelected = doesBlogPostMatchCategory(cat.name, selectedCategory, categories);
+            const isCatSelected =
+              selectedCategory !== 'all' && doesBlogPostMatchCategory(cat.name, selectedCategory, categories);
             const catSlug = cat.slug || getBlogCategorySlug(cat.name, categories);
 
             return (
@@ -450,11 +436,18 @@ export function BlogListClient({
                 <h1 className="text-lg font-black text-foreground">
                   {selectedCategory === 'all'
                     ? 'All Articles'
-                    : findBlogCategory(selectedCategory, categories)?.name || selectedCategory}
+                    : findBlogCategory(selectedCategory, categories)?.name ||
+                      selectedCategory
+                        .split('-')
+                        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                        .join(' ')}
                 </h1>
                 {searchQuery && (
                   <button
-                    onClick={() => setSearchQuery('')}
+                    onClick={() => {
+                      setSearchQuery('');
+                      setCurrentPage(1);
+                    }}
                     className="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors cursor-pointer"
                     title="Clear search keyword"
                   >
@@ -499,14 +492,14 @@ export function BlogListClient({
                 {paginatedPosts.map((post, idx) => (
                   <article
                     key={post.id}
-                    className="border border-border bg-card overflow-hidden hover:border-blue-600 transition-colors flex flex-col justify-between group shadow-2xs"
+                    className="relative border border-border bg-card overflow-hidden hover:border-blue-600 transition-colors flex flex-col justify-between group shadow-2xs"
                   >
                     <div>
                       {/* Featured Image - Clickable */}
                       <Link
                         href={`/blog/${post.slug}`}
                         prefetch={true}
-                        className="relative block aspect-[16/10] w-full overflow-hidden bg-muted border-b border-border cursor-pointer"
+                        className="relative block aspect-[16/10] w-full overflow-hidden bg-muted border-b border-border cursor-pointer z-10"
                         title={post.title}
                       >
                         {post.imageUrl ? (
@@ -532,7 +525,7 @@ export function BlogListClient({
                           </div>
                         )}
                         {post.category && (
-                          <span className="absolute top-1.5 left-1.5 sm:top-2.5 sm:left-2.5 px-1.5 sm:px-2.5 py-0.5 bg-blue-600 text-white font-bold text-[9px] sm:text-[10px] uppercase shadow-sm max-w-[85%] truncate">
+                          <span className="absolute top-1.5 left-1.5 sm:top-2.5 sm:left-2.5 px-1.5 sm:px-2.5 py-0.5 bg-blue-600 text-white font-bold text-[9px] sm:text-[10px] uppercase shadow-sm max-w-[85%] truncate z-20">
                             {post.category}
                           </span>
                         )}
@@ -551,9 +544,13 @@ export function BlogListClient({
                           </span>
                         </div>
 
-                        {/* Title - Clickable */}
-                        <Link href={`/blog/${post.slug}`} prefetch={true} className="block cursor-pointer">
-                          <h3 className="text-xs sm:text-sm font-black text-foreground hover:text-blue-600 transition-colors line-clamp-2 leading-snug">
+                        {/* Title - Stretched Link covering the entire card body */}
+                        <Link
+                          href={`/blog/${post.slug}`}
+                          prefetch={true}
+                          className="block cursor-pointer after:absolute after:inset-0 after:z-10 focus:outline-none"
+                        >
+                          <h3 className="text-xs sm:text-sm font-black text-foreground group-hover:text-blue-600 transition-colors line-clamp-2 leading-snug">
                             {post.title}
                           </h3>
                         </Link>
@@ -565,14 +562,14 @@ export function BlogListClient({
                     </div>
 
                     {/* Card Footer: Read More button - Clickable */}
-                    <div className="p-2.5 sm:p-4 pt-0 border-t border-border/40 mt-2 sm:mt-3 pt-2 sm:pt-3 flex items-center justify-end">
+                    <div className="p-2.5 sm:p-4 pt-0 border-t border-border/40 mt-2 sm:mt-3 pt-2 sm:pt-3 flex items-center justify-end relative z-20">
                       <Link
                         href={`/blog/${post.slug}`}
                         prefetch={true}
-                        className="text-[11px] sm:text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1 cursor-pointer"
+                        className="text-[11px] sm:text-xs font-bold text-blue-600 group-hover:text-blue-700 transition-colors flex items-center gap-1 cursor-pointer"
                       >
                         <span>Read Guide</span>
-                        <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                        <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3 transition-transform group-hover:translate-x-0.5" />
                       </Link>
                     </div>
                   </article>

@@ -30,8 +30,20 @@ export async function GET(req: NextRequest) {
     const blogs = await getServerBlogs();
 
     if (slug) {
-      const cleanSlug = slug.toLowerCase().trim();
-      const blog = blogs.find((b) => b.slug.toLowerCase().trim() === cleanSlug || b.id === slug);
+      let cleanSlug = slug.toLowerCase().trim();
+      try {
+        cleanSlug = decodeURIComponent(slug).toLowerCase().trim();
+      } catch {}
+      const cleanParam = cleanSlug.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      const blog = blogs.find((b) => {
+        if (!b) return false;
+        if (b.id === slug || b.id === cleanSlug) return true;
+        if (!b.slug) return false;
+        const s = b.slug.toLowerCase().trim();
+        if (s === cleanSlug || s === slug.toLowerCase().trim()) return true;
+        const cleanS = s.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        return cleanS.length > 0 && cleanS === cleanParam;
+      });
       if (!blog) {
         return NextResponse.json({ success: false, error: 'Blog post not found' }, { status: 404 });
       }

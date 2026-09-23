@@ -21,7 +21,12 @@ interface BlogDetailProps {
 
 export async function generateMetadata({ params }: BlogDetailProps): Promise<Metadata> {
   const { slug } = await params;
-  const decodedSlug = decodeURIComponent(slug).toLowerCase().trim();
+  let decodedSlug = slug;
+  try {
+    decodedSlug = decodeURIComponent(slug).toLowerCase().trim();
+  } catch {
+    decodedSlug = slug.toLowerCase().trim();
+  }
   const settings = await getServerSettings();
   const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
   const brand = settings.siteBrandName || 'TechPriceDrop';
@@ -88,8 +93,14 @@ import { optimizeImageUrl } from '@/lib/imageOptimization';
 
 export default async function BlogDetailPage({ params }: BlogDetailProps) {
   const { slug } = await params;
-  const decodedSlug = decodeURIComponent(slug).toLowerCase().trim();
+  let decodedSlug = slug;
+  try {
+    decodedSlug = decodeURIComponent(slug).toLowerCase().trim();
+  } catch {
+    decodedSlug = slug.toLowerCase().trim();
+  }
   const rawClean = slug.toLowerCase().trim();
+  const cleanParam = decodedSlug.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   const settings = await getServerSettings();
   const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
   const brand = settings.siteBrandName || 'TechPriceDrop';
@@ -101,13 +112,15 @@ export default async function BlogDetailPage({ params }: BlogDetailProps) {
   ]);
 
   const post =
-    allBlogs.find(
-      (p) =>
-        p.slug.toLowerCase().trim() === decodedSlug ||
-        p.slug.toLowerCase().trim() === rawClean ||
-        p.id === slug ||
-        p.id === decodedSlug
-    ) || null;
+    allBlogs.find((p) => {
+      if (!p) return false;
+      if (p.id === slug || p.id === decodedSlug) return true;
+      if (!p.slug) return false;
+      const s = p.slug.toLowerCase().trim();
+      if (s === decodedSlug || s === rawClean) return true;
+      const cleanS = s.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      return cleanS.length > 0 && cleanS === cleanParam;
+    }) || null;
 
   // 4 related articles from the same category
   let relatedPosts: typeof allBlogs = [];
