@@ -12,6 +12,8 @@ import {
   findSubcategoryBySlugOrName,
   getCategorySlug,
   getSubcategorySlug,
+  doesProductMatchCategory,
+  doesProductMatchSubcategory,
 } from '@/lib/categoryStore';
 import { getBrands, BrandItem } from '@/lib/brandStore';
 import { getCatalogProducts } from '@/lib/catalogStore';
@@ -545,50 +547,15 @@ export function SearchResultsClient({
   // Helper to check if a product matches a category
   const matchesCategory = useCallback(
     (prod: UnifiedProduct, catName: string) => {
-      if (!catName || catName === 'all') return true;
-      const prodCat = (prod.category || '').trim().toLowerCase();
-      const target = catName.trim().toLowerCase();
-      if (!prodCat) return false;
-      if (prodCat === target || prodCat.includes(target) || target.includes(prodCat)) return true;
-
-      // Check matched category's slug, id, and name
-      const def = findCategoryBySlugOrName(categories, catName);
-      if (def) {
-        const defSlug = (def.slug || '').toLowerCase();
-        const defId = (def.id || '').toLowerCase();
-        const defName = (def.name || '').toLowerCase();
-        if (defSlug && (prodCat === defSlug || prodCat.includes(defSlug))) return true;
-        if (defId && (prodCat === defId || prodCat.includes(defId))) return true;
-        if (defName && (prodCat === defName || prodCat.includes(defName))) return true;
-      }
-      return false;
+      return doesProductMatchCategory(prod.category, catName, categories);
     },
     [categories]
   );
 
   // Helper to check if a product matches a subcategory
   const matchesSubcategory = useCallback(
-    (prod: UnifiedProduct, subName: string) => {
-      if (!subName || subName === 'all') return true;
-      const prodSub = (prod.subcategory || '').trim().toLowerCase();
-      const target = subName.trim().toLowerCase();
-      if (!prodSub) return false;
-      if (prodSub === target || prodSub.includes(target) || target.includes(prodSub)) return true;
-
-      // Check matched subcategory's slug, id, and name
-      const currentCatDef = findCategoryBySlugOrName(categories, selectedCategory);
-      if (currentCatDef) {
-        const subDef = findSubcategoryBySlugOrName(currentCatDef, subName);
-        if (subDef) {
-          const subSlug = (subDef.slug || '').toLowerCase();
-          const subId = (subDef.id || '').toLowerCase();
-          const subNameStr = (subDef.name || '').toLowerCase();
-          if (subSlug && (prodSub === subSlug || prodSub.includes(subSlug))) return true;
-          if (subId && (prodSub === subId || prodSub.includes(subId))) return true;
-          if (subNameStr && (prodSub === subNameStr || prodSub.includes(subNameStr))) return true;
-        }
-      }
-      return false;
+    (prod: UnifiedProduct, subName: string, catName?: string) => {
+      return doesProductMatchSubcategory(prod.subcategory, subName, catName || selectedCategory, categories);
     },
     [categories, selectedCategory]
   );
@@ -644,7 +611,7 @@ export function SearchResultsClient({
         }
         // Subcategory Filter
         if (selectedSubcategory !== 'all') {
-          if (!matchesSubcategory(prod, selectedSubcategory)) {
+          if (!matchesSubcategory(prod, selectedSubcategory, selectedCategory)) {
             return false;
           }
         }
@@ -819,6 +786,14 @@ export function SearchResultsClient({
     }
     setCurrentPage(1);
     syncToUrl({ category: catName, sub: nextSub, page: 1 });
+
+    const catSlug = getCategorySlug(categories, catName);
+    const matchedCat = findCategoryBySlugOrName(categories, catName);
+    const subSlug = nextSub !== 'all' ? getSubcategorySlug(matchedCat, nextSub) : '';
+    const targetPath = subSlug ? `/products/${catSlug}/${subSlug}` : `/products/${catSlug}`;
+    if (window.location.pathname !== targetPath) {
+      window.history.pushState(null, '', targetPath);
+    }
   };
 
   const handleMinPriceChange = (val: number) => {
@@ -964,8 +939,12 @@ export function SearchResultsClient({
 
         <div className="space-y-1 text-xs">
           {/* All Categories option */}
-          <button
-            onClick={handleSelectAllCategories}
+          <Link
+            href="/products"
+            onClick={(e) => {
+              e.preventDefault();
+              handleSelectAllCategories();
+            }}
             className={`w-full text-left py-2 px-2.5 rounded-none flex items-center justify-between transition-all cursor-pointer ${
               selectedCategory === 'all'
                 ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950 font-bold shadow-xs'
@@ -982,13 +961,14 @@ export function SearchResultsClient({
             >
               {products.length}
             </span>
-          </button>
+          </Link>
 
           {/* Dynamic Category tree with subcategories */}
           {categories.map((cat) => {
-            const isCatSelected = selectedCategory.toLowerCase() === cat.name.toLowerCase();
+            const isCatSelected = doesProductMatchCategory(selectedCategory, cat.name, categories);
             const isExpanded = expandedCategories[cat.name] || isCatSelected;
             const catCount = products.filter((p) => matchesCategory(p, cat.name)).length;
+            const catSlug = (cat.slug || getCategorySlug(categories, cat.name)).toLowerCase();
 
             return (
               <div key={cat.id} className="space-y-0.5">
@@ -999,12 +979,16 @@ export function SearchResultsClient({
                       : 'text-slate-700 dark:text-slate-300 hover:text-blue-600 hover:bg-slate-100/80 dark:hover:bg-slate-800/50 font-medium'
                   }`}
                 >
-                  <button
-                    onClick={() => handleSelectCategory(cat.name)}
+                  <Link
+                    href={`/products/${catSlug}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleSelectCategory(cat.name);
+                    }}
                     className="flex-1 text-left truncate pr-1 cursor-pointer tracking-tight"
                   >
                     {cat.name}
-                  </button>
+                  </Link>
 
                   <div className="flex items-center gap-1.5 shrink-0">
                     <span
@@ -1045,15 +1029,20 @@ export function SearchResultsClient({
                     {cat.subcategories.map((sub) => {
                       const isSubSelected =
                         isCatSelected &&
-                        selectedSubcategory.toLowerCase() === sub.name.toLowerCase();
+                        doesProductMatchSubcategory(selectedSubcategory, sub.name, cat.name, categories);
                       const subCount = products.filter(
-                        (p) => matchesCategory(p, cat.name) && matchesSubcategory(p, sub.name)
+                        (p) => matchesCategory(p, cat.name) && matchesSubcategory(p, sub.name, cat.name)
                       ).length;
+                      const subSlug = (sub.slug || getSubcategorySlug(cat, sub.name)).toLowerCase();
 
                       return (
-                        <button
+                        <Link
                           key={sub.id}
-                          onClick={() => handleSelectSubcategory(cat.name, sub.name)}
+                          href={`/products/${catSlug}/${subSlug}`}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleSelectSubcategory(cat.name, sub.name);
+                          }}
                           className={`w-full text-left py-1 px-2 text-[11px] rounded-none flex items-center justify-between transition-all cursor-pointer ${
                             isSubSelected
                               ? 'text-blue-600 dark:text-blue-400 font-bold bg-blue-50/80 dark:bg-blue-950/40'
@@ -1062,7 +1051,7 @@ export function SearchResultsClient({
                         >
                           <span className="truncate pr-1">{sub.name}</span>
                           <span className="text-[10px] opacity-70 tabular-nums">({subCount})</span>
-                        </button>
+                        </Link>
                       );
                     })}
                   </div>

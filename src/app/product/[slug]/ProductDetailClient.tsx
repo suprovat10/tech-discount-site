@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { UnifiedProduct } from '@/types/product';
 import { CATEGORIES, CatalogItem } from '@/data/catalog';
 import { getCatalogProductByIdOrSlug, getCatalogProducts, fetchAndSyncCatalogFromServer } from '@/lib/catalogStore';
-import { getCategories, getCategorySlug, getSubcategorySlug } from '@/lib/categoryStore';
+import { getCategories, getCategorySlug, getSubcategorySlug, findCategoryBySlugOrName, doesProductMatchCategory, doesProductMatchSubcategory } from '@/lib/categoryStore';
 import { optimizeImageUrl } from '@/lib/imageOptimization';
 import { DealCard } from '@/components/deals/DealCard';
 import { WatchlistButton } from '@/components/watchlist/WatchlistButton';
@@ -137,11 +137,11 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
   }, [slug]);
 
   const matchesCategory = (p: UnifiedProduct | CatalogItem, catName: string) => {
-    return (p.category || '').toLowerCase() === catName.toLowerCase();
+    return doesProductMatchCategory(p.category, catName, categories);
   };
 
-  const matchesSubcategory = (p: UnifiedProduct | CatalogItem, subName: string) => {
-    return (p.subcategory || '').toLowerCase() === subName.toLowerCase();
+  const matchesSubcategory = (p: UnifiedProduct | CatalogItem, subName: string, catName?: string) => {
+    return doesProductMatchSubcategory(p.subcategory, subName, catName, categories);
   };
 
   // Dynamically discover all platforms/stores present across catalog products and active product
@@ -346,7 +346,7 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
           <>
             <ChevronRight className="w-3 h-3 text-muted-foreground/40 shrink-0" />
             <Link
-              href={`/products/${getCategorySlug(categories, activeProduct.category)}/${getSubcategorySlug(categories.find((c) => c.name.toLowerCase() === activeProduct.category.toLowerCase()), activeProduct.subcategory)}`}
+              href={`/products/${getCategorySlug(categories, activeProduct.category)}/${getSubcategorySlug(findCategoryBySlugOrName(categories, activeProduct.category), activeProduct.subcategory)}`}
               prefetch={true}
               className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap"
             >
@@ -405,9 +405,10 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
 
                 {/* Dynamic Category tree with subcategories */}
                 {categories.map((cat) => {
-                  const isCatSelected = activeProduct.category?.toLowerCase() === cat.name.toLowerCase();
+                  const isCatSelected = doesProductMatchCategory(activeProduct.category, cat.name, categories);
                   const isExpanded = expandedCategories[cat.name] ?? isCatSelected;
                   const catCount = catalogProducts.filter((p) => matchesCategory(p, cat.name)).length;
+                  const catSlug = (cat.slug || getCategorySlug(categories, cat.name)).toLowerCase();
 
                   return (
                     <div key={cat.id} className="space-y-0.5">
@@ -419,7 +420,7 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
                         }`}
                       >
                         <Link
-                          href={`/products/${cat.slug || getCategorySlug(categories, cat.name)}`}
+                          href={`/products/${catSlug}`}
                           prefetch={true}
                           className="flex-1 text-left truncate pr-1 tracking-tight"
                         >
@@ -469,17 +470,18 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
                           {cat.subcategories.map((sub) => {
                             const isSubSelected =
                               isCatSelected &&
-                              (activeProduct.subcategory || '').toLowerCase() === sub.name.toLowerCase();
+                              doesProductMatchSubcategory(activeProduct.subcategory, sub.name, cat.name, categories);
                             const subCount = catalogProducts.filter(
-                              (p) => matchesCategory(p, cat.name) && matchesSubcategory(p, sub.name)
+                              (p) => matchesCategory(p, cat.name) && matchesSubcategory(p, sub.name, cat.name)
                             ).length;
+                            const subSlug = (sub.slug || getSubcategorySlug(cat, sub.name)).toLowerCase();
 
                             return (
                               <Link
-                                  key={sub.id}
-                                  href={`/products/${cat.slug || getCategorySlug(categories, cat.name)}/${sub.slug || getSubcategorySlug(cat, sub.name)}`}
-                                  prefetch={true}
-                                  className={`w-full text-left py-1 px-2 text-[11px] rounded-md flex items-center justify-between transition-all ${
+                                key={sub.id}
+                                href={`/products/${catSlug}/${subSlug}`}
+                                prefetch={true}
+                                className={`w-full text-left py-1 px-2 text-[11px] rounded-md flex items-center justify-between transition-all ${
                                   isSubSelected
                                     ? 'text-blue-600 dark:text-blue-400 font-bold bg-blue-50/80 dark:bg-blue-950/40'
                                     : 'text-slate-600 dark:text-slate-400 hover:text-foreground hover:bg-slate-100/70 dark:hover:bg-slate-800/40 font-medium'

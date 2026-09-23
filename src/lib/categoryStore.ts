@@ -392,3 +392,99 @@ export function getSubcategorySlug(category: CategoryDefinition | undefined, sub
   return subcategoryName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
 
+/**
+ * Accurately check if a product belongs to a given category.
+ * Matches by exact name, slug, id, or normalized slug comparison (no loose substring includes).
+ */
+export function doesProductMatchCategory(
+  productCategory: string | undefined | null,
+  categoryIdentifier: string,
+  categories: CategoryDefinition[] = []
+): boolean {
+  if (!categoryIdentifier || categoryIdentifier === 'all') return true;
+  if (!productCategory) return false;
+
+  const prodCat = productCategory.trim().toLowerCase();
+  const target = categoryIdentifier.trim().toLowerCase();
+  if (prodCat === target) return true;
+
+  const catDef = findCategoryBySlugOrName(categories, categoryIdentifier);
+  if (catDef) {
+    const catName = (catDef.name || '').trim().toLowerCase();
+    const catSlug = (catDef.slug || '').trim().toLowerCase();
+    const catId = (catDef.id || '').trim().toLowerCase();
+    const cleanCatName = catName.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const cleanProdCat = prodCat.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+    if (prodCat === catName || prodCat === catSlug || prodCat === catId) return true;
+    if (cleanProdCat && (cleanProdCat === catSlug || cleanProdCat === cleanCatName)) return true;
+  }
+
+  // Also check if productCategory directly resolves to the target category definition
+  const prodCatDef = findCategoryBySlugOrName(categories, productCategory);
+  if (prodCatDef && catDef) {
+    return prodCatDef.id === catDef.id || prodCatDef.slug.toLowerCase() === catDef.slug.toLowerCase();
+  }
+
+  return false;
+}
+
+/**
+ * Accurately check if a product belongs to a given subcategory under a category.
+ * Prevents cross-contamination (e.g. "Gaming Laptops" will never bleed into "Laptops", and vice versa).
+ */
+export function doesProductMatchSubcategory(
+  productSubcategory: string | undefined | null,
+  subcategoryIdentifier: string,
+  parentCategoryIdentifier?: string,
+  categories: CategoryDefinition[] = []
+): boolean {
+  if (!subcategoryIdentifier || subcategoryIdentifier === 'all') return true;
+  if (!productSubcategory) return false;
+
+  const prodSub = productSubcategory.trim().toLowerCase();
+  const target = subcategoryIdentifier.trim().toLowerCase();
+
+  // 1. Direct exact string match
+  if (prodSub === target) return true;
+
+  // 2. Slugified exact match
+  const cleanProdSub = prodSub.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  const cleanTarget = target.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  if (cleanProdSub && cleanTarget && cleanProdSub === cleanTarget) return true;
+
+  // 3. Category-scoped definition matching
+  if (categories && categories.length > 0) {
+    let targetCats: CategoryDefinition[] = [];
+    if (parentCategoryIdentifier && parentCategoryIdentifier !== 'all') {
+      const matchCat = findCategoryBySlugOrName(categories, parentCategoryIdentifier);
+      if (matchCat) targetCats = [matchCat];
+    }
+    if (targetCats.length === 0) {
+      targetCats = categories;
+    }
+
+    for (const cat of targetCats) {
+      const subDef = findSubcategoryBySlugOrName(cat, subcategoryIdentifier);
+      if (subDef) {
+        const subName = (subDef.name || '').trim().toLowerCase();
+        const subSlug = (subDef.slug || '').trim().toLowerCase();
+        const cleanSubName = subName.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+        if (prodSub === subName || prodSub === subSlug) return true;
+        if (cleanProdSub && (cleanProdSub === subSlug || cleanProdSub === cleanSubName)) return true;
+
+        // Common safe aliases
+        if (subSlug === 'monitors' && (prodSub === 'monitors & displays' || cleanProdSub === 'monitors-displays')) return true;
+        if (subSlug === 'macbooks' && (prodSub === 'macbooks & apple' || cleanProdSub === 'macbooks-apple')) return true;
+        if ((subSlug === 'ultrabooks' || subSlug === 'laptops') && (prodSub === 'ultrabooks & windows' || cleanProdSub === 'ultrabooks-windows')) return true;
+        if (subSlug === 'smartphones' && (prodSub.startsWith('smartphones') || cleanProdSub.startsWith('smartphones'))) return true;
+        if (subSlug === 'soundbars' && (prodSub.startsWith('soundbars') || cleanProdSub.startsWith('soundbars'))) return true;
+        if (subSlug === 'streaming' && (prodSub.startsWith('streaming') || cleanProdSub.startsWith('streaming'))) return true;
+      }
+    }
+  }
+
+  return false;
+}
+
