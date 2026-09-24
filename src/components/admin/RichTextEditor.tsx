@@ -185,7 +185,7 @@ export function RichTextEditor({
     }
   }, [onChange, updateTableContext]);
 
-  // Reliable DOM insertion helper that works 100% in all scenarios
+  // 100% Reliable DOM insertion helper that handles ranges and direct fallback
   const insertHtmlIntoEditor = useCallback(
     (htmlToInsert: string) => {
       if (mode === 'text') {
@@ -197,6 +197,7 @@ export function RichTextEditor({
       if (!editorRef.current) return;
       editorRef.current.focus();
 
+      let inserted = false;
       const sel = window.getSelection();
       let range: Range | null = savedSelectionRef.current;
 
@@ -209,34 +210,39 @@ export function RichTextEditor({
         range = sel.getRangeAt(0);
       }
 
-      // If no range exists inside editor, create one at the end of editor
-      if (!range) {
-        range = document.createRange();
-        range.selectNodeContents(editorRef.current);
-        range.collapse(false); // Move to the end
+      if (range) {
+        try {
+          if (sel) {
+            sel.removeAllRanges();
+            sel.addRange(range);
+          }
+          range.deleteContents();
+          const fragment = range.createContextualFragment(htmlToInsert);
+          const lastChild = fragment.lastChild;
+          range.insertNode(fragment);
+
+          if (lastChild && sel) {
+            const newRange = document.createRange();
+            newRange.setStartAfter(lastChild);
+            newRange.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(newRange);
+            savedSelectionRef.current = newRange;
+          }
+          inserted = true;
+        } catch {
+          inserted = false;
+        }
       }
 
-      if (sel) {
-        sel.removeAllRanges();
-        sel.addRange(range);
-      }
-
-      // Delete any currently selected content
-      range.deleteContents();
-
-      // Create document fragment from HTML
-      const fragment = range.createContextualFragment(htmlToInsert);
-      const lastChild = fragment.lastChild;
-      range.insertNode(fragment);
-
-      // Move cursor after the inserted element
-      if (lastChild && sel) {
-        const newRange = document.createRange();
-        newRange.setStartAfter(lastChild);
-        newRange.collapse(true);
-        sel.removeAllRanges();
-        sel.addRange(newRange);
-        savedSelectionRef.current = newRange;
+      // If range insertion did not happen or failed, place directly into editor innerHTML!
+      if (!inserted) {
+        const currentHtml = editorRef.current.innerHTML.trim();
+        if (!currentHtml || currentHtml === '<p><br></p>' || currentHtml === '<br>') {
+          editorRef.current.innerHTML = htmlToInsert;
+        } else {
+          editorRef.current.innerHTML = currentHtml + '<p><br/></p>' + htmlToInsert;
+        }
       }
 
       isInternalUpdate.current = true;
@@ -573,7 +579,7 @@ export function RichTextEditor({
       ) {
         cell.innerHTML = btnHtml;
       } else {
-        cell.insertAdjacentHTML('beforeend', '&nbsp;' + btnHtml);
+        cell.innerHTML += '&nbsp;' + btnHtml;
       }
       isInternalUpdate.current = true;
       onChange(editorRef.current.innerHTML);
@@ -1112,10 +1118,10 @@ export function RichTextEditor({
       )}
 
       {/* ======================================================== */}
-      {/* 1. TABLE CREATION & SETTINGS MODAL                       */}
+      {/* 1. TABLE CREATION & SETTINGS MODAL (Z-[9999])            */}
       {/* ======================================================== */}
       {showTableModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-card border border-border max-w-lg w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-border">
               <div className="flex items-center gap-2">
@@ -1246,10 +1252,10 @@ export function RichTextEditor({
       )}
 
       {/* ======================================================== */}
-      {/* 2. CALL-TO-ACTION (CTA) BUTTON MODAL                     */}
+      {/* 2. CALL-TO-ACTION (CTA) BUTTON MODAL (Z-[9999])          */}
       {/* ======================================================== */}
       {showButtonModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-card border border-border max-w-lg w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-border">
               <div className="flex items-center gap-2">
@@ -1527,10 +1533,10 @@ export function RichTextEditor({
       )}
 
       {/* ======================================================== */}
-      {/* 3. LINK MODAL                                            */}
+      {/* 3. LINK MODAL (Z-[9999])                                 */}
       {/* ======================================================== */}
       {showLinkModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-card border border-border max-w-md w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-border">
               <div className="flex items-center gap-2">
@@ -1610,10 +1616,10 @@ export function RichTextEditor({
       )}
 
       {/* ======================================================== */}
-      {/* 4. ADD MEDIA MODAL                                       */}
+      {/* 4. ADD MEDIA MODAL (Z-[9999])                            */}
       {/* ======================================================== */}
       {showMediaModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-card border border-border max-w-lg w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-border">
               <div className="flex items-center gap-2">
