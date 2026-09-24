@@ -109,6 +109,8 @@ export function Footer() {
               <img
                 src={optimizeCloudinaryUrl(branding.logoUrl, 300) || '/logo-techpricedrop.png'}
                 alt={branding.brandName || 'TechPriceDrop'}
+                width={170}
+                height={32}
                 className="h-8 w-auto max-w-[170px] object-contain transition-transform group-hover:scale-105"
                 loading="lazy"
                 decoding="async"

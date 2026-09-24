@@ -5,10 +5,9 @@ import { getServerSettings } from '@/lib/settingsServer';
 import { generateWebsiteJsonLd, generateOrganizationJsonLd } from '@/lib/seo/jsonld';
 import { StoreLayoutWrapper } from '@/components/common/StoreLayoutWrapper';
 
-import { optimizeImageUrl, getHeroSrcSet, getHeroSizes } from '@/lib/imageOptimization';
-
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await getServerSettings(true);
+  // Use cached version — avoids extra MongoDB round-trip on every request
+  const settings = await getServerSettings();
   const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
   const brand = settings.siteBrandName || 'TechPriceDrop';
   const title = settings.siteTitle || `${brand} - Compare Prices & Find Deals`;
@@ -99,7 +98,8 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const settings = await getServerSettings(true);
+  // Use cached version — avoids duplicate MongoDB round-trip
+  const settings = await getServerSettings();
   const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
   const brand = settings.siteBrandName || 'TechPriceDrop';
   const logoUrl = settings.logoUrl || '/logo-techpricedrop.png';
@@ -120,12 +120,6 @@ export default async function RootLayout({
   const adsenseId = settings.googleAdSenseId?.trim();
   const globalAdHeaderCode = settings.globalAdHeaderCode?.trim();
 
-  const isDefaultHero = !settings.heroImageUrl || settings.heroImageUrl.includes('v8wowdztetwveiot2ahw') || settings.heroImageUrl.includes('images.unsplash.com');
-  const heroImageUrl = isDefaultHero ? '/hero.webp' : settings.heroImageUrl;
-  const heroPreloadSrc = optimizeImageUrl(heroImageUrl, 640);
-  const heroSrcSet = getHeroSrcSet(heroImageUrl);
-  const heroSizes = getHeroSizes();
-
   return (
     <html lang="en">
       <head>
@@ -135,17 +129,16 @@ export default async function RootLayout({
         {/* Preconnect to critical image CDNs for instant LCP */}
         <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+        {/* Retailer image CDN preconnect — faster product images */}
+        <link rel="dns-prefetch" href="https://m.media-amazon.com" />
+        <link rel="dns-prefetch" href="https://i5.walmartimages.com" />
+        <link rel="dns-prefetch" href="https://pisces.bbystatic.com" />
+        <link rel="dns-prefetch" href="https://target.scene7.com" />
 
-        {/* High-priority Preload for Hero Image (LCP) */}
-        <link
-          rel="preload"
-          as="image"
-          href={heroPreloadSrc}
-          imageSrcSet={heroSrcSet}
-          imageSizes={heroSizes}
-          fetchPriority="high"
-        />
-        
+        {/* NOTE: Hero image preload is intentionally placed only on the homepage (page.tsx),
+            NOT here in layout.tsx — placing it here would wastefully preload the hero
+            on EVERY page (/blog, /product/*, /privacy, etc.) stealing LCP bandwidth */}
+
         {/* Schema.org WebSite JSON-LD */}
         <script
           type="application/ld+json"
@@ -158,6 +151,7 @@ export default async function RootLayout({
         />
 
       </head>
+
       <body className="min-h-screen bg-background text-foreground font-sans">
         {/* Google AdSense Script - Deferred with lazyOnload to ensure instant paint and 0 click delay */}
         {adsenseId && (

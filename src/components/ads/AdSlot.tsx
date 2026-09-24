@@ -82,7 +82,13 @@ export function AdSlot({ placement, initialAd, className = '' }: AdSlotProps) {
     }
   }, [ad]);
 
-  // Zero Blank Space: If no active ad, render absolutely nothing!
+  // While loading, show a reserved placeholder to prevent CLS (layout shift)
+  // Once loaded, if no active ad exists, collapse to zero height
+  if (!hasLoaded) {
+    return <div className={`w-full ${className}`} style={{ minHeight: '1px' }} aria-hidden="true" />;
+  }
+
+  // No active ad after loading — render nothing (collapsed)
   if (!ad || !isAdActiveClient(ad)) {
     return null;
   }

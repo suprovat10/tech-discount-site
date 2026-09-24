@@ -149,6 +149,8 @@ export function BrandDetailClient({
               <img
                 src={optimizeCloudinaryUrl(brand.logoUrl, 300)}
                 alt={brandDisplayName}
+                width={90}
+                height={48}
                 loading="lazy"
                 decoding="async"
                 className="h-10 sm:h-12 w-auto max-w-[90%] object-contain dark:invert"

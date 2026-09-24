@@ -130,7 +130,7 @@ export function HeroSection({ initialSettings }: HeroSectionProps) {
                   height={450}
                   fetchPriority="high"
                   loading="eager"
-                  decoding="sync"
+                  decoding="async"
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   onError={(e) => {
                     e.currentTarget.src = '/hero.webp';
@@ -148,7 +148,7 @@ export function HeroSection({ initialSettings }: HeroSectionProps) {
                 height={450}
                 fetchPriority="high"
                 loading="eager"
-                decoding="sync"
+                decoding="async"
                 className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                 onError={(e) => {
                   e.currentTarget.src = '/hero.webp';

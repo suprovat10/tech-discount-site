@@ -43,10 +43,17 @@ export function getCatalogProducts(): CatalogItem[] {
     return [];
   }
 
-  // Trigger background server sync once per page session if not yet triggered
+  // Trigger background server sync after page is idle — avoids TBT spike during load
   if (!isInitialCatalogFetchTriggered) {
     isInitialCatalogFetchTriggered = true;
-    fetchAndSyncCatalogFromServer().catch(() => {});
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      (window as any).requestIdleCallback(
+        () => fetchAndSyncCatalogFromServer().catch(() => {}),
+        { timeout: 3000 }
+      );
+    } else {
+      setTimeout(() => fetchAndSyncCatalogFromServer().catch(() => {}), 2000);
+    }
   }
 
   try {

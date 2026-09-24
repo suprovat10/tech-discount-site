@@ -295,10 +295,12 @@ export function BlogDetailClient({
               <img
                 src={optimizeImageUrl(post.imageUrl, 800)}
                 alt={post.imageAlt || post.title}
+                width={800}
+                height={450}
                 className="w-full max-h-[520px] object-cover"
                 loading="eager"
                 fetchPriority="high"
-                decoding="sync"
+                decoding="async"
                 onError={(e) => {
                   e.currentTarget.src = '/logo.png';
                 }}
@@ -365,6 +367,8 @@ export function BlogDetailClient({
                         <img
                           src={optimizeImageUrl(r.imageUrl, 300)}
                           alt={r.title}
+                          width={96}
+                          height={80}
                           loading="lazy"
                           decoding="async"
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform"
@@ -453,6 +457,8 @@ export function BlogDetailClient({
                       <img
                         src={optimizeImageUrl(b.logoUrl, 100)}
                         alt={b.name}
+                        width={28}
+                        height={28}
                         loading="lazy"
                         decoding="async"
                         className="max-w-full max-h-full object-contain filter dark:invert group-hover:scale-110 transition-transform"

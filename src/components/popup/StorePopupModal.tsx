@@ -122,7 +122,7 @@ export function StorePopupModal() {
               src={activePopup.imageUrl}
               alt={activePopup.imageAlt || activePopup.title}
               className="w-full h-full object-cover"
-              loading="eager"
+              loading="lazy"
             />
           </div>
         )}

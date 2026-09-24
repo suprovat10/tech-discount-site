@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -41,6 +41,15 @@ interface SearchResultsClientProps {
   initialCategories?: CategoryDefinition[];
 }
 
+// Isolated SearchParams listener inside Suspense — ensures SearchResultsClient is SSR pre-rendered without client bailout
+function SearchParamsWatcher({ onChange }: { onChange: () => void }) {
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    onChange();
+  }, [searchParams, onChange]);
+  return null;
+}
+
 export function SearchResultsClient({
   initialCategorySlug = '',
   initialSubcategorySlug = '',
@@ -48,7 +57,6 @@ export function SearchResultsClient({
   initialCategories,
 }: SearchResultsClientProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   // Dynamic Categories list from categoryStore / MongoDB
   const [categories, setCategories] = useState<CategoryDefinition[]>(initialCategories || []);
@@ -377,11 +385,15 @@ export function SearchResultsClient({
   );
 
   // Initialize and synchronize when searchParams change or on load
-  useEffect(() => {
+  const handleParamsUpdate = useCallback(() => {
     const loadedCats = getCategories();
     setCategories(loadedCats);
     parseUrlParams(loadedCats);
-  }, [searchParams, parseUrlParams]);
+  }, [parseUrlParams]);
+
+  useEffect(() => {
+    handleParamsUpdate();
+  }, [handleParamsUpdate]);
 
   // Handle browser Back / Forward history buttons
   useEffect(() => {
@@ -1265,6 +1277,11 @@ export function SearchResultsClient({
 
   return (
     <div className="space-y-6 pb-16">
+      {/* SearchParams listener inside Suspense so SearchResultsClient pre-renders static HTML */}
+      <Suspense fallback={null}>
+        <SearchParamsWatcher onChange={handleParamsUpdate} />
+      </Suspense>
+
       {/* Breadcrumbs */}
       <nav
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}

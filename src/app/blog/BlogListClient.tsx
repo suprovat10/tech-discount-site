@@ -477,8 +477,10 @@ export function BlogListClient({
                         <img
                           src={optimizeImageUrl(post.imageUrl, 640)}
                           alt={post.imageAlt || post.title}
-                          loading={idx < 4 ? 'eager' : 'lazy'}
-                          decoding={idx < 4 ? 'sync' : 'async'}
+                          width={640}
+                          height={400}
+                          loading={idx < 2 ? 'eager' : 'lazy'}
+                          decoding="async"
                           fetchPriority={idx < 2 ? 'high' : undefined}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           onError={(e) => {

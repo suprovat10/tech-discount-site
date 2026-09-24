@@ -203,8 +203,10 @@ export function BlogTagClient({
                   <img
                     src={optimizeImageUrl(post.imageUrl, 600)}
                     alt={post.title}
+                    width={600}
+                    height={338}
                     loading={idx < 2 ? 'eager' : 'lazy'}
-                    decoding={idx < 2 ? 'sync' : 'async'}
+                    decoding="async"
                     fetchPriority={idx === 0 ? 'high' : undefined}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
