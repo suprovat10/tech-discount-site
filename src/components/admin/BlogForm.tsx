@@ -60,6 +60,7 @@ export default function BlogForm({
   const [date, setDate] = useState(
     initialData?.date || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   );
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // SEO State (Requirement 1 & 2)
   const [metaTitle, setMetaTitle] = useState(initialData?.seo?.metaTitle || '');
@@ -219,46 +220,52 @@ export default function BlogForm({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !excerpt.trim()) return;
+    if (isSubmitting || !title.trim() || !excerpt.trim()) return;
 
-    const finalSlug =
-      slug.trim() ||
-      title
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
+    setIsSubmitting(true);
 
-    const parsedTags = tagsInput
-      .split(',')
-      .map((t) => t.trim())
-      .filter(Boolean);
+    try {
+      const finalSlug =
+        slug.trim() ||
+        title
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '');
 
-    const postData: BlogPost = {
-      id: initialData?.id || `post-${Date.now()}`,
-      slug: finalSlug,
-      title: title.trim(),
-      excerpt: excerpt.trim(),
-      category: category || (categories[0]?.name ?? 'Tech Guides'),
-      readTime: readTime.trim() || '3 min read',
-      date: date || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      imageUrl: imageUrl.trim(),
-      imageAlt: imageAlt.trim() || undefined,
-      content: content.trim() || `<p>${excerpt.trim()}</p>`,
-      tags: parsedTags.length > 0 ? parsedTags : [category || 'Tech Deals'],
-      seo: {
-        metaTitle: metaTitle.trim() || undefined,
-        metaDescription: metaDescription.trim() || undefined,
-        keywords: keywords.trim() || (parsedTags.length > 0 ? parsedTags.join(', ') : undefined),
-        canonicalUrl: canonicalUrl.trim() || undefined,
-        ogImageUrl: (ogImageUrl.trim() || imageUrl.trim()).trim() || undefined,
-        ogImageAlt: (ogImageAlt.trim() || imageAlt.trim() || title.trim()).trim() || undefined,
-      },
-    };
+      const parsedTags = tagsInput
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean);
 
-    onSubmit(postData);
+      const postData: BlogPost = {
+        id: initialData?.id || `post-${Date.now()}`,
+        slug: finalSlug,
+        title: title.trim(),
+        excerpt: excerpt.trim(),
+        category: category || (categories[0]?.name ?? 'Tech Guides'),
+        readTime: readTime.trim() || '3 min read',
+        date: date || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        imageUrl: imageUrl.trim(),
+        imageAlt: imageAlt.trim() || undefined,
+        content: content.trim() || `<p>${excerpt.trim()}</p>`,
+        tags: parsedTags.length > 0 ? parsedTags : [category || 'Tech Deals'],
+        seo: {
+          metaTitle: metaTitle.trim() || undefined,
+          metaDescription: metaDescription.trim() || undefined,
+          keywords: keywords.trim() || (parsedTags.length > 0 ? parsedTags.join(', ') : undefined),
+          canonicalUrl: canonicalUrl.trim() || undefined,
+          ogImageUrl: (ogImageUrl.trim() || imageUrl.trim()).trim() || undefined,
+          ogImageAlt: (ogImageAlt.trim() || imageAlt.trim() || title.trim()).trim() || undefined,
+        },
+      };
+
+      await onSubmit(postData);
+    } catch {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -270,7 +277,7 @@ export default function BlogForm({
             <button
               type="button"
               onClick={onCancel}
-              className="p-1 border border-border hover:bg-slate-100 dark:hover:bg-slate-800 text-muted-foreground hover:text-foreground transition-colors"
+              className="p-1 border border-border hover:bg-slate-100 dark:hover:bg-slate-800 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
               title="Back to Blog Articles"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -292,17 +299,27 @@ export default function BlogForm({
             variant="outline"
             size="sm"
             onClick={onCancel}
-            className="text-xs font-bold h-9 px-4"
+            disabled={isSubmitting}
+            className="text-xs font-bold h-9 px-4 cursor-pointer"
           >
             Cancel
           </Button>
           <Button
             type="submit"
-            disabled={!title.trim() || !excerpt.trim()}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-9 px-5 flex items-center gap-2 shadow-xs"
+            disabled={isSubmitting || !title.trim() || !excerpt.trim()}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-9 px-5 flex items-center gap-2 shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Save className="w-3.5 h-3.5" />
-            <span>{isEdit ? 'Save Changes' : 'Publish Article'}</span>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>{isEdit ? 'Saving...' : 'Publishing...'}</span>
+              </>
+            ) : (
+              <>
+                <Save className="w-3.5 h-3.5" />
+                <span>{isEdit ? 'Save Changes' : 'Publish Article'}</span>
+              </>
+            )}
           </Button>
         </div>
       </div>
@@ -871,18 +888,28 @@ export default function BlogForm({
           <div className="bg-slate-50 dark:bg-slate-900 border border-border p-5 space-y-3">
             <Button
               type="submit"
-              disabled={!title.trim() || !excerpt.trim()}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-10 flex items-center justify-center gap-2 shadow-xs"
+              disabled={isSubmitting || !title.trim() || !excerpt.trim()}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-10 flex items-center justify-center gap-2 shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Save className="w-4 h-4" />
-              <span>{isEdit ? 'Save Article Changes' : 'Publish Article Now'}</span>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>{isEdit ? 'Saving Article...' : 'Publishing Article...'}</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  <span>{isEdit ? 'Save Article Changes' : 'Publish Article Now'}</span>
+                </>
+              )}
             </Button>
 
             <Button
               type="button"
               variant="outline"
               onClick={onCancel}
-              className="w-full text-xs font-bold h-9"
+              disabled={isSubmitting}
+              className="w-full text-xs font-bold h-9 cursor-pointer"
             >
               Cancel & Return
             </Button>

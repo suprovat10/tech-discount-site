@@ -871,7 +871,7 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
                 </h3>
                 {activeProduct.richDescription ? (
                   <div
-                    className="text-sm sm:text-base text-foreground font-medium leading-relaxed prose dark:prose-invert max-w-none"
+                    className="text-sm sm:text-base text-foreground font-medium leading-relaxed prose dark:prose-invert max-w-none overflow-x-auto break-words"
                     dangerouslySetInnerHTML={{ __html: activeProduct.richDescription }}
                   />
                 ) : (

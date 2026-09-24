@@ -53,6 +53,13 @@ export function StorePopupModal() {
     };
   }, [pathname]);
 
+  const handleClose = React.useCallback(() => {
+    if (activePopup) {
+      recordDismiss(activePopup);
+    }
+    setIsOpen(false);
+  }, [activePopup]);
+
   // Handle ESC key press to close modal
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -67,20 +74,29 @@ export function StorePopupModal() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen]);
+  }, [isOpen, handleClose]);
 
-  const handleClose = () => {
-    if (activePopup) {
-      recordDismiss(activePopup);
-    }
-    setIsOpen(false);
-  };
-
-  const handleCopyCode = () => {
+  const handleCopyCode = async () => {
     if (!activePopup?.couponCode) return;
-    navigator.clipboard.writeText(activePopup.couponCode);
-    setIsCopied(true);
-    setTimeout(() => setIsCopied(false), 3000);
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(activePopup.couponCode);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = activePopup.couponCode;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 3000);
+    } catch {
+      // Fallback
+    }
   };
 
   if (!isOpen || !activePopup) {

@@ -985,7 +985,8 @@ export function SearchResultsClient({
             return (
               <div key={cat.id} className="space-y-0.5">
                 <div
-                  className={`flex items-center justify-between py-1.5 px-2.5 rounded-none transition-all ${
+                  onClick={() => handleSelectCategory(cat.name)}
+                  className={`flex items-center justify-between py-1.5 px-2.5 rounded-none transition-all cursor-pointer ${
                     isCatSelected
                       ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 font-bold shadow-xs border border-blue-100/80 dark:border-blue-900/40'
                       : 'text-slate-700 dark:text-slate-300 hover:text-blue-600 hover:bg-slate-100/80 dark:hover:bg-slate-800/50 font-medium'
@@ -995,6 +996,7 @@ export function SearchResultsClient({
                     href={`/products/${catSlug}`}
                     onClick={(e) => {
                       e.preventDefault();
+                      e.stopPropagation();
                       handleSelectCategory(cat.name);
                     }}
                     className="flex-1 text-left truncate pr-1 cursor-pointer tracking-tight"
@@ -1014,6 +1016,7 @@ export function SearchResultsClient({
                     </span>
                     {cat.subcategories && cat.subcategories.length > 0 && (
                       <button
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           toggleCategoryExpand(cat.name);
@@ -1342,7 +1345,7 @@ export function SearchResultsClient({
             )}
 
             <div
-              className={`fixed top-0 bottom-0 left-0 inset-y-0 z-[100] w-[85%] max-w-[340px] bg-background border-r border-border shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out lg:hidden ${
+              className={`fixed top-0 bottom-0 left-0 inset-y-0 z-[100] w-[85%] max-w-[340px] h-[100dvh] bg-background border-r border-border shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out lg:hidden overscroll-contain ${
                 isMobileFilterOpen ? 'translate-x-0' : '-translate-x-full pointer-events-none'
               }`}
             >
@@ -1362,6 +1365,7 @@ export function SearchResultsClient({
 
                 <div className="flex items-center gap-2">
                   <button
+                    type="button"
                     onClick={handleReset}
                     title="Reset all filters"
                     className="p-1.5 border border-border text-muted-foreground hover:text-foreground text-xs font-semibold flex items-center gap-1 rounded-none hover:bg-muted/60 transition-colors cursor-pointer"
@@ -1370,6 +1374,7 @@ export function SearchResultsClient({
                     <span className="text-[10px]">Reset</span>
                   </button>
                   <button
+                    type="button"
                     onClick={() => setIsMobileFilterOpen(false)}
                     className="p-1.5 border border-border text-muted-foreground hover:text-foreground rounded-none hover:bg-muted/60 transition-colors cursor-pointer"
                     aria-label="Close filters"
@@ -1380,7 +1385,7 @@ export function SearchResultsClient({
               </div>
 
               {/* Scrollable Filter Body */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-6">
+              <div className="flex-1 overflow-y-auto p-4 space-y-6 overscroll-contain [-webkit-overflow-scrolling:touch]">
                 {renderFilterControls()}
               </div>
 

@@ -656,8 +656,11 @@ export function RichTextEditor({
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => {
+            onMouseDown={(e) => {
+              e.preventDefault();
               saveSelection();
+            }}
+            onClick={() => {
               setShowMediaModal(true);
             }}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-white dark:bg-slate-800 border border-border hover:bg-slate-50 dark:hover:bg-slate-700 text-foreground transition-colors shadow-xs cursor-pointer"
@@ -670,6 +673,10 @@ export function RichTextEditor({
           <div className="inline-flex items-center shadow-xs">
             <button
               type="button"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                saveSelection();
+              }}
               onClick={handleQuickInsertTable}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-white dark:bg-slate-800 border border-border hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-slate-700 text-foreground transition-colors cursor-pointer"
               title="Click to insert a 3x3 table directly into editor"
@@ -679,8 +686,11 @@ export function RichTextEditor({
             </button>
             <button
               type="button"
-              onClick={() => {
+              onMouseDown={(e) => {
+                e.preventDefault();
                 saveSelection();
+              }}
+              onClick={() => {
                 setShowTableModal(true);
               }}
               className="px-2 py-1.5 text-xs font-bold bg-white dark:bg-slate-800 border-y border-r border-border hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-slate-700 text-muted-foreground transition-colors cursor-pointer"
@@ -694,6 +704,11 @@ export function RichTextEditor({
           <div className="inline-flex items-center shadow-xs">
             <button
               type="button"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                saveSelection();
+                savedTargetCellRef.current = getActiveTableCell();
+              }}
               onClick={handleQuickInsertButton}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-white dark:bg-slate-800 border border-border hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-slate-700 text-foreground transition-colors cursor-pointer"
               title="Click to insert a Deal / Buy Now CTA button directly into editor"
@@ -703,9 +718,12 @@ export function RichTextEditor({
             </button>
             <button
               type="button"
-              onClick={() => {
+              onMouseDown={(e) => {
+                e.preventDefault();
                 saveSelection();
                 savedTargetCellRef.current = getActiveTableCell();
+              }}
+              onClick={() => {
                 if (typeof window !== 'undefined') {
                   const str = window.getSelection()?.toString();
                   if (str && str.trim()) setButtonText(str.trim());

@@ -124,6 +124,7 @@ export function Header() {
         <Link
           href="/"
           onClick={() => {
+            setIsMobileMenuOpen(false);
             if (pathname === '/') {
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }
@@ -226,6 +227,7 @@ export function Header() {
         <div className="flex items-center gap-2.5">
           <Link
             href="/watchlist"
+            onClick={() => setIsMobileMenuOpen(false)}
             className="flex items-center gap-1.5 px-3 py-1.5 border border-border text-xs font-semibold text-foreground hover:bg-muted/50 hover:text-rose-600 transition-colors rounded-none group"
             title="View saved items"
           >

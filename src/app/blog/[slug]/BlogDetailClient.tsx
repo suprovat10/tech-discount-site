@@ -306,7 +306,7 @@ export function BlogDetailClient({
 
           {/* Article Body */}
           <div
-            className="prose dark:prose-invert max-w-none text-sm sm:text-base leading-relaxed text-foreground space-y-4 pt-2 prose-headings:font-black prose-headings:tracking-tight prose-a:text-blue-600 prose-a:underline"
+            className="prose dark:prose-invert max-w-none text-sm sm:text-base leading-relaxed text-foreground space-y-4 pt-2 prose-headings:font-black prose-headings:tracking-tight prose-a:text-blue-600 prose-a:underline overflow-x-auto break-words"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
 
