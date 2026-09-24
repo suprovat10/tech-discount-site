@@ -30,3 +30,6 @@ export async function getDatabaseBrands(forceFresh = false): Promise<BrandItem[]
   }
   return [...DEFAULT_BRANDS];
 }
+
+export const getServerBrands = getDatabaseBrands;
+

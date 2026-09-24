@@ -22,6 +22,7 @@ async function loadBrandsFromCloud(): Promise<BrandItem[]> {
 
 import { purgeAllCaches } from '@/lib/cachePurge';
 import { invalidateBrandServerCache } from '@/lib/brandServer';
+import { isRequestAdminAuthenticated } from '@/lib/auth';
 
 function purgeBrandCaches() {
   invalidateBrandServerCache();
@@ -45,6 +46,13 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (!isRequestAdminAuthenticated(request)) {
+    return NextResponse.json(
+      { success: false, error: 'Unauthorized: Admin authentication required' },
+      { status: 401 }
+    );
+  }
+
   try {
     const body = await request.json();
     if (!body.name) {
@@ -95,6 +103,13 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
+  if (!isRequestAdminAuthenticated(request)) {
+    return NextResponse.json(
+      { success: false, error: 'Unauthorized: Admin authentication required' },
+      { status: 401 }
+    );
+  }
+
   try {
     const body = await request.json();
     const brands = body.brands;
@@ -118,6 +133,13 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  if (!isRequestAdminAuthenticated(request)) {
+    return NextResponse.json(
+      { success: false, error: 'Unauthorized: Admin authentication required' },
+      { status: 401 }
+    );
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');

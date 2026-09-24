@@ -3,7 +3,7 @@ import { getServerSettings } from '@/lib/settingsServer';
 import { getDatabaseCategories } from '@/lib/categoryServer';
 import { getDatabaseProducts } from '@/lib/catalogDb';
 import { getServerBlogs } from '@/lib/blogServer';
-import { DEFAULT_BRANDS } from '@/data/brands';
+import { getServerBrands } from '@/lib/brandServer';
 import { DEFAULT_PAGES } from '@/data/defaultPages';
 import { getProductTagsServer } from '@/lib/productTagServer';
 import { slugifyTag } from '@/lib/productTagStore';
@@ -77,7 +77,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   // 5. Dynamic Brand Showcase Pages
-  const brandRoutes = DEFAULT_BRANDS.map((brand) => ({
+  const brands = await getServerBrands();
+  const brandRoutes = brands.map((brand) => ({
     url: `${baseUrl}/brand/${brand.slug}`,
     lastModified: now,
     changeFrequency: 'weekly' as const,
