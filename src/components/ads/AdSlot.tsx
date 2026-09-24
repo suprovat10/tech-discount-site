@@ -28,7 +28,7 @@ export function AdSlot({ placement, initialAd, className = '' }: AdSlotProps) {
     }
     return null;
   });
-  const [hasLoaded, setHasLoaded] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(() => initialAd !== undefined);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Fetch active ad for this placement using shared client-side cache
@@ -82,10 +82,9 @@ export function AdSlot({ placement, initialAd, className = '' }: AdSlotProps) {
     }
   }, [ad]);
 
-  // While loading, show a reserved placeholder to prevent CLS (layout shift)
-  // Once loaded, if no active ad exists, collapse to zero height
+  // If still loading and initialAd was not supplied, return null to avoid 1px layout shifts
   if (!hasLoaded) {
-    return <div className={`w-full ${className}`} style={{ minHeight: '1px' }} aria-hidden="true" />;
+    return null;
   }
 
   // No active ad after loading — render nothing (collapsed)
