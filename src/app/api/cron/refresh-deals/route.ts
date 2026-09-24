@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import crypto from 'crypto';
 import { adapterRegistry } from '@/lib/adapters';
-import { getDatabaseProducts, saveDatabaseProduct } from '@/lib/catalogDb';
+import { getDatabaseProducts, invalidateCatalogDbCache } from '@/lib/catalogDb';
 import { setSiteKV } from '@/lib/db/kv';
 
 import { isRequestAdminAuthenticated } from '@/lib/auth';
@@ -30,13 +31,15 @@ export async function GET(request: NextRequest) {
   }
 
   const syncedProducts: { id: string; title: string; offersUpdated: number }[] = [];
+  const priceChangedProductSlugs: string[] = [];
 
   // 1. Daily Auto Price Sync across all products in database
   const catalogProducts = await getDatabaseProducts();
-  let totalOffersUpdated = 0;
 
   for (const product of catalogProducts) {
     let offersUpdated = 0;
+    let productPriceChanged = false;
+
     if (Array.isArray(product.offers)) {
       for (const offer of product.offers) {
         try {
@@ -44,6 +47,10 @@ export async function GET(request: NextRequest) {
           if (adapter && adapter.isConfigured() && offer.retailerItemId) {
             const liveDetails = await adapter.getProductDetails({ itemId: offer.retailerItemId });
             if (liveDetails && liveDetails.price > 0) {
+              const previousPrice = offer.price;
+              if (previousPrice !== liveDetails.price) {
+                productPriceChanged = true;
+              }
               offer.price = liveDetails.price;
               if (liveDetails.regularPrice) offer.regularPrice = liveDetails.regularPrice;
               offer.isInStock = liveDetails.isInStock;
@@ -56,13 +63,35 @@ export async function GET(request: NextRequest) {
         }
       }
     }
+
     if (offersUpdated > 0) {
       syncedProducts.push({ id: product.id, title: product.title, offersUpdated });
+    }
+
+    // ONLY products whose prices actually changed should be revalidated
+    if (productPriceChanged && product.slug) {
+      priceChangedProductSlugs.push(product.slug);
+      try {
+        revalidatePath(`/product/${product.slug}`, 'page');
+      } catch (err) {
+        console.warn(`[Price Sync] Error revalidating /product/${product.slug}:`, err);
+      }
     }
   }
 
   if (syncedProducts.length > 0) {
     await setSiteKV('products_catalog', catalogProducts);
+    invalidateCatalogDbCache();
+  }
+
+  // If any products had actual price changes, revalidate homepage and products catalog so listings reflect new prices
+  if (priceChangedProductSlugs.length > 0) {
+    try {
+      revalidatePath('/', 'page');
+      revalidatePath('/products', 'page');
+    } catch (err) {
+      console.warn('[Price Sync] Error revalidating home/catalog after price changes:', err);
+    }
   }
 
   return NextResponse.json({

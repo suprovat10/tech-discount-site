@@ -45,8 +45,8 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-// Blog listing revalidates every 24 hours (or on-demand when a blog is published/edited)
-export const revalidate = 86400;
+// Blog listing revalidates every 48 hours (or on-demand when a blog is published/edited)
+export const revalidate = 172800;
 
 export default async function BlogListingPage() {
   const posts = await getServerBlogs();

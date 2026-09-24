@@ -7,8 +7,8 @@ import { optimizeImageUrl } from '@/lib/imageOptimization';
 import { BlogTagClient } from './BlogTagClient';
 import { buildOpenGraphImages } from '@/lib/seo/metadata';
 
-// Blog tag pages revalidate every 24 hours (or on-demand when tag posts are updated)
-export const revalidate = 86400;
+// Blog tag pages revalidate every 48 hours (or on-demand when tag posts are updated)
+export const revalidate = 172800;
 export const dynamicParams = true;
 
 export async function generateStaticParams() {

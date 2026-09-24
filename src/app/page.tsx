@@ -19,8 +19,8 @@ import { buildOpenGraphImages } from '@/lib/seo/metadata';
 const BrandShowcaseSection = dynamic(() => import('@/components/home/BrandShowcaseSection').then(m => ({ default: m.BrandShowcaseSection })));
 const FeaturedCategorySections = dynamic(() => import('@/components/home/FeaturedCategorySections').then(m => ({ default: m.FeaturedCategorySections })));
 
-// Homepage revalidates once every hour (or instantly on-demand when admin saves updates)
-export const revalidate = 3600;
+// Homepage revalidates once every 6 hours (or instantly on-demand when admin saves updates)
+export const revalidate = 21600;
 
 export async function generateMetadata(): Promise<Metadata> {
   // Use cached settings — avoids duplicate MongoDB round-trip

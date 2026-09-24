@@ -9,8 +9,8 @@ import { getServerSettings } from '@/lib/settingsServer';
 import { TagDetailClient } from './TagDetailClient';
 import { buildOpenGraphImages } from '@/lib/seo/metadata';
 
-// Tag pages revalidate every 24 hours (or on-demand when tag items update)
-export const revalidate = 86400;
+// Tag pages revalidate every 48 hours (or on-demand when tag items update)
+export const revalidate = 172800;
 export const dynamicParams = true;
 
 export async function generateStaticParams() {

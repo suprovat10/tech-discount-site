@@ -4,8 +4,8 @@ import { getServerSettings } from '@/lib/settingsServer';
 import { getSiteKV } from '@/lib/db/kv';
 import { DEFAULT_COUPONS, CouponItem } from '@/data/coupons';
 
-// Coupons page revalidates every 24 hours (or on-demand when coupons are updated in admin)
-export const revalidate = 86400;
+// Coupons page revalidates every 12 hours (or on-demand when coupons are updated in admin)
+export const revalidate = 43200;
 
 import { buildOpenGraphImages } from '@/lib/seo/metadata';
 

@@ -5,8 +5,8 @@ import { getDatabaseProducts } from '@/lib/catalogDb';
 import { transformCatalogItemToUnified } from '@/lib/adapters';
 import { BrandDetailClient } from './BrandDetailClient';
 
-// Brand pages revalidate every 24 hours (or on-demand when brand items change)
-export const revalidate = 86400;
+// Brand pages revalidate every 48 hours (or on-demand when brand items change)
+export const revalidate = 172800;
 
 export async function generateStaticParams() {
   return DEFAULT_BRANDS.map((b) => ({

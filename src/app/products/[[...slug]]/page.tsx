@@ -10,8 +10,8 @@ import { transformCatalogItemToUnified } from '@/lib/adapters';
 import { UnifiedProduct } from '@/types/product';
 import { buildOpenGraphImages } from '@/lib/seo/metadata';
 
-// Catalog and category pages revalidate every hour (or on-demand when items are saved)
-export const revalidate = 3600;
+// Catalog and category pages revalidate every 6 hours (or on-demand when items are saved)
+export const revalidate = 21600;
 
 export async function generateStaticParams() {
   const categories = await getDatabaseCategories();

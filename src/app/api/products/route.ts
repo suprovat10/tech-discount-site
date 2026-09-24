@@ -16,8 +16,9 @@ import { isRequestAdminAuthenticated } from '@/lib/auth';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-function purgeServerCaches(slug?: string) {
-  purgeAllCaches({ productSlug: slug });
+function purgeServerCaches(slug?: string, category?: string) {
+  const categorySlug = category ? category.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-') : undefined;
+  purgeAllCaches({ productSlug: slug, categorySlug });
 }
 
 function sanitizeProductItem(body: any): CatalogItem {
@@ -146,7 +147,7 @@ export async function POST(request: Request) {
 
     // Save permanently to database
     await saveDatabaseProduct(newProduct);
-    purgeServerCaches(newProduct.slug);
+    purgeServerCaches(newProduct.slug, newProduct.category);
 
     return NextResponse.json(
       { success: true, product: newProduct },
@@ -200,7 +201,7 @@ export async function DELETE(request: Request) {
     // Permanently remove from database
     await deleteDatabaseProduct(id);
 
-    purgeServerCaches(existing?.slug);
+    purgeServerCaches(existing?.slug, existing?.category);
 
     return NextResponse.json({
       success: true,

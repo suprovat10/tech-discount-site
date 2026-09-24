@@ -29,11 +29,14 @@ export function purgeAllCaches(options?: PurgeOptions) {
     invalidatePageServerCache();
     invalidatePopupsCache();
 
-    // 1. If a specific product was updated, only purge that product, catalog, and home
+    // 1. If a specific product was updated, purge that product, catalog, home, category, and sitemap
     if (options?.productSlug) {
       revalidatePath(`/product/${options.productSlug}`, 'page');
       revalidatePath('/products', 'page');
       revalidatePath('/', 'page');
+      if (options?.categorySlug) {
+        revalidatePath(`/products/${options.categorySlug}`, 'page');
+      }
       revalidatePath('/sitemap.xml');
       return;
     }
