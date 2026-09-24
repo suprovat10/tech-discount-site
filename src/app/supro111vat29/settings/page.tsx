@@ -292,13 +292,21 @@ export default function AdminSettingsPage() {
     setSaveError('');
     setSavedSuccess(false);
 
+    const toSave: AdminSettings = {
+      ...settings,
+      googleTagManagerId: '',
+      tiktokPixelId: '',
+      googleSiteVerification: '',
+      bingSiteVerification: '',
+    };
+
     try {
-      localStorage.setItem('smarttech_admin_settings', JSON.stringify(settings));
+      localStorage.setItem('smarttech_admin_settings', JSON.stringify(toSave));
 
       const res = await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings),
+        body: JSON.stringify(toSave),
       });
 
       const data = await res.json();
@@ -895,47 +903,18 @@ export default function AdminSettingsPage() {
             </div>
 
             {/* Webmaster Tools Verification */}
-            <div className="p-4 border border-border bg-muted/20 space-y-3">
-              <div>
-                <label className="font-bold text-foreground block">
+            <div className="p-3.5 border border-emerald-500/30 bg-emerald-50/40 dark:bg-emerald-950/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+              <div className="space-y-0.5">
+                <span className="font-bold text-foreground block">
                   Search Console & Webmaster Verification
-                </label>
-                <span className="text-[10px] text-muted-foreground">
-                  Paste your Google Search Console and Bing Webmaster Tools verification codes to verify site ownership.
+                </span>
+                <span className="text-[11px] text-muted-foreground">
+                  Domain-level verification (DNS TXT record) is active. HTML meta tags are not required.
                 </span>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-[11px] font-semibold text-foreground block mb-1">
-                    Google Search Console Code
-                  </label>
-                  <Input
-                    value={settings.googleSiteVerification || ''}
-                    onChange={(e) => handleChange('googleSiteVerification', e.target.value)}
-                    placeholder="e.g. 7abcDeFgHijkLmNoPqRsTuVwXyZ or meta tag"
-                    className="h-9 text-xs font-mono"
-                  />
-                  <span className="text-[10px] text-muted-foreground mt-0.5 block">
-                    Injected as &lt;meta name=&quot;google-site-verification&quot; content=&quot;...&quot; /&gt;
-                  </span>
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-semibold text-foreground block mb-1">
-                    Bing Webmaster Tools Code
-                  </label>
-                  <Input
-                    value={settings.bingSiteVerification || ''}
-                    onChange={(e) => handleChange('bingSiteVerification', e.target.value)}
-                    placeholder="e.g. 1234567890ABCDEF1234567890ABCDEF"
-                    className="h-9 text-xs font-mono"
-                  />
-                  <span className="text-[10px] text-muted-foreground mt-0.5 block">
-                    Injected as &lt;meta name=&quot;msvalidate.01&quot; content=&quot;...&quot; /&gt;
-                  </span>
-                </div>
-              </div>
+              <span className="self-start sm:self-auto px-2 py-0.5 text-[10px] font-bold bg-emerald-600 text-white rounded-xs">
+                Domain DNS Active
+              </span>
             </div>
 
             {/* Live Search & Social Snippet Previews */}
@@ -1052,21 +1031,6 @@ export default function AdminSettingsPage() {
 
             <div>
               <label className="font-bold text-foreground block mb-1">
-                Google Tag Manager (GTM) Container ID
-              </label>
-              <Input
-                value={settings.googleTagManagerId}
-                onChange={(e) => handleChange('googleTagManagerId', e.target.value)}
-                placeholder="GTM-XXXXXXX"
-                className="h-9 text-xs font-mono"
-              />
-              <span className="text-[10px] text-muted-foreground mt-1 block">
-                For custom triggers and server-side tagging.
-              </span>
-            </div>
-
-            <div>
-              <label className="font-bold text-foreground block mb-1">
                 Facebook Pixel ID
               </label>
               <Input
@@ -1077,21 +1041,6 @@ export default function AdminSettingsPage() {
               />
               <span className="text-[10px] text-muted-foreground mt-1 block">
                 Tracks Meta ad conversions and retargeting audiences.
-              </span>
-            </div>
-
-            <div>
-              <label className="font-bold text-foreground block mb-1">
-                TikTok Pixel ID
-              </label>
-              <Input
-                value={settings.tiktokPixelId}
-                onChange={(e) => handleChange('tiktokPixelId', e.target.value)}
-                placeholder="e.g. CXXXXXXXXXXXXXX"
-                className="h-9 text-xs font-mono"
-              />
-              <span className="text-[10px] text-muted-foreground mt-1 block">
-                For short-form tech review conversion campaigns.
               </span>
             </div>
           </div>
