@@ -329,7 +329,7 @@ export default function AdminDashboardPage() {
             SEO, Analytics & Tracking →
           </h3>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Configure Google Analytics 4, Meta Facebook Pixel, TikTok Pixel, affiliate IDs, and meta tags.
+            Configure Google Analytics 4, Meta Facebook Pixel, affiliate IDs, and SEO settings.
           </p>
         </Link>
       </div>
