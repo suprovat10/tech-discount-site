@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import {
@@ -15,10 +15,22 @@ import { useWatchlist } from '@/hooks/useWatchlist';
 import { useBranding } from '@/hooks/useBranding';
 import { optimizeCloudinaryUrl } from '@/lib/imageOptimization';
 
+// Extracted so useSearchParams is inside its own Suspense boundary
+// This prevents the entire Header from blocking hydration
+function SearchSync({ onSearchChange }: { onSearchChange: (q: string) => void }) {
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const q = searchParams.get('search') || searchParams.get('q');
+    onSearchChange(q || '');
+  }, [searchParams, onSearchChange]);
+
+  return null;
+}
+
 export function Header() {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const branding = useBranding();
   const { count: watchlistCount, isLoaded } = useWatchlist();
   const [searchQuery, setSearchQuery] = useState('');
@@ -33,14 +45,12 @@ export function Header() {
     setMounted(true);
   }, []);
 
-  // Sync searchQuery with current URL search param (e.g. /products?search=mobile)
-  useEffect(() => {
-    const q = searchParams.get('search') || searchParams.get('q');
-    setSearchQuery(q || '');
+  const handleSearchChange = React.useCallback((q: string) => {
+    setSearchQuery(q);
     if (desktopSearchInputRef.current && !q) {
       desktopSearchInputRef.current.value = '';
     }
-  }, [searchParams]);
+  }, []);
 
   // Listen for instant clear events across the app
   useEffect(() => {
@@ -105,6 +115,10 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/90 backdrop-blur-md transition-all">
+      {/* SearchSync reads URL params without blocking Header hydration */}
+      <Suspense fallback={null}>
+        <SearchSync onSearchChange={handleSearchChange} />
+      </Suspense>
       <div className="container max-w-[1200px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4 sm:gap-8">
         {/* Brand Logo - TechPriceDrop */}
         <Link

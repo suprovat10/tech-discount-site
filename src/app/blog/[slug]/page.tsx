@@ -1,5 +1,6 @@
 import React from 'react';
 import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { getServerSettings } from '@/lib/settingsServer';
 import { getServerBlogs, getServerBlogBySlug } from '@/lib/blogServer';
 import { BlogDetailClient } from './BlogDetailClient';
@@ -121,6 +122,11 @@ export default async function BlogDetailPage({ params }: BlogDetailProps) {
       const cleanS = s.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
       return cleanS.length > 0 && cleanS === cleanParam;
     }) || null;
+
+  // Blog post deleted or not found — show 404
+  if (!post) {
+    notFound();
+  }
 
   // 4 related articles from the same category
   let relatedPosts: typeof allBlogs = [];

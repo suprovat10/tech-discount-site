@@ -98,6 +98,7 @@ export function savePage(page: SitePage): void {
     fetch('/api/pages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(page),
     }).catch((err) => console.warn('Background page save sync failed:', err));
   } catch (e) {
@@ -119,6 +120,7 @@ export function deletePage(id: string): void {
     // Sync deletion to server API
     fetch(`/api/pages?id=${encodeURIComponent(id)}`, {
       method: 'DELETE',
+      credentials: 'include',
     }).catch((err) => console.warn('Background page delete sync failed:', err));
   } catch (e) {
     console.error('Error deleting page:', e);

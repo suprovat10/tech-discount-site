@@ -96,6 +96,7 @@ async function syncBlogCategoryToServer(category: BlogCategory) {
     await fetch('/api/blogs/categories', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(category),
     });
   } catch (e) {
@@ -108,6 +109,7 @@ async function syncBlogCategoryDeleteToServer(id: string) {
   try {
     await fetch(`/api/blogs/categories?id=${encodeURIComponent(id)}`, {
       method: 'DELETE',
+      credentials: 'include',
     });
   } catch (e) {
     console.warn('Async server delete for blog category failed:', e);
@@ -221,6 +223,7 @@ async function syncBlogToServer(blog: BlogPost) {
     await fetch('/api/blogs', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(blog),
     });
   } catch (e) {
@@ -233,6 +236,7 @@ async function syncBlogDeleteToServer(id: string) {
   try {
     await fetch(`/api/blogs?id=${encodeURIComponent(id)}`, {
       method: 'DELETE',
+      credentials: 'include',
     });
   } catch (e) {
     console.warn('Async server delete for blog skipped/failed:', e);

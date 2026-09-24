@@ -70,6 +70,7 @@ export async function saveProductTag(tag: Partial<ProductTag>): Promise<ProductT
     const res = await fetch('/api/tags', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(prepared),
     });
     if (res.ok) {
@@ -105,6 +106,7 @@ export async function deleteProductTag(idOrSlug: string): Promise<ProductTag[]> 
   try {
     const res = await fetch(`/api/tags?id=${encodeURIComponent(idOrSlug)}`, {
       method: 'DELETE',
+      credentials: 'include',
     });
     if (res.ok) {
       const data = await res.json();

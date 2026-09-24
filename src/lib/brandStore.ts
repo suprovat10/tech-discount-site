@@ -94,6 +94,7 @@ export async function upsertBrand(brand: BrandItem): Promise<void> {
     await fetch('/api/brands', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(brand),
     });
   } catch (e) {
@@ -109,7 +110,7 @@ export async function deleteBrand(id: string): Promise<void> {
     window.dispatchEvent(new Event('smarttech_brands_updated'));
   }
   try {
-    await fetch(`/api/brands?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    await fetch(`/api/brands?id=${encodeURIComponent(id)}`, { method: 'DELETE', credentials: 'include' });
   } catch (e) {
     console.warn('Brand delete server sync failed:', e);
   }

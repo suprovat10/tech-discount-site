@@ -79,6 +79,7 @@ export function upsertCoupon(coupon: CouponItem): void {
     fetch('/api/coupons', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(coupon),
     }).catch((err) => console.warn('Coupons server upsert error:', err));
   }
@@ -92,6 +93,7 @@ export function deleteCoupon(id: string): void {
   if (typeof window !== 'undefined') {
     fetch(`/api/coupons?id=${encodeURIComponent(id)}`, {
       method: 'DELETE',
+      credentials: 'include',
     }).catch((err) => console.warn('Coupons server delete error:', err));
   }
 }
@@ -102,6 +104,7 @@ export function resetCouponsToDefault(): void {
     fetch('/api/coupons', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ coupons: DEFAULT_COUPONS }),
     }).catch((err) => console.warn('Coupons server reset error:', err));
   }
