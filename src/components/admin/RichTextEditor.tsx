@@ -117,6 +117,24 @@ export function RichTextEditor({
   const [buttonAlign, setButtonAlign] = useState<'inline' | 'center' | 'full'>('inline');
   const [buttonIcon, setButtonIcon] = useState<'none' | 'external' | 'cart' | 'arrow' | 'sparkle'>('external');
 
+  // Handle ESC key press to close any open modal
+  useEffect(() => {
+    const isAnyModalOpen = showMediaModal || showLinkModal || showTableModal || showButtonModal;
+    if (!isAnyModalOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowMediaModal(false);
+        setShowLinkModal(false);
+        setShowTableModal(false);
+        setShowButtonModal(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showMediaModal, showLinkModal, showTableModal, showButtonModal]);
+
   const editorRef = useRef<HTMLDivElement>(null);
   const isInternalUpdate = useRef(false);
   const savedSelectionRef = useRef<Range | null>(null);
@@ -1213,7 +1231,14 @@ export function RichTextEditor({
       {/* 1. TABLE CREATION & SETTINGS MODAL (Z-[9999] PORTAL)     */}
       {/* ======================================================== */}
       {mounted && showTableModal && createPortal(
-        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4">
+        <div
+          role="dialog"
+          aria-modal="true"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowTableModal(false);
+          }}
+          className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4"
+        >
           <div className="bg-card border border-border max-w-lg w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-border">
               <div className="flex items-center gap-2">
@@ -1349,7 +1374,14 @@ export function RichTextEditor({
       {/* 2. CALL-TO-ACTION (CTA) BUTTON MODAL (Z-[9999] PORTAL)   */}
       {/* ======================================================== */}
       {mounted && showButtonModal && createPortal(
-        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4">
+        <div
+          role="dialog"
+          aria-modal="true"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowButtonModal(false);
+          }}
+          className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4"
+        >
           <div className="bg-card border border-border max-w-lg w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-border">
               <div className="flex items-center gap-2">
@@ -1630,7 +1662,14 @@ export function RichTextEditor({
       {/* 3. LINK MODAL (Z-[9999] PORTAL)                          */}
       {/* ======================================================== */}
       {mounted && showLinkModal && createPortal(
-        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4">
+        <div
+          role="dialog"
+          aria-modal="true"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowLinkModal(false);
+          }}
+          className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4"
+        >
           <div className="bg-card border border-border max-w-md w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-border">
               <div className="flex items-center gap-2">
@@ -1714,7 +1753,14 @@ export function RichTextEditor({
       {/* 4. ADD MEDIA MODAL (Z-[9999] PORTAL)                     */}
       {/* ======================================================== */}
       {mounted && showMediaModal && createPortal(
-        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4">
+        <div
+          role="dialog"
+          aria-modal="true"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowMediaModal(false);
+          }}
+          className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4"
+        >
           <div className="bg-card border border-border max-w-lg w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-border">
               <div className="flex items-center gap-2">

@@ -97,9 +97,25 @@ export function CouponsClient({ initialCoupons }: CouponsClientProps) {
     });
   }, [coupons, searchQuery, selectedStore, selectedCategory]);
 
-  const handleCopyCode = (id: string, code: string, affiliateUrl: string) => {
+  const handleCopyCode = async (id: string, code: string, affiliateUrl: string) => {
     if (!code) return;
-    navigator.clipboard.writeText(code);
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(code);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = code;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+    } catch {
+      // Fallback
+    }
     setCopiedCodeId(id);
     setTimeout(() => setCopiedCodeId(null), 3000);
 
@@ -109,9 +125,25 @@ export function CouponsClient({ initialCoupons }: CouponsClientProps) {
     }
   };
 
-  const handleCopyLink = (id: string, url: string) => {
+  const handleCopyLink = async (id: string, url: string) => {
     if (!url) return;
-    navigator.clipboard.writeText(url);
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = url;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+    } catch {
+      // Fallback
+    }
     setCopiedLinkId(id);
     setTimeout(() => setCopiedLinkId(null), 2500);
   };
