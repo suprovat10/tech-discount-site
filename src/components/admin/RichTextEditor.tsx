@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Bold,
   Italic,
@@ -68,11 +69,16 @@ export function RichTextEditor({
   placeholder = 'Write your content here in rich visual style...',
   minHeight = '360px',
 }: RichTextEditorProps) {
+  const [mounted, setMounted] = useState(false);
   const [mode, setMode] = useState<'visual' | 'text'>('visual');
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [currentColor, setCurrentColor] = useState('#2563eb');
   const [showHeadingMenu, setShowHeadingMenu] = useState(false);
   const [currentFormatLabel, setCurrentFormatLabel] = useState('Paragraph');
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Media Modal State
   const [showMediaModal, setShowMediaModal] = useState(false);
@@ -320,8 +326,29 @@ export function RichTextEditor({
   // ==========================================
   // TABLE CREATION & MANIPULATION
   // ==========================================
-  const handleInsertTable = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleQuickInsertTable = () => {
+    saveSelection();
+    const cols = 3;
+    let tableHtml = '<div class="rich-table-wrapper my-4 overflow-x-auto"><table class="rich-table" style="width: 100%; border-collapse: collapse; border: 1px solid #cbd5e1;">';
+    tableHtml += '<thead><tr style="background-color: #f1f5f9;">';
+    for (let c = 1; c <= cols; c++) {
+      tableHtml += `<th style="padding: 10px 14px; font-weight: 700; border: 1px solid #cbd5e1; text-align: left;">Header ${c}</th>`;
+    }
+    tableHtml += '</tr></thead><tbody>';
+    for (let r = 1; r <= 2; r++) {
+      tableHtml += '<tr>';
+      for (let c = 1; c <= cols; c++) {
+        tableHtml += `<td style="padding: 10px 14px; border: 1px solid #cbd5e1;">Cell ${r}-${c}</td>`;
+      }
+      tableHtml += '</tr>';
+    }
+    tableHtml += '</tbody></table></div><p><br/></p>';
+
+    insertHtmlIntoEditor(tableHtml);
+  };
+
+  const handleInsertTable = (e?: React.SyntheticEvent) => {
+    if (e) e.preventDefault();
     const rows = Math.max(1, Math.min(25, tableRows));
     const cols = Math.max(1, Math.min(12, tableCols));
 
@@ -528,10 +555,12 @@ export function RichTextEditor({
     }
 
     const borderStyle = buttonPreset === 'outline' ? '2px solid #2563eb' : 'none';
+    const finalUrl = buttonUrl.trim() && buttonUrl.trim() !== 'https://' ? buttonUrl.trim() : '#';
+    const finalText = buttonText.trim() || 'Check Price & Deals';
 
-    const btnAnchor = `<a href="${buttonUrl.trim()}"${targetAttr} class="rich-btn ${radiusClass}" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; background-color: ${buttonBgColor}; color: ${buttonTextColor} !important; padding: ${padding}; font-size: ${fontSize}; font-weight: 700; text-decoration: none; border-radius: ${borderRadius}; border: ${borderStyle}; cursor: pointer; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">${
+    const btnAnchor = `<a href="${finalUrl}"${targetAttr} class="rich-btn ${radiusClass}" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; background-color: ${buttonBgColor}; color: ${buttonTextColor} !important; padding: ${padding}; font-size: ${fontSize}; font-weight: 700; text-decoration: none; border-radius: ${borderRadius}; border: ${borderStyle}; cursor: pointer; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">${
       buttonIcon === 'cart' || buttonIcon === 'sparkle' ? iconMarkup : ''
-    }<span>${buttonText.trim() || 'Click Here'}</span>${
+    }<span>${finalText}</span>${
       buttonIcon === 'external' || buttonIcon === 'arrow' ? iconMarkup : ''
     }</a>`;
 
@@ -543,19 +572,44 @@ export function RichTextEditor({
       return `<div class="rich-btn-wrapper my-3" style="text-align: center;">${btnAnchor}</div><p><br/></p>`;
     }
     if (buttonAlign === 'full') {
-      return `<div class="rich-btn-wrapper my-3" style="width: 100%;"><a href="${buttonUrl.trim()}"${targetAttr} class="rich-btn ${radiusClass}" style="display: flex; width: 100%; align-items: center; justify-content: center; gap: 6px; background-color: ${buttonBgColor}; color: ${buttonTextColor} !important; padding: ${padding}; font-size: ${fontSize}; font-weight: 700; text-decoration: none; border-radius: ${borderRadius}; border: ${borderStyle}; cursor: pointer; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">${
+      return `<div class="rich-btn-wrapper my-3" style="width: 100%;"><a href="${finalUrl}"${targetAttr} class="rich-btn ${radiusClass}" style="display: flex; width: 100%; align-items: center; justify-content: center; gap: 6px; background-color: ${buttonBgColor}; color: ${buttonTextColor} !important; padding: ${padding}; font-size: ${fontSize}; font-weight: 700; text-decoration: none; border-radius: ${borderRadius}; border: ${borderStyle}; cursor: pointer; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">${
         buttonIcon === 'cart' || buttonIcon === 'sparkle' ? iconMarkup : ''
-      }<span>${buttonText.trim() || 'Click Here'}</span>${
+      }<span>${finalText}</span>${
         buttonIcon === 'external' || buttonIcon === 'arrow' ? iconMarkup : ''
       }</a></div><p><br/></p>`;
     }
     return btnAnchor;
   };
 
-  const handleInsertButton = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!buttonUrl.trim() || buttonUrl.trim() === 'https://') return;
+  const handleQuickInsertButton = () => {
+    saveSelection();
+    const cell = savedTargetCellRef.current || getActiveTableCell();
+    const btnHtml = `<a href="#" target="_blank" rel="noopener noreferrer" class="rich-btn rich-btn-square" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; background-color: #2563eb; color: #ffffff !important; padding: 10px 22px; font-size: 14px; font-weight: 700; text-decoration: none; border-radius: 0px; border: none; cursor: pointer; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);"><span style="display:inline-block; margin-right:4px;">🛒</span><span>Check Price & Deals</span><span style="display:inline-block; margin-left:4px;">↗</span></a>`;
 
+    if (cell && editorRef.current?.contains(cell)) {
+      const currentText = cell.textContent?.trim() || '';
+      if (
+        cell.innerHTML === '<br>' ||
+        cell.innerHTML === '<br/>' ||
+        !currentText ||
+        /^Cell\s+\d+-\d+$/i.test(currentText)
+      ) {
+        cell.innerHTML = btnHtml;
+      } else {
+        cell.innerHTML += '&nbsp;' + btnHtml;
+      }
+      if (editorRef.current) {
+        isInternalUpdate.current = true;
+        onChange(editorRef.current.innerHTML);
+      }
+      updateTableContext();
+    } else {
+      insertHtmlIntoEditor(`<div class="rich-btn-wrapper my-3">${btnHtml}</div><p><br/></p>`);
+    }
+  };
+
+  const handleInsertButton = (e?: React.SyntheticEvent) => {
+    if (e) e.preventDefault();
     const btnHtml = generateButtonHtml();
 
     if (mode === 'text') {
@@ -612,38 +666,58 @@ export function RichTextEditor({
             <span>Add Media</span>
           </button>
 
-          {/* Table Trigger Button */}
-          <button
-            type="button"
-            onClick={() => {
-              saveSelection();
-              setShowTableModal(true);
-            }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-white dark:bg-slate-800 border border-border hover:bg-slate-50 dark:hover:bg-slate-700 text-foreground transition-colors shadow-xs cursor-pointer"
-            title="Create and customize a comparison table"
-          >
-            <TableIcon className="w-3.5 h-3.5 text-blue-600" />
-            <span>Insert Table</span>
-          </button>
+          {/* Table Trigger Button Group */}
+          <div className="inline-flex items-center shadow-xs">
+            <button
+              type="button"
+              onClick={handleQuickInsertTable}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-white dark:bg-slate-800 border border-border hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-slate-700 text-foreground transition-colors cursor-pointer"
+              title="Click to insert a 3x3 table directly into editor"
+            >
+              <TableIcon className="w-3.5 h-3.5 text-blue-600" />
+              <span>Insert Table</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                saveSelection();
+                setShowTableModal(true);
+              }}
+              className="px-2 py-1.5 text-xs font-bold bg-white dark:bg-slate-800 border-y border-r border-border hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-slate-700 text-muted-foreground transition-colors cursor-pointer"
+              title="Custom Table Settings (Customize Rows, Columns & Style)"
+            >
+              <ChevronDown className="w-3.5 h-3.5" />
+            </button>
+          </div>
 
-          {/* Button Trigger */}
-          <button
-            type="button"
-            onClick={() => {
-              saveSelection();
-              savedTargetCellRef.current = getActiveTableCell();
-              if (typeof window !== 'undefined') {
-                const str = window.getSelection()?.toString();
-                if (str && str.trim()) setButtonText(str.trim());
-              }
-              setShowButtonModal(true);
-            }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-white dark:bg-slate-800 border border-border hover:bg-slate-50 dark:hover:bg-slate-700 text-foreground transition-colors shadow-xs cursor-pointer"
-            title="Insert a styled CTA Buy Now / Deal button"
-          >
-            <MousePointerClick className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Insert CTA Button</span>
-          </button>
+          {/* Button Trigger Group */}
+          <div className="inline-flex items-center shadow-xs">
+            <button
+              type="button"
+              onClick={handleQuickInsertButton}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-white dark:bg-slate-800 border border-border hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-slate-700 text-foreground transition-colors cursor-pointer"
+              title="Click to insert a Deal / Buy Now CTA button directly into editor"
+            >
+              <MousePointerClick className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Insert CTA Button</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                saveSelection();
+                savedTargetCellRef.current = getActiveTableCell();
+                if (typeof window !== 'undefined') {
+                  const str = window.getSelection()?.toString();
+                  if (str && str.trim()) setButtonText(str.trim());
+                }
+                setShowButtonModal(true);
+              }}
+              className="px-2 py-1.5 text-xs font-bold bg-white dark:bg-slate-800 border-y border-r border-border hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-slate-700 text-muted-foreground transition-colors cursor-pointer"
+              title="Custom Button Settings (Colors, Links, Sizes, Icons)"
+            >
+              <ChevronDown className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
 
         {/* Right: Visual / Text Mode Tabs */}
@@ -1118,10 +1192,10 @@ export function RichTextEditor({
       )}
 
       {/* ======================================================== */}
-      {/* 1. TABLE CREATION & SETTINGS MODAL (Z-[9999])            */}
+      {/* 1. TABLE CREATION & SETTINGS MODAL (Z-[9999] PORTAL)     */}
       {/* ======================================================== */}
-      {showTableModal && (
-        <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+      {mounted && showTableModal && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4">
           <div className="bg-card border border-border max-w-lg w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-border">
               <div className="flex items-center gap-2">
@@ -1137,7 +1211,7 @@ export function RichTextEditor({
               </button>
             </div>
 
-            <form onSubmit={handleInsertTable} className="space-y-4 text-xs">
+            <div className="space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-foreground mb-1">
@@ -1239,23 +1313,25 @@ export function RichTextEditor({
                   Cancel
                 </button>
                 <button
-                  type="submit"
+                  type="button"
+                  onClick={handleInsertTable}
                   className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-xs cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Insert Table</span>
                 </button>
               </div>
-            </form>
+            </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ======================================================== */}
-      {/* 2. CALL-TO-ACTION (CTA) BUTTON MODAL (Z-[9999])          */}
+      {/* 2. CALL-TO-ACTION (CTA) BUTTON MODAL (Z-[9999] PORTAL)   */}
       {/* ======================================================== */}
-      {showButtonModal && (
-        <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+      {mounted && showButtonModal && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4">
           <div className="bg-card border border-border max-w-lg w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-border">
               <div className="flex items-center gap-2">
@@ -1271,7 +1347,7 @@ export function RichTextEditor({
               </button>
             </div>
 
-            <form onSubmit={handleInsertButton} className="space-y-4 text-xs">
+            <div className="space-y-4 text-xs">
               <div>
                 <label className="block font-bold text-foreground mb-1">
                   Button Text <span className="text-red-500">*</span>
@@ -1292,12 +1368,11 @@ export function RichTextEditor({
                   Destination URL / Link <span className="text-red-500">*</span>
                 </label>
                 <input
-                  type="url"
+                  type="text"
                   value={buttonUrl}
                   onChange={(e) => setButtonUrl(e.target.value)}
-                  placeholder="https://amazon.com/... or /product/..."
+                  placeholder="https://amazon.com/... or #deal or /product/..."
                   className="w-full h-9 px-3 bg-background border border-border focus:border-blue-600 focus:outline-none font-mono text-xs"
-                  required
                 />
               </div>
 
@@ -1519,24 +1594,25 @@ export function RichTextEditor({
                   Cancel
                 </button>
                 <button
-                  type="submit"
-                  disabled={!buttonUrl.trim() || buttonUrl.trim() === 'https://'}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-xs cursor-pointer"
+                  type="button"
+                  onClick={handleInsertButton}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-xs cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Insert Button</span>
                 </button>
               </div>
-            </form>
+            </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ======================================================== */}
-      {/* 3. LINK MODAL (Z-[9999])                                 */}
+      {/* 3. LINK MODAL (Z-[9999] PORTAL)                          */}
       {/* ======================================================== */}
-      {showLinkModal && (
-        <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+      {mounted && showLinkModal && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4">
           <div className="bg-card border border-border max-w-md w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-border">
               <div className="flex items-center gap-2">
@@ -1552,18 +1628,17 @@ export function RichTextEditor({
               </button>
             </div>
 
-            <form onSubmit={handleInsertLink} className="space-y-4 text-xs">
+            <div className="space-y-4 text-xs">
               <div>
                 <label className="block font-bold text-foreground mb-1">
                   Destination URL <span className="text-red-500">*</span>
                 </label>
                 <input
-                  type="url"
+                  type="text"
                   value={linkUrl}
                   onChange={(e) => setLinkUrl(e.target.value)}
-                  placeholder="https://example.com/..."
+                  placeholder="https://example.com/... or #deal"
                   className="w-full h-9 px-3 text-xs bg-background border border-border focus:border-blue-600 focus:outline-none font-mono"
-                  required
                   autoFocus
                 />
               </div>
@@ -1602,24 +1677,26 @@ export function RichTextEditor({
                   Cancel
                 </button>
                 <button
-                  type="submit"
-                  disabled={!linkUrl.trim() || linkUrl.trim() === 'https://'}
+                  type="button"
+                  onClick={handleInsertLink}
+                  disabled={!linkUrl.trim()}
                   className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-xs cursor-pointer"
                 >
                   <Check className="w-3.5 h-3.5" />
                   <span>Insert Link</span>
                 </button>
               </div>
-            </form>
+            </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ======================================================== */}
-      {/* 4. ADD MEDIA MODAL (Z-[9999])                            */}
+      {/* 4. ADD MEDIA MODAL (Z-[9999] PORTAL)                     */}
       {/* ======================================================== */}
-      {showMediaModal && (
-        <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+      {mounted && showMediaModal && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4">
           <div className="bg-card border border-border max-w-lg w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-border">
               <div className="flex items-center gap-2">
@@ -1748,7 +1825,8 @@ export function RichTextEditor({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
