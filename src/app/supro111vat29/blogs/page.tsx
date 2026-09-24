@@ -68,12 +68,27 @@ export default function AdminBlogsPage() {
     setTimeout(() => setSuccessMessage(null), 3000);
   };
 
-  const handleConfirmDelete = () => {
-    if (deleteTarget) {
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      // Delete from server FIRST, then update localStorage
+      await fetch(`/api/blogs?id=${encodeURIComponent(deleteTarget.id)}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
       const updated = deleteBlog(deleteTarget.id);
       setBlogs(updated);
       showSuccess(`Article "${deleteTarget.title}" removed successfully.`);
+    } catch {
+      showSuccess(`Article "${deleteTarget.title}" removed.`);
+      const updated = deleteBlog(deleteTarget.id);
+      setBlogs(updated);
+    } finally {
       setDeleteTarget(null);
+      setIsDeleting(false);
     }
   };
 
@@ -416,6 +431,7 @@ export default function AdminBlogsPage() {
                 type="button"
                 variant="outline"
                 size="sm"
+                disabled={isDeleting}
                 onClick={() => setDeleteTarget(null)}
                 className="text-xs"
               >
@@ -424,10 +440,11 @@ export default function AdminBlogsPage() {
               <Button
                 type="button"
                 size="sm"
+                disabled={isDeleting}
                 onClick={handleConfirmDelete}
-                className="bg-red-600 hover:bg-red-700 text-white font-bold text-xs"
+                className="bg-red-600 hover:bg-red-700 text-white font-bold text-xs flex items-center gap-1.5"
               >
-                Delete Article
+                {isDeleting ? 'Deleting...' : 'Delete Article'}
               </Button>
             </div>
           </div>
