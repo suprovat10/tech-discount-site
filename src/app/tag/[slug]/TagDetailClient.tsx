@@ -157,11 +157,11 @@ export function TagDetailClient({
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground pb-2.5 border-b border-border/60 overflow-x-auto whitespace-nowrap scrollbar-none [&::-webkit-scrollbar]:hidden py-1"
       >
-        <Link href="/" prefetch={true} className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
+        <Link href="/" className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
           Home
         </Link>
         <ChevronRight className="w-3 h-3 text-muted-foreground/40 shrink-0" />
-        <Link href="/products" prefetch={true} className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
+        <Link href="/products" className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
           Products
         </Link>
         <ChevronRight className="w-3 h-3 text-muted-foreground/40 shrink-0" />
@@ -201,7 +201,6 @@ export function TagDetailClient({
           </div>
           <Link
             href="/products"
-            prefetch={true}
             className="border border-border bg-background hover:bg-muted text-foreground text-xs font-bold gap-1.5 h-9 px-3 rounded-none inline-flex items-center justify-center transition-colors cursor-pointer"
           >
             <Layers className="w-3.5 h-3.5" />
@@ -261,7 +260,6 @@ export function TagDetailClient({
           </div>
           <Link
             href="/products"
-            prefetch={true}
             className="font-bold text-xs gap-1.5 h-9 px-4 bg-slate-900 text-white dark:bg-white dark:text-slate-900 inline-flex items-center justify-center transition-opacity hover:opacity-90 cursor-pointer rounded-none"
           >
             <Search className="w-3.5 h-3.5" />

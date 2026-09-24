@@ -123,7 +123,7 @@ export function CouponsClient({ initialCoupons }: CouponsClientProps) {
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground pb-2.5 border-b border-border/60 overflow-x-auto whitespace-nowrap scrollbar-none [&::-webkit-scrollbar]:hidden py-1"
       >
-        <Link href="/" prefetch={true} className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
+        <Link href="/" className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
           Home
         </Link>
         <ChevronRight className="w-3 h-3 text-muted-foreground/40 shrink-0" />

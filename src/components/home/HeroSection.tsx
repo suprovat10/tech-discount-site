@@ -88,7 +88,6 @@ export function HeroSection({ initialSettings }: HeroSectionProps) {
               href={primaryUrl}
               target={settings.heroPrimaryBtnNewTab ? '_blank' : undefined}
               rel={settings.heroPrimaryBtnNewTab ? 'noopener noreferrer' : undefined}
-              prefetch={true}
               className="bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 text-white font-bold text-xs h-10 px-5 inline-flex items-center gap-2 transition-colors cursor-pointer rounded-none"
             >
               <span>{primaryText}</span>
@@ -98,7 +97,6 @@ export function HeroSection({ initialSettings }: HeroSectionProps) {
               href={secondaryUrl}
               target={settings.heroSecondaryBtnNewTab ? '_blank' : undefined}
               rel={settings.heroSecondaryBtnNewTab ? 'noopener noreferrer' : undefined}
-              prefetch={true}
               className="border border-input bg-background hover:bg-accent hover:text-accent-foreground font-bold text-xs h-10 px-5 inline-flex items-center gap-1.5 transition-colors cursor-pointer rounded-none"
             >
               {settings.heroSecondaryBtnShowIcon !== false && (

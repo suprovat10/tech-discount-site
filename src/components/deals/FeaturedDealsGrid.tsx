@@ -30,7 +30,6 @@ export function FeaturedDealsGrid({
 
         <Link
           href="/products"
-          prefetch={true}
           className="border border-border bg-background hover:bg-muted font-bold text-sm rounded-xl px-5 h-11 inline-flex items-center gap-2 transition-colors cursor-pointer text-foreground"
         >
           <span>View All Deals</span>

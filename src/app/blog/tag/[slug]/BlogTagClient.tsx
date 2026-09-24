@@ -87,11 +87,11 @@ export function BlogTagClient({
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground pb-2.5 border-b border-border/60 overflow-x-auto whitespace-nowrap scrollbar-none [&::-webkit-scrollbar]:hidden py-1"
       >
-        <Link href="/" prefetch={true} className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
+        <Link href="/" className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
           Home
         </Link>
         <ChevronRight className="w-3 h-3 text-muted-foreground/40 shrink-0" />
-        <Link href="/blog" prefetch={true} className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
+        <Link href="/blog" className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
           Blog
         </Link>
         <ChevronRight className="w-3 h-3 text-muted-foreground/40 shrink-0" />
@@ -198,7 +198,7 @@ export function BlogTagClient({
               className="bg-card border border-border/70 hover:border-blue-500/50 rounded-xl overflow-hidden flex flex-col transition-all duration-200 group hover:shadow-md"
             >
               {/* Thumbnail */}
-              <Link href={`/blog/${post.slug}`} prefetch={true} className="relative aspect-video overflow-hidden bg-muted block">
+              <Link href={`/blog/${post.slug}`} className="relative aspect-video overflow-hidden bg-muted block">
                 {post.imageUrl ? (
                   <img
                     src={optimizeImageUrl(post.imageUrl, 600)}
@@ -244,7 +244,7 @@ export function BlogTagClient({
                 </div>
 
                 <h2 className="text-base font-bold text-foreground group-hover:text-blue-600 transition-colors line-clamp-2 mb-2 leading-snug">
-                  <Link href={`/blog/${post.slug}`} prefetch={true}>{post.title}</Link>
+                  <Link href={`/blog/${post.slug}`}>{post.title}</Link>
                 </h2>
 
                 <p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed mb-4 flex-1">
@@ -261,7 +261,6 @@ export function BlogTagClient({
                         <Link
                           key={t}
                           href={`/blog/tag/${tSlug}`}
-                          prefetch={true}
                           className={`text-[11px] px-2 py-0.5 rounded font-medium transition-colors ${
                             isCurrent
                               ? 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-bold'

@@ -17,9 +17,7 @@ export const revalidate = 0;
 
 function purgeBlogCategoriesCache() {
   try {
-    revalidatePath('/', 'layout');
     revalidatePath('/', 'page');
-    revalidatePath('/blog', 'layout');
     revalidatePath('/blog', 'page');
   } catch (e) {
     console.warn('Blog categories cache purge warning:', e);

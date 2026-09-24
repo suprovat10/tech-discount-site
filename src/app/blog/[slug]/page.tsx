@@ -6,7 +6,8 @@ import { getServerBlogs, getServerBlogBySlug } from '@/lib/blogServer';
 import { BlogDetailClient } from './BlogDetailClient';
 import { buildOpenGraphImages } from '@/lib/seo/metadata';
 
-export const revalidate = 30;
+// Blog posts revalidate every 24 hours (or on-demand when post is updated)
+export const revalidate = 86400;
 
 export async function generateStaticParams() {
   const blogs = await getServerBlogs();

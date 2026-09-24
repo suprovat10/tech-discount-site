@@ -296,7 +296,6 @@ export function TopCategorySlider({ initialSettings, initialCategories }: TopCat
             <Link
               key={item.id}
               href={item.href}
-              prefetch={true}
               className="group relative flex flex-col items-center justify-between p-2.5 sm:p-3 bg-card hover:bg-muted/30 border border-border/80 hover:border-foreground/30 transition-all rounded-sm shrink-0 w-28 sm:w-32 min-w-[115px] sm:min-w-[130px] h-[134px] sm:h-[142px] shadow-sm hover:shadow-md cursor-pointer select-none"
               title={item.name}
             >
@@ -367,7 +366,6 @@ export function TopCategorySlider({ initialSettings, initialCategories }: TopCat
           <Link
             key={item.id}
             href={item.href}
-            prefetch={true}
             className="group relative flex flex-col items-center justify-between p-2.5 sm:p-3 bg-card hover:bg-muted/30 border border-border/80 hover:border-foreground/30 transition-all rounded-sm shrink-0 w-28 sm:w-32 min-w-[115px] sm:min-w-[130px] h-[134px] sm:h-[142px] shadow-sm hover:shadow-md cursor-pointer select-none"
             title={item.name}
           >

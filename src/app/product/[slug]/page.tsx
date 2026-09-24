@@ -10,7 +10,8 @@ import { getCategories, getCategorySlug } from '@/lib/categoryStore';
 
 import { optimizeImageUrl } from '@/lib/imageOptimization';
 
-export const revalidate = 30;
+// Product pages revalidate every 24 hours (or on-demand when product/price details update)
+export const revalidate = 86400;
 
 export async function generateStaticParams() {
   const products = await getDatabaseProducts();

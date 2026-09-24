@@ -1,16 +1,23 @@
 import React from 'react';
 import { Metadata } from 'next';
 import { PolicyPageClient } from '@/components/common/PolicyPageClient';
+import { getServerSettings } from '@/lib/settingsServer';
+import { getDatabasePageBySlug, getDatabasePages } from '@/lib/pageServer';
+import { buildOpenGraphImages } from '@/lib/seo/metadata';
 
-export const revalidate = 300;
+// Custom CMS and policy pages revalidate every 24 hours (or on-demand when edited)
+export const revalidate = 86400;
+
+export async function generateStaticParams() {
+  const pages = await getDatabasePages();
+  return pages.map((p) => ({
+    slug: p.slug,
+  }));
+}
 
 interface CustomPageRouteProps {
   params: Promise<{ slug: string }>;
 }
-
-import { getServerSettings } from '@/lib/settingsServer';
-import { getDatabasePageBySlug } from '@/lib/pageServer';
-import { buildOpenGraphImages } from '@/lib/seo/metadata';
 
 export async function generateMetadata({ params }: CustomPageRouteProps): Promise<Metadata> {
   const { slug } = await params;

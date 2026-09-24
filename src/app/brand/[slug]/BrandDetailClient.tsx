@@ -129,11 +129,11 @@ export function BrandDetailClient({
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground pb-2.5 border-b border-border/60 overflow-x-auto whitespace-nowrap scrollbar-none [&::-webkit-scrollbar]:hidden py-1"
       >
-        <Link href="/" prefetch={true} className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
+        <Link href="/" className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
           Home
         </Link>
         <ChevronRight className="w-3 h-3 text-muted-foreground/40 shrink-0" />
-        <Link href="/products" prefetch={true} className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
+        <Link href="/products" className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
           Brands
         </Link>
         <ChevronRight className="w-3 h-3 text-muted-foreground/40 shrink-0" />
@@ -318,7 +318,6 @@ export function BrandDetailClient({
             </div>
             <Link
               href="/products"
-              prefetch={true}
               className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-9 px-4 inline-flex items-center justify-center transition-colors cursor-pointer rounded-none"
             >
               Browse All Deals

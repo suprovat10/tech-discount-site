@@ -34,7 +34,6 @@ export function WatchlistGrid() {
 
         <Link
           href="/"
-          prefetch={true}
           className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs h-10 px-5 inline-flex items-center justify-center transition-colors cursor-pointer rounded-none"
         >
           <Search className="w-4 h-4 mr-2" />

@@ -468,7 +468,6 @@ export function BlogListClient({
                   <Link
                     key={post.id}
                     href={`/blog/${post.slug}`}
-                    prefetch={true}
                     className="relative border border-border bg-card overflow-hidden hover:border-blue-600 transition-colors flex flex-col justify-between group shadow-2xs focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
                   >
                     {/* Featured Image */}

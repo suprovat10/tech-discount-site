@@ -23,7 +23,6 @@ export function PopularSearches() {
             <Link
               key={cat.name}
               href={`/products?search=${encodeURIComponent(cat.query)}`}
-              prefetch={true}
               className="group flex flex-col items-center justify-center p-5 rounded-2xl border border-border bg-card hover:bg-indigo-50/60 dark:hover:bg-indigo-950/40 hover:border-indigo-400 transition-all text-center space-y-2.5 shadow-sm"
             >
               <div className="p-3.5 rounded-2xl bg-muted group-hover:bg-indigo-600 group-hover:text-white transition-colors text-muted-foreground">

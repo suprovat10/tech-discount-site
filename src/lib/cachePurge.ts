@@ -15,12 +15,13 @@ export interface PurgeOptions {
 }
 
 /**
- * Centrally purges all server-rendered and ISR caches across the site
+ * Purges server-rendered caches in a strictly targeted manner
  * whenever any item is created, updated, or deleted in the admin console.
+ * Avoids layout-level invalidations which cause site-wide ISR rewrites.
  */
 export function purgeAllCaches(options?: PurgeOptions) {
   try {
-    // 0. Invalidate in-memory and KV database cache
+    // 0. Invalidate fast in-memory and KV database cache (0 ISR write cost)
     invalidateSiteKVCache();
     invalidateCatalogDbCache();
     invalidateCategoryServerCache();
@@ -28,55 +29,55 @@ export function purgeAllCaches(options?: PurgeOptions) {
     invalidatePageServerCache();
     invalidatePopupsCache();
 
-    // 1. Root and Layout caches
-    revalidatePath('/', 'layout');
-    revalidatePath('/', 'page');
-
-    // 2. Catalog and Products
-    revalidatePath('/products', 'layout');
-    revalidatePath('/products', 'page');
-    revalidatePath('/products/[[...slug]]', 'layout');
-    revalidatePath('/products/[[...slug]]', 'page');
-    revalidatePath('/search', 'page');
-    revalidatePath('/brand/[slug]', 'page');
-
-    // 3. Product Tags
-    revalidatePath('/tag/[slug]', 'page');
-
-    // 4. Coupons
-    revalidatePath('/coupons', 'layout');
-    revalidatePath('/coupons', 'page');
-
-    // 5. Blog & Blog Tags
-    revalidatePath('/blog', 'layout');
-    revalidatePath('/blog', 'page');
-    revalidatePath('/blog/[slug]', 'page');
-    revalidatePath('/blog/tag/[slug]', 'page');
-
-    // 6. Custom Pages
-    revalidatePath('/page/[slug]', 'page');
-
-    // 7. Dynamic Sitemap
-    revalidatePath('/sitemap.xml');
-
-    // Specific slug purges
+    // 1. If a specific product was updated, only purge that product, catalog, and home
     if (options?.productSlug) {
       revalidatePath(`/product/${options.productSlug}`, 'page');
+      revalidatePath('/products', 'page');
+      revalidatePath('/', 'page');
+      revalidatePath('/sitemap.xml');
+      return;
     }
+
+    // 2. If a specific blog post was updated, only purge that blog post, blog listing, and home
     if (options?.blogSlug) {
       revalidatePath(`/blog/${options.blogSlug}`, 'page');
+      revalidatePath('/blog', 'page');
+      revalidatePath('/', 'page');
+      revalidatePath('/sitemap.xml');
+      return;
     }
+
+    // 3. If a category was updated, only purge that category and products index
+    if (options?.categorySlug) {
+      revalidatePath(`/products/${options.categorySlug}`, 'page');
+      revalidatePath('/products', 'page');
+      revalidatePath('/', 'page');
+      return;
+    }
+
+    // 4. If a tag was updated, only purge that tag page
     if (options?.tagSlug) {
       revalidatePath(`/tag/${options.tagSlug}`, 'page');
+      revalidatePath('/products', 'page');
+      return;
     }
+
+    // 5. If a custom CMS page was updated, purge that page
     if (options?.pageSlug) {
       revalidatePath(`/page/${options.pageSlug}`, 'page');
       revalidatePath(`/${options.pageSlug}`, 'page');
+      revalidatePath('/sitemap.xml');
+      return;
     }
-    if (options?.categorySlug) {
-      revalidatePath(`/products/${options.categorySlug}`, 'page');
-    }
+
+    // 6. Generic or global admin changes (settings, coupons, ads, popups)
+    // Only revalidate the affected core pages at 'page' level — NEVER 'layout'
+    revalidatePath('/', 'page');
+    revalidatePath('/products', 'page');
+    revalidatePath('/coupons', 'page');
+    revalidatePath('/blog', 'page');
+    revalidatePath('/sitemap.xml');
   } catch (err) {
-    console.warn('Auto cache purge error:', err);
+    console.warn('Targeted cache purge error:', err);
   }
 }

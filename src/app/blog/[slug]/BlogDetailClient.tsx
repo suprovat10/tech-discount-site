@@ -118,7 +118,6 @@ export function BlogDetailClient({
         <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
           <Link
             href="/blog"
-            prefetch={true}
             className="font-bold text-xs gap-1.5 h-9 px-4 bg-slate-900 text-white dark:bg-white dark:text-slate-900 inline-flex items-center justify-center transition-opacity hover:opacity-90 cursor-pointer rounded-none"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
@@ -126,7 +125,6 @@ export function BlogDetailClient({
           </Link>
           <Link
             href="/"
-            prefetch={true}
             className="font-bold text-xs h-9 px-4 border border-border bg-background hover:bg-muted text-foreground inline-flex items-center justify-center transition-colors cursor-pointer rounded-none"
           >
             Go to Homepage
@@ -221,11 +219,11 @@ export function BlogDetailClient({
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         className="flex items-center gap-2 text-xs text-muted-foreground font-medium overflow-x-auto whitespace-nowrap scrollbar-none [&::-webkit-scrollbar]:hidden py-1 pb-2 border-b border-border/60"
       >
-        <Link href="/" prefetch={true} className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
+        <Link href="/" className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
           Home
         </Link>
         <ChevronRight className="w-3.5 h-3.5 shrink-0 text-muted-foreground/40" />
-        <Link href="/blog" prefetch={true} className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
+        <Link href="/blog" className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
           Blog
         </Link>
         {post.category && (
@@ -233,7 +231,6 @@ export function BlogDetailClient({
             <ChevronRight className="w-3.5 h-3.5 shrink-0 text-muted-foreground/40" />
             <Link
               href={`/blog?category=${encodeURIComponent(getBlogCategorySlug(post.category))}`}
-              prefetch={true}
               className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap"
             >
               {post.category}
@@ -255,7 +252,6 @@ export function BlogDetailClient({
             <div className="flex items-center gap-2.5">
               <Link
                 href={`/blog?category=${encodeURIComponent(getBlogCategorySlug(post.category))}`}
-                prefetch={true}
                 className="px-2.5 py-0.5 bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 font-bold text-xs uppercase tracking-wider border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors"
               >
                 {post.category}
@@ -282,7 +278,7 @@ export function BlogDetailClient({
                 </span>
               </div>
 
-              <Link href="/blog" prefetch={true} className="text-blue-600 hover:underline flex items-center gap-1 text-xs font-semibold">
+              <Link href="/blog" className="text-blue-600 hover:underline flex items-center gap-1 text-xs font-semibold">
                 <ArrowLeft className="w-3 h-3" />
                 <span>All Articles</span>
               </Link>
@@ -326,7 +322,6 @@ export function BlogDetailClient({
                   <Link
                     key={tag}
                     href={`/blog/tag/${tagSlug}`}
-                    prefetch={true}
                     className="px-2.5 py-1 bg-muted hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-border hover:border-blue-300 dark:hover:border-blue-800 text-xs font-semibold text-foreground hover:text-blue-600 transition-colors inline-flex items-center gap-1 group"
                   >
                     <span className="text-blue-500 font-bold group-hover:scale-110 transition-transform">#</span>
@@ -347,7 +342,6 @@ export function BlogDetailClient({
                 <h3 className="text-lg font-black text-foreground">Related Articles</h3>
                 <Link
                   href={post.category ? `/blog?category=${encodeURIComponent(getBlogCategorySlug(post.category))}` : '/blog'}
-                  prefetch={true}
                   className="text-xs font-bold text-blue-600 hover:underline"
                 >
                   {post.category ? `View more in ${post.category} →` : 'View all →'}
@@ -359,7 +353,6 @@ export function BlogDetailClient({
                   <Link
                     key={r.id}
                     href={`/blog/${r.slug}`}
-                    prefetch={true}
                     className="p-3.5 border border-border bg-card hover:border-blue-600 transition-colors flex gap-3.5 items-center group"
                   >
                     <div className="relative w-24 h-20 overflow-hidden shrink-0 bg-muted border border-border">
@@ -412,7 +405,6 @@ export function BlogDetailClient({
                 </h3>
                 <Link
                   href="/products"
-                  prefetch={true}
                   className="text-[11px] font-bold text-blue-600 hover:underline"
                 >
                   View all →
@@ -438,7 +430,6 @@ export function BlogDetailClient({
                 </h3>
                 <Link
                   href="/retailers"
-                  prefetch={true}
                   className="text-[11px] font-bold text-blue-600 hover:underline"
                 >
                   All →
@@ -449,7 +440,6 @@ export function BlogDetailClient({
                   <Link
                     key={b.id}
                     href={`/brand/${b.slug}`}
-                    prefetch={true}
                     className="p-2 border border-border/60 bg-background hover:border-blue-600 hover:bg-muted/40 transition-all flex flex-col items-center justify-center text-center group"
                     title={b.name}
                   >

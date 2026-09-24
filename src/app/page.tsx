@@ -19,7 +19,8 @@ import { buildOpenGraphImages } from '@/lib/seo/metadata';
 const BrandShowcaseSection = dynamic(() => import('@/components/home/BrandShowcaseSection').then(m => ({ default: m.BrandShowcaseSection })));
 const FeaturedCategorySections = dynamic(() => import('@/components/home/FeaturedCategorySections').then(m => ({ default: m.FeaturedCategorySections })));
 
-export const revalidate = 10;
+// Homepage revalidates once every hour (or instantly on-demand when admin saves updates)
+export const revalidate = 3600;
 
 export async function generateMetadata(): Promise<Metadata> {
   // Use cached settings — avoids duplicate MongoDB round-trip
@@ -205,7 +206,6 @@ export default async function HomePage() {
 
             <Link
               href="/products"
-              prefetch={true}
               className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1"
             >
               <span>View all</span>
@@ -234,7 +234,6 @@ export default async function HomePage() {
 
             <Link
               href="/products?sort=latest"
-              prefetch={true}
               className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1"
             >
               <span>View all</span>

@@ -242,7 +242,6 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
         <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
           <Link
             href="/products"
-            prefetch={true}
             className="inline-flex items-center justify-center font-bold text-xs gap-1.5 px-4 h-9 bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:opacity-90 transition-opacity"
           >
             <Search className="w-3.5 h-3.5" />
@@ -250,7 +249,6 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
           </Link>
           <Link
             href="/"
-            prefetch={true}
             className="inline-flex items-center justify-center font-bold text-xs px-4 h-9 border border-border bg-background hover:bg-muted text-foreground transition-colors"
           >
             Go to Homepage
@@ -331,13 +329,12 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground pb-2.5 border-b border-border/60 overflow-x-auto whitespace-nowrap scrollbar-none [&::-webkit-scrollbar]:hidden py-1"
       >
-        <Link href="/" prefetch={true} className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
+        <Link href="/" className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
           Home
         </Link>
         <ChevronRight className="w-3 h-3 text-muted-foreground/40 shrink-0" />
         <Link
           href={`/products/${getCategorySlug(categories, activeProduct.category)}`}
-          prefetch={true}
           className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap"
         >
           {activeProduct.category}
@@ -347,7 +344,6 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
             <ChevronRight className="w-3 h-3 text-muted-foreground/40 shrink-0" />
             <Link
               href={`/products/${getCategorySlug(categories, activeProduct.category)}/${getSubcategorySlug(findCategoryBySlugOrName(categories, activeProduct.category), activeProduct.subcategory)}`}
-              prefetch={true}
               className="hover:text-foreground transition-colors shrink-0 whitespace-nowrap"
             >
               {activeProduct.subcategory}
@@ -375,7 +371,6 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
               </span>
               <Link
                 href="/products"
-                prefetch={true}
                 className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-all"
                 title="Reset / View all products"
                 aria-label="Reset filters"
@@ -394,7 +389,6 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
                 {/* All Categories option */}
                 <Link
                   href="/products"
-                  prefetch={true}
                   className="w-full text-left py-2 px-2.5 rounded-lg flex items-center justify-between transition-all text-slate-700 dark:text-slate-300 hover:text-foreground hover:bg-slate-100 dark:hover:bg-slate-800/60 font-medium"
                 >
                   <span className="tracking-tight">All Categories</span>
@@ -421,7 +415,6 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
                       >
                         <Link
                           href={`/products/${catSlug}`}
-                          prefetch={true}
                           className="flex-1 text-left truncate pr-1 tracking-tight"
                         >
                           {cat.name}
@@ -480,7 +473,6 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
                               <Link
                                 key={sub.id}
                                 href={`/products/${catSlug}/${subSlug}`}
-                                prefetch={true}
                                 className={`w-full text-left py-1 px-2 text-[11px] rounded-md flex items-center justify-between transition-all ${
                                   isSubSelected
                                     ? 'text-blue-600 dark:text-blue-400 font-bold bg-blue-50/80 dark:bg-blue-950/40'
@@ -530,7 +522,6 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
                     <Link
                       key={store.id}
                       href={`/products?platform=${encodeURIComponent(store.id)}`}
-                      prefetch={true}
                       className="flex items-center justify-between py-1 px-2 text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors rounded-sm"
                     >
                       <div className="flex items-center gap-2">
@@ -653,7 +644,6 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
                       activeProduct.brand.trim() !== '' && (
                         <Link
                           href={`/brand/${activeProduct.brand.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
-                          prefetch={true}
                           className="uppercase tracking-wider font-bold text-blue-600 hover:underline"
                           title={`View all products by ${activeProduct.brand}`}
                         >
@@ -846,7 +836,6 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
                 </h2>
                 <Link
                   href={`/products/${getCategorySlug(categories, activeProduct.category)}`}
-                  prefetch={true}
                   className="text-xs font-semibold text-blue-600 hover:underline flex items-center gap-1"
                 >
                   <span>View all</span>
@@ -1035,7 +1024,6 @@ export function ProductDetailClient({ product, slug = '', relatedProducts }: Pro
                     <Link
                       key={idx}
                       href={`/tag/${tagSlug}`}
-                      prefetch={true}
                       className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-muted/60 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-foreground hover:text-blue-600 border border-border/60 hover:border-blue-300 dark:hover:border-blue-800 transition-all duration-150 group"
                     >
                       <span className="text-blue-500 group-hover:scale-110 transition-transform">#</span>
