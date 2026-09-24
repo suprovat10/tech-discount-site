@@ -184,3 +184,110 @@
   border-top: 1px solid hsl(var(--border)) !important;
   margin: 1.5rem 0 !important;
 }
+
+/* Rich Text Tables (WYSIWYG Editor & Public Pages) */
+.rich-table-wrapper {
+  overflow-x: auto;
+  margin: 1.25rem 0;
+  width: 100%;
+}
+
+.rich-text-content table,
+.prose table,
+table.rich-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  border: 1px solid hsl(var(--border)) !important;
+  font-size: 0.875rem !important;
+  margin: 1rem 0 !important;
+  text-align: left !important;
+}
+
+.rich-text-content th,
+.prose th,
+table.rich-table th {
+  border: 1px solid hsl(var(--border)) !important;
+  padding: 0.65rem 0.85rem !important;
+  font-weight: 700 !important;
+  text-align: left !important;
+  background-color: rgba(148, 163, 184, 0.12) !important;
+}
+
+.rich-text-content td,
+.prose td,
+table.rich-table td {
+  border: 1px solid hsl(var(--border)) !important;
+  padding: 0.65rem 0.85rem !important;
+  vertical-align: middle !important;
+}
+
+.rich-text-content tr:hover td,
+.prose tr:hover td,
+table.rich-table tr:hover td {
+  background-color: rgba(148, 163, 184, 0.04);
+}
+
+.rich-table-striped tbody tr:nth-child(even) td {
+  background-color: rgba(148, 163, 184, 0.07) !important;
+}
+
+.rich-table-blue-header thead th {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+  border-color: #1d4ed8 !important;
+}
+
+.rich-table-dark-header thead th {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+  border-color: #1e293b !important;
+}
+
+/* Rich Text CTA Buttons (WYSIWYG Editor & Public Pages) */
+.rich-text-content a.rich-btn,
+.prose a.rich-btn,
+a.rich-btn {
+  text-decoration: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  font-weight: 700 !important;
+  line-height: 1.25 !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1) !important;
+}
+
+.rich-text-content a.rich-btn:hover,
+.prose a.rich-btn:hover,
+a.rich-btn:hover {
+  opacity: 0.92 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15) !important;
+}
+
+.rich-text-content a.rich-btn:active,
+.prose a.rich-btn:active,
+a.rich-btn:active {
+  transform: translateY(0px) !important;
+}
+
+.rich-text-content a.rich-btn.rich-btn-pill,
+.prose a.rich-btn.rich-btn-pill,
+a.rich-btn.rich-btn-pill {
+  border-radius: 9999px !important;
+}
+
+.rich-text-content a.rich-btn.rich-btn-rounded,
+.prose a.rich-btn.rich-btn-rounded,
+a.rich-btn.rich-btn-rounded {
+  border-radius: 6px !important;
+}
+
+.rich-text-content a.rich-btn.rich-btn-square,
+.prose a.rich-btn.rich-btn-square,
+a.rich-btn.rich-btn-square {
+  border-radius: 0px !important;
+}
+
