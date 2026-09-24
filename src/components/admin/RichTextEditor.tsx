@@ -32,11 +32,6 @@ import {
   MousePointerClick,
   Plus,
   Trash2,
-  Columns,
-  Rows,
-  ShoppingCart,
-  ArrowRight,
-  Sparkles,
 } from 'lucide-react';
 import ColorPickerPopover from './ColorPickerPopover';
 
@@ -79,7 +74,7 @@ export function RichTextEditor({
   const [showHeadingMenu, setShowHeadingMenu] = useState(false);
   const [currentFormatLabel, setCurrentFormatLabel] = useState('Paragraph');
 
-  // Media Modal State (Centered Modal)
+  // Media Modal State
   const [showMediaModal, setShowMediaModal] = useState(false);
   const [mediaUrl, setMediaUrl] = useState('');
   const [mediaAlt, setMediaAlt] = useState('');
@@ -105,7 +100,7 @@ export function RichTextEditor({
 
   // Button (CTA) Modal State
   const [showButtonModal, setShowButtonModal] = useState(false);
-  const [buttonText, setButtonText] = useState('Check Price & Availability');
+  const [buttonText, setButtonText] = useState('Check Price & Deals');
   const [buttonUrl, setButtonUrl] = useState('https://');
   const [buttonNewTab, setButtonNewTab] = useState(true);
   const [buttonPreset, setButtonPreset] = useState<'blue' | 'green' | 'amber' | 'dark' | 'red' | 'outline' | 'custom'>('blue');
@@ -121,23 +116,16 @@ export function RichTextEditor({
   const savedSelectionRef = useRef<Range | null>(null);
 
   // Save text selection whenever cursor/selection changes
-  const saveSelection = () => {
+  const saveSelection = useCallback(() => {
     if (typeof window === 'undefined') return;
     const sel = window.getSelection();
-    if (sel && sel.rangeCount > 0) {
-      savedSelectionRef.current = sel.getRangeAt(0).cloneRange();
+    if (sel && sel.rangeCount > 0 && editorRef.current) {
+      const range = sel.getRangeAt(0);
+      if (editorRef.current.contains(range.commonAncestorContainer)) {
+        savedSelectionRef.current = range.cloneRange();
+      }
     }
-  };
-
-  // Restore saved selection
-  const restoreSelection = () => {
-    if (typeof window === 'undefined' || !savedSelectionRef.current) return;
-    const sel = window.getSelection();
-    if (sel) {
-      sel.removeAllRanges();
-      sel.addRange(savedSelectionRef.current);
-    }
-  };
+  }, []);
 
   // Detect if cursor is currently inside a table cell
   const getActiveTableCell = useCallback((): HTMLTableCellElement | null => {
@@ -188,20 +176,80 @@ export function RichTextEditor({
     }
   }, [value, mode]);
 
-  const handleEditorInput = () => {
+  const handleEditorInput = useCallback(() => {
     if (editorRef.current) {
       isInternalUpdate.current = true;
       const html = editorRef.current.innerHTML;
       onChange(html);
       updateTableContext();
     }
-  };
+  }, [onChange, updateTableContext]);
+
+  // Reliable DOM insertion helper that works 100% in all scenarios
+  const insertHtmlIntoEditor = useCallback(
+    (htmlToInsert: string) => {
+      if (mode === 'text') {
+        const updated = (value || '') + '\n' + htmlToInsert;
+        onChange(updated);
+        return;
+      }
+
+      if (!editorRef.current) return;
+      editorRef.current.focus();
+
+      const sel = window.getSelection();
+      let range: Range | null = savedSelectionRef.current;
+
+      // Verify that range is actually inside editorRef.current
+      if (range && !editorRef.current.contains(range.commonAncestorContainer)) {
+        range = null;
+      }
+
+      if (!range && sel && sel.rangeCount > 0 && editorRef.current.contains(sel.anchorNode)) {
+        range = sel.getRangeAt(0);
+      }
+
+      // If no range exists inside editor, create one at the end of editor
+      if (!range) {
+        range = document.createRange();
+        range.selectNodeContents(editorRef.current);
+        range.collapse(false); // Move to the end
+      }
+
+      if (sel) {
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+
+      // Delete any currently selected content
+      range.deleteContents();
+
+      // Create document fragment from HTML
+      const fragment = range.createContextualFragment(htmlToInsert);
+      const lastChild = fragment.lastChild;
+      range.insertNode(fragment);
+
+      // Move cursor after the inserted element
+      if (lastChild && sel) {
+        const newRange = document.createRange();
+        newRange.setStartAfter(lastChild);
+        newRange.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(newRange);
+        savedSelectionRef.current = newRange;
+      }
+
+      isInternalUpdate.current = true;
+      onChange(editorRef.current.innerHTML);
+      updateTableContext();
+    },
+    [mode, onChange, updateTableContext, value]
+  );
 
   const exec = (command: string, val: string | undefined = undefined) => {
     if (editorRef.current) {
       editorRef.current.focus();
     }
-    restoreSelection();
     document.execCommand(command, false, val);
     handleEditorInput();
   };
@@ -210,7 +258,6 @@ export function RichTextEditor({
     if (editorRef.current) {
       editorRef.current.focus();
     }
-    restoreSelection();
     try {
       document.execCommand('formatBlock', false, `<${tag}>`);
     } catch {
@@ -221,7 +268,7 @@ export function RichTextEditor({
     handleEditorInput();
   };
 
-  // Open Link Modal (Centered)
+  // Open Link Modal
   const handleOpenLinkModal = () => {
     saveSelection();
     if (typeof window !== 'undefined') {
@@ -234,26 +281,20 @@ export function RichTextEditor({
     setShowLinkModal(true);
   };
 
-  // Insert Link from Centered Modal
+  // Insert Link
   const handleInsertLink = (e: React.FormEvent) => {
     e.preventDefault();
     if (!linkUrl.trim() || linkUrl.trim() === 'https://') return;
-
-    if (editorRef.current) {
-      editorRef.current.focus();
-    }
-    restoreSelection();
 
     const targetAttr = linkNewTab ? ' target="_blank" rel="noopener noreferrer"' : '';
     const textToInsert = linkText.trim() || linkUrl.trim();
     const linkHtml = `<a href="${linkUrl.trim()}"${targetAttr} class="text-blue-600 underline font-semibold">${textToInsert}</a>`;
 
-    document.execCommand('insertHTML', false, linkHtml);
-    handleEditorInput();
+    insertHtmlIntoEditor(linkHtml);
     setShowLinkModal(false);
   };
 
-  // Insert Media from Centered Modal
+  // Insert Media
   const handleInsertMedia = () => {
     if (!mediaUrl.trim()) return;
 
@@ -264,22 +305,14 @@ export function RichTextEditor({
 
     const imgTag = `<figure class="my-4"><img src="${mediaUrl.trim()}" alt="${mediaAlt || 'Article illustration'}" class="${alignClass}" /><figcaption class="text-xs text-center text-muted-foreground mt-1.5 italic">${mediaAlt || ''}</figcaption></figure><p><br/></p>`;
 
-    if (mode === 'visual' && editorRef.current) {
-      editorRef.current.focus();
-      restoreSelection();
-      document.execCommand('insertHTML', false, imgTag);
-      handleEditorInput();
-    } else {
-      onChange((value || '') + '\n' + imgTag);
-    }
-
+    insertHtmlIntoEditor(imgTag);
     setMediaUrl('');
     setMediaAlt('');
     setShowMediaModal(false);
   };
 
   // ==========================================
-  // TABLE CREATION & MANIPULATION LOGIC
+  // TABLE CREATION & MANIPULATION
   // ==========================================
   const handleInsertTable = (e: React.FormEvent) => {
     e.preventDefault();
@@ -291,13 +324,13 @@ export function RichTextEditor({
     if (tableStyle === 'blue') styleClass += ' rich-table-blue-header';
     if (tableStyle === 'dark') styleClass += ' rich-table-dark-header';
 
-    let tableHtml = `<div class="rich-table-wrapper my-4 overflow-x-auto"><table class="${styleClass}" style="width: ${tableFullWidth ? '100%' : 'auto'}; border-collapse: collapse;">`;
+    let tableHtml = `<div class="rich-table-wrapper my-4 overflow-x-auto"><table class="${styleClass}" style="width: ${tableFullWidth ? '100%' : 'auto'}; border-collapse: collapse; border: 1px solid #cbd5e1;">`;
 
     // Header row
     if (tableHasHeader) {
-      tableHtml += '<thead><tr>';
+      tableHtml += '<thead><tr style="background-color: #f1f5f9;">';
       for (let c = 1; c <= cols; c++) {
-        tableHtml += `<th style="padding: 10px 14px; font-weight: 700;">Header ${c}</th>`;
+        tableHtml += `<th style="padding: 10px 14px; font-weight: 700; border: 1px solid #cbd5e1; text-align: left;">Header ${c}</th>`;
       }
       tableHtml += '</tr></thead>';
     }
@@ -308,34 +341,27 @@ export function RichTextEditor({
     for (let r = 1; r <= bodyRowCount; r++) {
       tableHtml += '<tr>';
       for (let c = 1; c <= cols; c++) {
-        tableHtml += `<td style="padding: 10px 14px;">Cell ${r}-${c}</td>`;
+        tableHtml += `<td style="padding: 10px 14px; border: 1px solid #cbd5e1;">Cell ${r}-${c}</td>`;
       }
       tableHtml += '</tr>';
     }
     tableHtml += '</tbody></table></div><p><br/></p>';
 
-    if (mode === 'visual' && editorRef.current) {
-      editorRef.current.focus();
-      restoreSelection();
-      document.execCommand('insertHTML', false, tableHtml);
-      handleEditorInput();
-    } else {
-      onChange((value || '') + '\n' + tableHtml);
-    }
-
+    insertHtmlIntoEditor(tableHtml);
     setShowTableModal(false);
   };
 
-  // Add Table Row (Above or Below)
+  // Add Table Row
   const handleAddTableRow = (pos: 'above' | 'below') => {
     const info = activeTableInfo;
     if (!info) return;
-    const { row, table } = info;
+    const { row } = info;
     const colCount = row.cells.length || 1;
     const newRow = document.createElement('tr');
     for (let i = 0; i < colCount; i++) {
       const td = document.createElement('td');
       td.style.padding = '10px 14px';
+      td.style.border = '1px solid #cbd5e1';
       td.innerHTML = '<br/>';
       newRow.appendChild(td);
     }
@@ -366,7 +392,7 @@ export function RichTextEditor({
     handleEditorInput();
   };
 
-  // Add Table Column (Left or Right)
+  // Add Table Column
   const handleAddTableCol = (pos: 'left' | 'right') => {
     const info = activeTableInfo;
     if (!info) return;
@@ -377,8 +403,10 @@ export function RichTextEditor({
       const isHeader = r.parentElement?.tagName.toLowerCase() === 'thead' || r.cells[0]?.tagName.toLowerCase() === 'th';
       const cell = document.createElement(isHeader ? 'th' : 'td');
       cell.style.padding = '10px 14px';
+      cell.style.border = '1px solid #cbd5e1';
       if (isHeader) {
         cell.style.fontWeight = '700';
+        cell.style.textAlign = 'left';
         cell.innerHTML = 'New Header';
       } else {
         cell.innerHTML = '<br/>';
@@ -495,7 +523,7 @@ export function RichTextEditor({
 
     const borderStyle = buttonPreset === 'outline' ? '2px solid #2563eb' : 'none';
 
-    const btnAnchor = `<a href="${buttonUrl.trim()}"${targetAttr} class="rich-btn ${radiusClass}" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; background-color: ${buttonBgColor}; color: ${buttonTextColor} !important; padding: ${padding}; font-size: ${fontSize}; font-weight: 700; text-decoration: none; border-radius: ${borderRadius}; border: ${borderStyle}; cursor: pointer; text-align: center;">${
+    const btnAnchor = `<a href="${buttonUrl.trim()}"${targetAttr} class="rich-btn ${radiusClass}" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; background-color: ${buttonBgColor}; color: ${buttonTextColor} !important; padding: ${padding}; font-size: ${fontSize}; font-weight: 700; text-decoration: none; border-radius: ${borderRadius}; border: ${borderStyle}; cursor: pointer; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">${
       buttonIcon === 'cart' || buttonIcon === 'sparkle' ? iconMarkup : ''
     }<span>${buttonText.trim() || 'Click Here'}</span>${
       buttonIcon === 'external' || buttonIcon === 'arrow' ? iconMarkup : ''
@@ -509,7 +537,7 @@ export function RichTextEditor({
       return `<div class="rich-btn-wrapper my-3" style="text-align: center;">${btnAnchor}</div><p><br/></p>`;
     }
     if (buttonAlign === 'full') {
-      return `<div class="rich-btn-wrapper my-3" style="width: 100%;"><a href="${buttonUrl.trim()}"${targetAttr} class="rich-btn ${radiusClass}" style="display: flex; width: 100%; align-items: center; justify-content: center; gap: 6px; background-color: ${buttonBgColor}; color: ${buttonTextColor} !important; padding: ${padding}; font-size: ${fontSize}; font-weight: 700; text-decoration: none; border-radius: ${borderRadius}; border: ${borderStyle}; cursor: pointer; text-align: center;">${
+      return `<div class="rich-btn-wrapper my-3" style="width: 100%;"><a href="${buttonUrl.trim()}"${targetAttr} class="rich-btn ${radiusClass}" style="display: flex; width: 100%; align-items: center; justify-content: center; gap: 6px; background-color: ${buttonBgColor}; color: ${buttonTextColor} !important; padding: ${padding}; font-size: ${fontSize}; font-weight: 700; text-decoration: none; border-radius: ${borderRadius}; border: ${borderStyle}; cursor: pointer; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">${
         buttonIcon === 'cart' || buttonIcon === 'sparkle' ? iconMarkup : ''
       }<span>${buttonText.trim() || 'Click Here'}</span>${
         buttonIcon === 'external' || buttonIcon === 'arrow' ? iconMarkup : ''
@@ -524,25 +552,34 @@ export function RichTextEditor({
 
     const btnHtml = generateButtonHtml();
 
-    if (mode === 'visual' && editorRef.current) {
-      editorRef.current.focus();
-
-      // Check if target was inside a table cell
-      if (savedTargetCellRef.current && editorRef.current.contains(savedTargetCellRef.current)) {
-        const cell = savedTargetCellRef.current;
-        if (cell.innerHTML === '<br>' || cell.innerHTML === '<br/>' || !cell.textContent?.trim()) {
-          cell.innerHTML = btnHtml;
-        } else {
-          cell.insertAdjacentHTML('beforeend', '&nbsp;' + btnHtml);
-        }
-        handleEditorInput();
-      } else {
-        restoreSelection();
-        document.execCommand('insertHTML', false, btnHtml);
-        handleEditorInput();
-      }
-    } else {
+    if (mode === 'text') {
       onChange((value || '') + '\n' + btnHtml);
+      setShowButtonModal(false);
+      return;
+    }
+
+    if (!editorRef.current) return;
+    editorRef.current.focus();
+
+    // Check if target was inside a table cell
+    if (savedTargetCellRef.current && editorRef.current.contains(savedTargetCellRef.current)) {
+      const cell = savedTargetCellRef.current;
+      const currentText = cell.textContent?.trim() || '';
+      if (
+        cell.innerHTML === '<br>' ||
+        cell.innerHTML === '<br/>' ||
+        !currentText ||
+        /^Cell\s+\d+-\d+$/i.test(currentText)
+      ) {
+        cell.innerHTML = btnHtml;
+      } else {
+        cell.insertAdjacentHTML('beforeend', '&nbsp;' + btnHtml);
+      }
+      isInternalUpdate.current = true;
+      onChange(editorRef.current.innerHTML);
+      updateTableContext();
+    } else {
+      insertHtmlIntoEditor(btnHtml);
     }
 
     savedTargetCellRef.current = null;
@@ -551,9 +588,11 @@ export function RichTextEditor({
 
   return (
     <div className="border border-border bg-card shadow-xs">
-      {/* Divi / WordPress Top Bar: Add Media Button + Tabs */}
+      {/* ======================================================== */}
+      {/* TOP HEADER: Insert Block Tools + Visual / Text Tabs      */}
+      {/* ======================================================== */}
       <div className="flex flex-wrap items-center justify-between gap-2 p-2 bg-slate-100 dark:bg-slate-900 border-b border-border">
-        {/* Left: Add Media Button */}
+        {/* Left: Add Media, Insert Table, Insert CTA Button (All in ONE clear place!) */}
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -567,7 +606,7 @@ export function RichTextEditor({
             <span>Add Media</span>
           </button>
 
-          {/* Table Trigger Button in Top Header */}
+          {/* Table Trigger Button */}
           <button
             type="button"
             onClick={() => {
@@ -581,7 +620,7 @@ export function RichTextEditor({
             <span>Insert Table</span>
           </button>
 
-          {/* Button Trigger in Top Header */}
+          {/* Button Trigger */}
           <button
             type="button"
             onClick={() => {
@@ -630,10 +669,12 @@ export function RichTextEditor({
         </div>
       </div>
 
-      {/* Visual Toolbar (Shown only in Visual Mode) */}
+      {/* ======================================================== */}
+      {/* TEXT FORMATTING TOOLBAR (Visual Mode only)               */}
+      {/* ======================================================== */}
       {mode === 'visual' && (
         <div className="flex flex-wrap items-center gap-1 p-2 bg-slate-50 dark:bg-slate-900/50 border-b border-border text-foreground">
-          {/* Custom Heading / Paragraph Dropdown Menu */}
+          {/* Paragraph / Heading Dropdown */}
           <div className="relative">
             <button
               type="button"
@@ -831,7 +872,7 @@ export function RichTextEditor({
 
           <div className="h-4 w-px bg-border mx-1" />
 
-          {/* Color Picker Toggle & Hex-only Box */}
+          {/* Color Picker Toggle */}
           <div className="relative">
             <button
               type="button"
@@ -860,7 +901,6 @@ export function RichTextEditor({
                   if (editorRef.current) {
                     editorRef.current.focus();
                   }
-                  restoreSelection();
                   exec('foreColor', hex);
                   setShowColorPicker(false);
                 }}
@@ -895,43 +935,6 @@ export function RichTextEditor({
 
           <div className="h-4 w-px bg-border mx-1" />
 
-          {/* Table Modal Trigger Button */}
-          <button
-            type="button"
-            onMouseDown={(e) => {
-              e.preventDefault();
-              saveSelection();
-              setShowTableModal(true);
-            }}
-            className="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-950/60 text-blue-600 flex items-center gap-1 font-bold text-xs border border-transparent hover:border-blue-300 dark:hover:border-blue-800 cursor-pointer"
-            title="Create Custom Table"
-          >
-            <TableIcon className="w-3.5 h-3.5" />
-            <span>Table</span>
-          </button>
-
-          {/* Button (CTA) Modal Trigger Button */}
-          <button
-            type="button"
-            onMouseDown={(e) => {
-              e.preventDefault();
-              saveSelection();
-              savedTargetCellRef.current = getActiveTableCell();
-              if (typeof window !== 'undefined') {
-                const str = window.getSelection()?.toString();
-                if (str && str.trim()) setButtonText(str.trim());
-              }
-              setShowButtonModal(true);
-            }}
-            className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 text-emerald-600 flex items-center gap-1 font-bold text-xs border border-transparent hover:border-emerald-300 dark:hover:border-emerald-800 cursor-pointer"
-            title="Insert CTA Button"
-          >
-            <MousePointerClick className="w-3.5 h-3.5" />
-            <span>Button</span>
-          </button>
-
-          <div className="h-4 w-px bg-border mx-1" />
-
           {/* Undo / Redo */}
           <button
             type="button"
@@ -958,7 +961,9 @@ export function RichTextEditor({
         </div>
       )}
 
-      {/* Contextual Table Helper Bar (Appears when cursor is clicked inside any table cell) */}
+      {/* ======================================================== */}
+      {/* CONTEXTUAL TABLE BAR (When cursor is inside table cell)  */}
+      {/* ======================================================== */}
       {mode === 'visual' && activeTableInfo && (
         <div className="flex flex-wrap items-center gap-2 px-3 py-1.5 bg-blue-50/90 dark:bg-blue-950/80 border-b border-blue-200 dark:border-blue-900/60 text-xs animate-in fade-in">
           <div className="flex items-center gap-1 font-bold text-blue-700 dark:text-blue-300 text-[11px] mr-1">
@@ -1072,7 +1077,9 @@ export function RichTextEditor({
         </div>
       )}
 
-      {/* Editor Content Area */}
+      {/* ======================================================== */}
+      {/* EDITOR CONTENT AREA (contentEditable / textarea)         */}
+      {/* ======================================================== */}
       {mode === 'visual' ? (
         <div
           ref={editorRef}
@@ -1105,7 +1112,7 @@ export function RichTextEditor({
       )}
 
       {/* ======================================================== */}
-      {/* 1. TABLE CREATION & SETTINGS MODAL */}
+      {/* 1. TABLE CREATION & SETTINGS MODAL                       */}
       {/* ======================================================== */}
       {showTableModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
@@ -1206,10 +1213,10 @@ export function RichTextEditor({
                 </label>
               </div>
 
-              {/* Preview */}
+              {/* Preview Info */}
               <div className="p-3 bg-muted/40 border border-border space-y-1.5">
                 <div className="text-[11px] font-bold text-muted-foreground flex items-center justify-between">
-                  <span>Layout Preview:</span>
+                  <span>Layout Info:</span>
                   <span>{tableRows} Rows &times; {tableCols} Columns</span>
                 </div>
                 <div className="text-[10px] text-muted-foreground leading-relaxed">
@@ -1239,7 +1246,7 @@ export function RichTextEditor({
       )}
 
       {/* ======================================================== */}
-      {/* 2. CALL-TO-ACTION (CTA) BUTTON MODAL */}
+      {/* 2. CALL-TO-ACTION (CTA) BUTTON MODAL                     */}
       {/* ======================================================== */}
       {showButtonModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
@@ -1379,9 +1386,8 @@ export function RichTextEditor({
                 )}
               </div>
 
-              {/* Size, Corners, and Alignment in 3 Columns */}
+              {/* Size, Corners, and Alignment */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {/* Size */}
                 <div>
                   <label className="block font-bold text-foreground mb-1">Button Size</label>
                   <select
@@ -1395,7 +1401,6 @@ export function RichTextEditor({
                   </select>
                 </div>
 
-                {/* Corners */}
                 <div>
                   <label className="block font-bold text-foreground mb-1">Corner Style</label>
                   <select
@@ -1409,7 +1414,6 @@ export function RichTextEditor({
                   </select>
                 </div>
 
-                {/* Icon */}
                 <div>
                   <label className="block font-bold text-foreground mb-1">Button Icon</label>
                   <select
@@ -1523,7 +1527,7 @@ export function RichTextEditor({
       )}
 
       {/* ======================================================== */}
-      {/* 3. LINK MODAL */}
+      {/* 3. LINK MODAL                                            */}
       {/* ======================================================== */}
       {showLinkModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
@@ -1606,7 +1610,7 @@ export function RichTextEditor({
       )}
 
       {/* ======================================================== */}
-      {/* 4. ADD MEDIA MODAL */}
+      {/* 4. ADD MEDIA MODAL                                       */}
       {/* ======================================================== */}
       {showMediaModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
