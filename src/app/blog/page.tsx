@@ -28,14 +28,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export const revalidate = 30;
 
-interface BlogListingPageProps {
-  searchParams?: Promise<{ category?: string; cat?: string }>;
-}
-
-export default async function BlogListingPage({ searchParams }: BlogListingPageProps) {
-  const resolvedSearchParams = searchParams ? await searchParams : {};
-  const initialCategory = resolvedSearchParams?.category || resolvedSearchParams?.cat || 'all';
-
+export default async function BlogListingPage() {
   const posts = await getServerBlogs();
   const categories = await getServerBlogCategories();
   const firstPostImage = posts.length > 0 && posts[0].imageUrl ? optimizeImageUrl(posts[0].imageUrl, 640) : null;
@@ -64,7 +57,6 @@ export default async function BlogListingPage({ searchParams }: BlogListingPageP
         <BlogListClient
           initialPosts={posts}
           initialCategories={categories}
-          initialCategory={initialCategory}
         />
       </React.Suspense>
     </div>
