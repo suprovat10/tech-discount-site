@@ -25,6 +25,8 @@ interface ProductPageProps {
   }>;
 }
 
+import { buildOpenGraphImages } from '@/lib/seo/metadata';
+
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
   const settings = await getServerSettings();
@@ -50,7 +52,13 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     `Compare verified prices for ${product.title}. Lowest live price is $${product.lowestPrice}${
       product.maxSavingsPercentage && product.maxSavingsPercentage > 0 ? ` (Save ${product.maxSavingsPercentage}% OFF)` : ''
     }. Check stock and offers from top US retailers.`;
-  const ogImage = product.seo?.ogImageUrl || product.imageUrl;
+  const rawOgImage = product.seo?.ogImageUrl || product.imageUrl || product.images?.[0];
+  const ogData = buildOpenGraphImages(
+    rawOgImage,
+    siteUrl,
+    settings.ogImageUrl || `${siteUrl}/hero.webp`,
+    product.seo?.ogImageAlt || product.imageAlt || product.title
+  );
   const productUrl = `${siteUrl}/product/${product.slug}`;
 
   return {
@@ -66,18 +74,13 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
       siteName: brand,
       locale: 'en_US',
       type: 'website',
-      images: [
-        {
-          url: ogImage,
-          alt: product.seo?.ogImageAlt || product.imageAlt || product.title,
-        },
-      ],
+      images: ogData.images,
     },
     twitter: {
       card: 'summary_large_image',
       title: metaTitle,
       description: metaDescription,
-      images: [ogImage],
+      images: ogData.twitterImages,
     },
   };
 }

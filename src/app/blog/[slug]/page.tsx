@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { getServerSettings } from '@/lib/settingsServer';
 import { getServerBlogs, getServerBlogBySlug } from '@/lib/blogServer';
 import { BlogDetailClient } from './BlogDetailClient';
+import { buildOpenGraphImages } from '@/lib/seo/metadata';
 
 export const revalidate = 30;
 
@@ -52,8 +53,12 @@ export async function generateMetadata({ params }: BlogDetailProps): Promise<Met
     ? post.seo.keywords.split(',').map((k) => k.trim()).filter(Boolean)
     : post.tags;
 
-  const socialImgUrl = post.seo?.ogImageUrl || post.imageUrl || settings.ogImageUrl || '';
-  const socialImgAlt = post.seo?.ogImageAlt || post.imageAlt || post.title;
+  const ogData = buildOpenGraphImages(
+    post.seo?.ogImageUrl || post.imageUrl,
+    siteUrl,
+    settings.ogImageUrl || `${siteUrl}/hero.webp`,
+    post.seo?.ogImageAlt || post.imageAlt || post.title
+  );
 
   return {
     title: metaTitle,
@@ -76,13 +81,13 @@ export async function generateMetadata({ params }: BlogDetailProps): Promise<Met
           return undefined;
         }
       })(),
-      images: socialImgUrl ? [{ url: socialImgUrl, alt: socialImgAlt }] : [],
+      images: ogData.images,
     },
     twitter: {
       card: 'summary_large_image',
       title: post.seo?.metaTitle || post.title,
       description: metaDescription,
-      images: socialImgUrl ? [socialImgUrl] : [],
+      images: ogData.twitterImages,
     },
   };
 }

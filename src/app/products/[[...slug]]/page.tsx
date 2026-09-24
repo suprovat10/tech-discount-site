@@ -8,6 +8,7 @@ import { getDatabaseCategories } from '@/lib/categoryServer';
 import { getDatabaseProducts } from '@/lib/catalogDb';
 import { transformCatalogItemToUnified } from '@/lib/adapters';
 import { UnifiedProduct } from '@/types/product';
+import { buildOpenGraphImages } from '@/lib/seo/metadata';
 
 export const revalidate = 30;
 
@@ -89,6 +90,8 @@ export async function generateMetadata({ params }: ProductsPageProps): Promise<M
   }
 
   const fullCanonicalUrl = canonicalPath.startsWith('http') ? canonicalPath : `${siteUrl}${canonicalPath}`;
+  const fallbackOg = settings.ogImageUrl || `${siteUrl}/hero.webp`;
+  const ogData = buildOpenGraphImages(ogImageUrl, siteUrl, fallbackOg, title);
 
   return {
     title,
@@ -106,7 +109,15 @@ export async function generateMetadata({ params }: ProductsPageProps): Promise<M
       description,
       url: fullCanonicalUrl,
       siteName: brand,
-      images: ogImageUrl ? [{ url: ogImageUrl }] : undefined,
+      locale: 'en_US',
+      type: 'website',
+      images: ogData.images,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: ogData.twitterImages,
     },
   };
 }

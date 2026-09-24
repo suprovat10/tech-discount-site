@@ -5,6 +5,7 @@ import { getServerSettings } from '@/lib/settingsServer';
 import { slugifyTag } from '@/lib/productTagStore';
 import { optimizeImageUrl } from '@/lib/imageOptimization';
 import { BlogTagClient } from './BlogTagClient';
+import { buildOpenGraphImages } from '@/lib/seo/metadata';
 
 export const revalidate = 30;
 export const dynamicParams = true;
@@ -45,6 +46,15 @@ export async function generateMetadata({ params }: BlogTagPageProps): Promise<Me
   const tagName = cleanSlug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
   const tagUrl = `${siteUrl}/blog/tag/${cleanSlug}`;
 
+  const allPosts = await getServerBlogs();
+  const firstPost = allPosts.find((p) => p.tags?.some((t) => slugifyTag(t) === cleanSlug));
+  const ogData = buildOpenGraphImages(
+    firstPost?.imageUrl,
+    siteUrl,
+    settings.ogImageUrl || `${siteUrl}/hero.webp`,
+    tagName
+  );
+
   return {
     title: `${tagName} - Tech Guides & Articles | ${brand}`,
     description: `Read in-depth tech buying guides, price drop reviews, and analysis tagged with #${tagName}. Compare deals and make smart purchasing decisions.`,
@@ -60,6 +70,15 @@ export async function generateMetadata({ params }: BlogTagPageProps): Promise<Me
       description: `Expert articles and deal reviews tagged with #${tagName}.`,
       url: tagUrl,
       siteName: brand,
+      locale: 'en_US',
+      type: 'website',
+      images: ogData.images,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${tagName} Tech Articles & Guides | ${brand}`,
+      description: `Expert articles and deal reviews tagged with #${tagName}.`,
+      images: ogData.twitterImages,
     },
   };
 }

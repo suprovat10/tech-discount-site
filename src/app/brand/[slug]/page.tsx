@@ -19,6 +19,7 @@ interface BrandPageProps {
 
 import { getServerSettings } from '@/lib/settingsServer';
 import { getDatabaseBrands } from '@/lib/brandServer';
+import { buildOpenGraphImages } from '@/lib/seo/metadata';
 
 export async function generateMetadata({ params }: BrandPageProps): Promise<Metadata> {
   const { slug } = await params;
@@ -41,7 +42,12 @@ export async function generateMetadata({ params }: BrandPageProps): Promise<Meta
     `Compare live prices on all ${brandName} electronics and gadgets across Amazon, Walmart, Best Buy, and Target.`;
   const keywords = brand?.seo?.keywords ? brand.seo.keywords.split(',').map((k) => k.trim()) : undefined;
   const isNoIndex = Boolean(brand?.seo?.noIndex);
-  const ogImageUrl = brand?.seo?.ogImageUrl || brand?.logoUrl;
+  const ogData = buildOpenGraphImages(
+    brand?.seo?.ogImageUrl || brand?.logoUrl,
+    siteUrl,
+    settings.ogImageUrl || `${siteUrl}/hero.webp`,
+    brandName
+  );
 
   return {
     title,
@@ -59,7 +65,15 @@ export async function generateMetadata({ params }: BrandPageProps): Promise<Meta
       description,
       url: fullCanonicalUrl,
       siteName: siteBrand,
-      images: ogImageUrl ? [{ url: ogImageUrl }] : undefined,
+      locale: 'en_US',
+      type: 'website',
+      images: ogData.images,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: ogData.twitterImages,
     },
   };
 }

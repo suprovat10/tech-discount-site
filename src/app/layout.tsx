@@ -5,6 +5,8 @@ import { getServerSettings } from '@/lib/settingsServer';
 import { generateWebsiteJsonLd, generateOrganizationJsonLd } from '@/lib/seo/jsonld';
 import { StoreLayoutWrapper } from '@/components/common/StoreLayoutWrapper';
 
+import { buildOpenGraphImages } from '@/lib/seo/metadata';
+
 export async function generateMetadata(): Promise<Metadata> {
   // Use cached version — avoids extra MongoDB round-trip on every request
   const settings = await getServerSettings();
@@ -19,10 +21,12 @@ export async function generateMetadata(): Promise<Metadata> {
     .map((k) => k.trim())
     .filter(Boolean);
 
-  const ogImg =
+  const rawOgImg =
     settings.ogImageUrl && !settings.ogImageUrl.includes('photo-1519389950473-47ba0277781c')
       ? settings.ogImageUrl
       : 'https://res.cloudinary.com/koayelts/image/upload/f_auto,q_auto,w_1600,c_limit/v1790111032/techpricedrop/branding/uc66jnomvw4tnewyy2mq.jpg';
+
+  const ogData = buildOpenGraphImages(rawOgImg, siteUrl, `${siteUrl}/hero.webp`, title);
 
   const verification: Record<string, any> = {};
   if (settings.googleSiteVerification) {
@@ -67,22 +71,13 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: brand,
       locale: 'en_US',
       type: 'website',
-      images: [
-        {
-          url: ogImg,
-          secureUrl: ogImg,
-          width: 1200,
-          height: 630,
-          alt: title,
-          type: 'image/jpeg',
-        },
-      ],
+      images: ogData.images,
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: [ogImg],
+      images: ogData.twitterImages,
     },
     icons: {
       icon: settings.faviconUrl || '/favicon-techpricedrop.png',
@@ -113,10 +108,8 @@ export default async function RootLayout({
   const websiteJsonLd = generateWebsiteJsonLd(siteUrl, brand);
   const orgJsonLd = generateOrganizationJsonLd(siteUrl, brand, logoUrl, socials);
 
-  const gtmId = settings.googleTagManagerId?.trim();
   const gaId = settings.googleAnalyticsId?.trim();
   const fbPixelId = settings.facebookPixelId?.trim();
-  const tiktokPixelId = settings.tiktokPixelId?.trim();
   const adsenseId = settings.googleAdSenseId?.trim();
   const globalAdHeaderCode = settings.globalAdHeaderCode?.trim();
 
@@ -169,21 +162,6 @@ export default async function RootLayout({
             id="global-ad-header-code"
             style={{ display: 'none' }}
             dangerouslySetInnerHTML={{ __html: globalAdHeaderCode }}
-          />
-        )}
-
-        {/* Google Tag Manager (Head script) - Deferred with lazyOnload */}
-        {gtmId && (
-          <Script
-            id="gtm-script"
-            strategy="lazyOnload"
-            dangerouslySetInnerHTML={{
-              __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','${gtmId}');`,
-            }}
           />
         )}
 
@@ -243,35 +221,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
               `,
             }}
           />
-        )}
-
-        {/* TikTok Pixel - Deferred with lazyOnload */}
-        {tiktokPixelId && (
-          <Script
-            id="tiktok-pixel"
-            strategy="lazyOnload"
-            dangerouslySetInnerHTML={{
-              __html: `
-                !function (w, d, t) {
-                  w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=i,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};var o=d.createElement("script");o.type="text/javascript",o.async=!0,o.src=i+"?sdkid="+e+"&lib="+t;var a=d.getElementsByTagName("script")[0];a.parentNode.insertBefore(o,a)};
-                  ttq.load('${tiktokPixelId}');
-                  ttq.page();
-                }(window, document, 'ttq');
-              `,
-            }}
-          />
-        )}
-
-        {/* Google Tag Manager (Noscript) */}
-        {gtmId && (
-          <noscript>
-            <iframe
-              src={`https://www.googletagmanager.com/ns.html?id=${gtmId}`}
-              height="0"
-              width="0"
-              style={{ display: 'none', visibility: 'hidden' }}
-            />
-          </noscript>
         )}
 
         <StoreLayoutWrapper>{children}</StoreLayoutWrapper>

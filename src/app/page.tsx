@@ -13,6 +13,7 @@ import { ArrowRight } from 'lucide-react';
 import { getServerSettings } from '@/lib/settingsServer';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { optimizeImageUrl, getHeroSrcSet, getHeroSizes } from '@/lib/imageOptimization';
+import { buildOpenGraphImages } from '@/lib/seo/metadata';
 
 // Below-fold components — code-split with next/dynamic to reduce initial JS chunk
 const BrandShowcaseSection = dynamic(() => import('@/components/home/BrandShowcaseSection').then(m => ({ default: m.BrandShowcaseSection })));
@@ -29,10 +30,12 @@ export async function generateMetadata(): Promise<Metadata> {
   const description =
     settings.metaDescription ||
     'Find the lowest prices and best discounts on tech gadgets, laptops, smartphones, and accessories across major US retailers.';
-  const ogImg =
+  const rawOgImg =
     settings.ogImageUrl && !settings.ogImageUrl.includes('photo-1519389950473-47ba0277781c')
       ? settings.ogImageUrl
       : 'https://res.cloudinary.com/koayelts/image/upload/f_auto,q_auto,w_1600,c_limit/v1790111032/techpricedrop/branding/uc66jnomvw4tnewyy2mq.jpg';
+
+  const ogData = buildOpenGraphImages(rawOgImg, siteUrl, `${siteUrl}/hero.webp`, title);
 
   return {
     metadataBase: new URL(siteUrl),
@@ -48,22 +51,13 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: brand,
       locale: 'en_US',
       type: 'website',
-      images: [
-        {
-          url: ogImg,
-          secureUrl: ogImg,
-          width: 1200,
-          height: 630,
-          alt: title,
-          type: 'image/jpeg',
-        },
-      ],
+      images: ogData.images,
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: [ogImg],
+      images: ogData.twitterImages,
     },
   };
 }

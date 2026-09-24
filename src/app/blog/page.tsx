@@ -6,22 +6,41 @@ import { getServerSettings } from '@/lib/settingsServer';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { optimizeImageUrl } from '@/lib/imageOptimization';
 
+import { buildOpenGraphImages } from '@/lib/seo/metadata';
+
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getServerSettings();
   const brand = settings.siteBrandName || 'TechPriceDrop';
   const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
+  const title = `Tech Buying Guides & Price Analysis Blog | ${brand}`;
+  const description = `In-depth price comparisons, tech buying guides, and electronics deal reviews across US retailers like Amazon, Walmart, Best Buy, and Target.`;
+  const ogData = buildOpenGraphImages(
+    settings.ogImageUrl,
+    siteUrl,
+    `${siteUrl}/hero.webp`,
+    title
+  );
 
   return {
-    title: `Tech Buying Guides & Price Analysis Blog | ${brand}`,
-    description: `In-depth price comparisons, tech buying guides, and electronics deal reviews across US retailers like Amazon, Walmart, Best Buy, and Target.`,
+    title,
+    description,
     alternates: {
       canonical: `${siteUrl}/blog`,
     },
     openGraph: {
       title: `Tech Buying Guides & Deal Reviews | ${brand}`,
-      description: `In-depth tech price comparisons and expert buying guides.`,
+      description,
       url: `${siteUrl}/blog`,
       siteName: brand,
+      locale: 'en_US',
+      type: 'website',
+      images: ogData.images,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `Tech Buying Guides & Deal Reviews | ${brand}`,
+      description,
+      images: ogData.twitterImages,
     },
   };
 }

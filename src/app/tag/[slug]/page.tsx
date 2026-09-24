@@ -7,6 +7,7 @@ import { transformCatalogItemToUnified } from '@/lib/productTransform';
 import { slugifyTag } from '@/lib/productTagStore';
 import { getServerSettings } from '@/lib/settingsServer';
 import { TagDetailClient } from './TagDetailClient';
+import { buildOpenGraphImages } from '@/lib/seo/metadata';
 
 export const revalidate = 30;
 export const dynamicParams = true;
@@ -67,6 +68,12 @@ export async function generateMetadata({ params }: TagPageProps): Promise<Metada
   const metaDesc = matchedTag?.seo?.metaDescription || matchedTag?.description || `Explore the best discounts, price drops, and verified multi-store deals for ${tagName}. Compare prices across top retailers.`;
   const keywords = matchedTag?.seo?.keywords ? matchedTag.seo.keywords.split(',').map((k) => k.trim()) : undefined;
   const isNoIndex = Boolean(matchedTag?.seo?.noIndex);
+  const ogData = buildOpenGraphImages(
+    matchedTag?.seo?.ogImageUrl,
+    siteUrl,
+    settings.ogImageUrl || `${siteUrl}/hero.webp`,
+    tagName
+  );
 
   return {
     title: metaTitle,
@@ -84,7 +91,15 @@ export async function generateMetadata({ params }: TagPageProps): Promise<Metada
       description: metaDesc,
       url: tagUrl,
       siteName: siteBrand,
-      images: matchedTag?.seo?.ogImageUrl ? [{ url: matchedTag.seo.ogImageUrl }] : undefined,
+      locale: 'en_US',
+      type: 'website',
+      images: ogData.images,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: metaTitle,
+      description: metaDesc,
+      images: ogData.twitterImages,
     },
   };
 }

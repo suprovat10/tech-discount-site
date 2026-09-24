@@ -6,22 +6,41 @@ import { DEFAULT_COUPONS, CouponItem } from '@/data/coupons';
 
 export const revalidate = 30;
 
+import { buildOpenGraphImages } from '@/lib/seo/metadata';
+
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getServerSettings();
   const brand = settings.siteBrandName || 'TechPriceDrop';
   const siteUrl = settings.canonicalUrl || 'https://www.techpricedrop.com';
+  const title = `Verified Tech Coupons & Promo Codes | ${brand}`;
+  const description = `Save with verified working discount codes, promo codes, and special tech deals across Amazon, Best Buy, Walmart, Target, and leading tech stores.`;
+  const ogData = buildOpenGraphImages(
+    settings.ogImageUrl,
+    siteUrl,
+    `${siteUrl}/hero.webp`,
+    title
+  );
 
   return {
-    title: `Verified Tech Coupons & Promo Codes | ${brand}`,
-    description: `Save with verified working discount codes, promo codes, and special tech deals across Amazon, Best Buy, Walmart, Target, and leading tech stores.`,
+    title,
+    description,
     alternates: {
       canonical: `${siteUrl}/coupons`,
     },
     openGraph: {
-      title: `Verified Tech Coupons & Promo Codes | ${brand}`,
-      description: `Save with verified working promo codes and discounts across Amazon, Best Buy, Walmart, and Target.`,
+      title,
+      description,
       url: `${siteUrl}/coupons`,
       siteName: brand,
+      locale: 'en_US',
+      type: 'website',
+      images: ogData.images,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: ogData.twitterImages,
     },
   };
 }
